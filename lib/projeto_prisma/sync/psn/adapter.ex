@@ -66,17 +66,6 @@ defmodule ProjetoPrisma.Sync.Psn.Adapter do
         nil -> %{}
         trophy -> trophy
       end
-    # Converte a data
-    unlock_time =
-      case player_trophy["earnedDateTime"] do
-        nil ->
-          nil
-        timestamp_str ->
-          case DateTime.from_iso8601(timestamp_str) do
-            {:ok, datetime, _offset} -> datetime
-            {:error, _} -> nil
-          end
-      end
     %{
       external_achievement_id: to_string(npCommunicationId),
       name: detail_trophy["trophyName"] || "",
@@ -84,7 +73,19 @@ defmodule ProjetoPrisma.Sync.Psn.Adapter do
       icon_image: detail_trophy["trophyIconUrl"],
       icon_locked_image: title["trophyTitleIconUrl"],
       achieved: player_trophy["earned"] == true,
-      unlock_time: unlock_time
+      unlock_time: parse_psn_datetime(player_trophy["earnedDateTime"])
     }
+  end
+
+  defp parse_psn_datetime(nil), do: nil
+  defp parse_psn_datetime(""), do: nil
+  defp parse_psn_datetime(value) when is_binary(value) do
+    value
+    |> String.replace(" ", "T")
+    |> NaiveDateTime.from_iso8601()
+    |> case do
+      {:ok, datetime} -> datetime
+      _ -> nil
+    end
   end
 end
