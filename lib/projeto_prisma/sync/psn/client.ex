@@ -10,7 +10,7 @@ defmodule ProjetoPrisma.Sync.Psn.Client do
     )
   end
 
-  def get_player_achievements(psn_id, access_token) do
+  def get_player_trophy_titles(psn_id, access_token) do
     Req.get("#{@base_url}/trophy/v1/users/#{psn_id}/trophyTitles",
       headers: [
         Authorization: "Bearer #{access_token}"
@@ -18,11 +18,16 @@ defmodule ProjetoPrisma.Sync.Psn.Client do
     )
   end
 
-  def get_detail_achievements(psn_id, npTitleId, access_token) do
-    Req.get("#{@base_url}/trophy/v1/users/#{psn_id}/titles/trophyTitles",
-      params: [
-        npTitleIds: npTitleId,
-      ],
+  def get_detail_achievement(npCommunicationId, access_token) do
+    Req.get("#{@base_url}/trophy/v1/npCommunicationIds/#{npCommunicationId}/trophyGroups/all/trophies",
+      headers: [
+        Authorization: "Bearer #{access_token}"
+      ]
+    )
+  end
+
+  def get_player_achievement(psn_id, npCommunicationId, access_token) do
+    Req.get("#{@base_url}/trophy/v1/users/#{psn_id}/npCommunicationIds/#{npCommunicationId}/trophyGroups/all/trophies",
       headers: [
         Authorization: "Bearer #{access_token}"
       ]
