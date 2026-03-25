@@ -1,0 +1,482 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@carly - Perfil - Prisma</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- CSS Modular -->
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/profile.css">
+</head>
+<body class="text-gray-100">
+    <!-- Prisma Background Effect -->
+    <div class="prisma-background">
+        <div class="light-beam beam-steam"></div>
+        <div class="light-beam beam-playstation"></div>
+        <div class="light-beam beam-xbox"></div>
+        <div class="light-beam beam-retro"></div>
+        <div class="prisma-core"></div>
+    </div>
+
+    <div class="content-layer min-h-screen">
+        <!-- Main Content -->
+        <div class="p-6 overflow-y-auto scrollbar-thin">
+            <div class="max-w-7xl mx-auto">
+                
+                <!-- Top Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Profile Card -->
+                    <div class="profile-card card p-6 lg:col-span-1">
+                        <div class="flex items-start space-x-4">
+                            <div class="relative">
+                                <img id="profileAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Carly&backgroundColor=c0aede" 
+                                     alt="Carly" 
+                                     class="w-20 h-20 rounded-full border-2 border-purple-400">
+                                <div class="online-indicator pulse"></div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <h2 id="profileUsername" class="text-2xl font-bold">@carly</h2>
+                                </div>
+                                <div class="flex items-center space-x-3 text-xs text-gray-400">
+                                    <span><strong class="text-white" id="followersCount">89</strong> Seguidores</span>
+                                    <span><strong class="text-white" id="followingCount">23</strong> Seguindo</span>
+                                </div>
+                                <button class="mt-3 px-4 py-1.5 bg-blue-500 hover:bg-blue-600 rounded-lg text-white text-sm font-medium transition-colors flex items-center gap-2" id="followBtn">
+                                    <i class="fas fa-user-plus"></i>
+                                    Seguir
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pinned Achievements -->
+                        <div class="mt-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Conquistas Fixadas</h3>
+                            </div>
+                            <div class="pinned-achievements">
+                                <div class="pinned-grid">
+                                    <div class="pinned-achievement">
+                                        <div class="achievement-icon">🎯</div>
+                                        <div class="achievement-name">Mestre Atirador</div>
+                                    </div>
+
+                                    <div class="pinned-achievement">
+                                        <div class="achievement-icon">👻</div>
+                                        <div class="achievement-name">Fantasma</div>
+                                    </div>
+
+                                    <div class="pinned-achievement">
+                                        <div class="achievement-icon">⚡</div>
+                                        <div class="achievement-name">Velocidade da Luz</div>
+                                    </div>
+
+                                    <div class="pinned-achievement">
+                                        <div class="achievement-icon">🏆</div>
+                                        <div class="achievement-name">Perfeição</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recently Played Game Card -->
+                    <div class="card p-0 lg:col-span-2 overflow-hidden recently-played-card">
+                        <div class="relative h-48" style="background: linear-gradient(to bottom, rgba(15, 20, 25, 0.3), rgba(15, 20, 25, 0.95)), url('https://cdn.akamai.steamstatic.com/steam/apps/730/library_hero.jpg?t=1698860631') center/cover;">
+                            <div class="absolute bottom-0 left-0 right-0 p-6">
+                                <div class="flex items-start space-x-4">
+                                    <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/730/capsule_184x69.jpg" 
+                                         alt="CS:GO" 
+                                         class="w-20 h-20 rounded border-2 border-gray-700 shadow-lg object-cover">
+                                    <div class="flex-1">
+                                        <h3 class="text-xl font-bold mb-2">Counter-Strike: Global Offensive</h3>
+                                        <div class="text-sm text-gray-300 mb-3">
+                                            <span class="font-semibold">845 horas registradas</span>
+                                        </div>
+                                        <div class="text-xs text-gray-400">
+                                            jogado pela última vez em 28 de out.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Achievements Preview Bar -->
+                        <div class="bg-gray-800/50 px-6 py-3 border-t border-gray-700/50">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-400 font-medium uppercase tracking-wider">Conquistas</span>
+                                <span class="text-xs text-gray-400">142 de 167</span>
+                            </div>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <div class="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" style="width: 85%;"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 1">
+                                    🎯
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 2">
+                                    💣
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 3">
+                                    🔫
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 4">
+                                    👑
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 5">
+                                    ⚡
+                                </div>
+                                <div class="flex items-center justify-center text-sm text-gray-400 font-semibold ml-2">
+                                    +137
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Platform Distribution Bar -->
+                <div class="card p-4 mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Distribuição de Troféus por Plataforma</h3>
+                    </div>
+                    <div class="flex h-3 rounded-full overflow-hidden">
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 20%; background-color: #0070CC;" 
+                             title="PlayStation - 20%"></div>
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 10%; background-color: #107C10;" 
+                             title="Xbox - 10%"></div>
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 60%; background-color: #66c0f4;" 
+                             title="Steam - 60%"></div>
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 10%; background-color: #D4A017;" 
+                             title="RetroAchievements - 10%"></div>
+                    </div>
+                    <!-- Desktop: show names + percent in grid; hide on mobile -->
+                    <div class="hidden md:grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #0070CC;"></div>
+                            <span class="text-xs text-gray-400">PlayStation <strong class="text-white">20%</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #107C10;"></div>
+                            <span class="text-xs text-gray-400">Xbox <strong class="text-white">10%</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #66c0f4;"></div>
+                            <span class="text-xs text-gray-400">Steam <strong class="text-white">60%</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #D4A017;"></div>
+                            <span class="text-xs text-gray-400">RetroAchievements <strong class="text-white">10%</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Mobile: icon-only circles; hidden on md+ -->
+                    <div class="platform-list flex items-center justify-between gap-4 mt-4 flex-wrap md:hidden">
+                        <div class="platform-item flex flex-col items-center text-center">
+                            <div class="platform-circle inline-flex items-center justify-center" style="background-color: #0070CC;">
+                                <i class="fab fa-playstation" aria-hidden="true"></i>
+                            </div>
+                            <span class="platform-percent text-xs text-gray-400 mt-2"><strong class="text-white">20%</strong></span>
+                        </div>
+                        <div class="platform-item flex flex-col items-center text-center">
+                            <div class="platform-circle inline-flex items-center justify-center" style="background-color: #107C10;">
+                                <i class="fab fa-xbox" aria-hidden="true"></i>
+                            </div>
+                            <span class="platform-percent text-xs text-gray-400 mt-2"><strong class="text-white">10%</strong></span>
+                        </div>
+                        <div class="platform-item flex flex-col items-center text-center">
+                            <div class="platform-circle inline-flex items-center justify-center" style="background-color: #66c0f4;">
+                                <i class="fab fa-steam" aria-hidden="true"></i>
+                            </div>
+                            <span class="platform-percent text-xs text-gray-400 mt-2"><strong class="text-white">60%</strong></span>
+                        </div>
+                        <div class="platform-item flex flex-col items-center text-center">
+                            <div class="platform-circle inline-flex items-center justify-center" style="background-color: #D4A017;">
+                                <i class="fas fa-gamepad" aria-hidden="true"></i>
+                            </div>
+                            <span class="platform-percent text-xs text-gray-400 mt-2"><strong class="text-white">10%</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Conquistas -->
+                    <div class="stat-card card p-6 text-center">
+                        <div class="stat-inner">
+                            <i class="fas fa-trophy trophy-icon stat-icon"></i>
+                            <div class="stat-content">
+                                <div class="stat-title text-gray-400 text-sm uppercase tracking-wide">Conquistas</div>
+                                <h3 class="stat-value text-4xl font-bold mb-1">2,847</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Média de Conclusão -->
+                    <div class="stat-card card p-6 text-center has-progress">
+                        <div class="stat-inner">
+                            <i class="fas fa-gamepad controller-icon stat-icon"></i>
+                            <div class="stat-content">
+                                <div class="stat-title text-gray-400 text-sm uppercase tracking-wide">Média de Conclusão</div>
+                                <div class="stat-value flex items-center justify-start md:justify-center gap-2 mb-1">
+                                    <h3 class="text-4xl font-bold gradient-text">34</h3>
+                                    <span class="text-2xl font-bold text-gray-400">%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-progress mt-3 w-full">
+                            <div class="progress-bar bg-gray-700 mx-auto" style="width: 80%;">
+                                <div class="progress-fill bg-gradient-to-r from-blue-500 to-blue-600" style="width: 34%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jogos Perfeitos -->
+                    <div class="stat-card card p-6 text-center">
+                        <div class="stat-inner">
+                            <i class="fas fa-users users-icon stat-icon"></i>
+                            <div class="stat-content">
+                                <div class="stat-title text-gray-400 text-sm uppercase tracking-wide">Jogos Perfeitos</div>
+                                <h3 class="stat-value text-4xl font-bold mb-1">8</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Games Section -->
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold">Jogos Recentes</h2>
+                    </div>
+
+                    <!-- Table Header -->
+                    <div class="hidden md:grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-700">
+                        <div class="col-span-3 table-header">Jogo</div>
+                        <div class="col-span-2 table-header">Conclusão</div>
+                        <div class="col-span-1 table-header">Conquistas</div>
+                        <div class="col-span-2 table-header">Tempo de Jogo</div>
+                        <div class="col-span-2 table-header">Último Desbloqueio</div>
+                        <div class="col-span-1 table-header">Última Vez Jogado</div>
+                        <div class="col-span-1 table-header">Plataforma</div>
+                    </div>
+
+                    <!-- Game Rows -->
+                    <div class="space-y-2 mt-2">
+                        <!-- CS:GO -->
+                        <div class="mobile-game-card md:hidden p-3 rounded-lg mb-2 bg-transparent">
+                            <div class="mobile-top-row flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=100&h=100&fit=crop" alt="CS:GO" class="w-12 h-12 rounded object-cover">
+                                <div class="mobile-meta flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="mobile-title font-semibold text-base">CS:GO</div>
+                                        <div class="mobile-trophies text-sm flex items-center gap-2"><i class="fas fa-trophy text-yellow-400"></i><span class="font-semibold">142 / 167</span></div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress-bar bg-gray-700 rounded-full overflow-hidden h-2">
+                                            <div class="progress-fill bg-emerald-500" style="width:85%"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs text-gray-400 mt-1">
+                                            <span>85%</span>
+                                            <span>2025-10-28</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mobile-meta-extra mt-2 text-xs text-gray-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold">845h 12m</div>
+                                    <div class="text-xs text-gray-500">Total 845h 12m</div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="platform-badge inline-block px-3 py-1 rounded text-xs bg-blue-700/30">Steam</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="game-row hidden md:grid md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=100&h=100&fit=crop" 
+                                     alt="CS:GO" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">CS:GO</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-emerald-600" style="width: 85%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">85%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 142 / 167</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>845h 12m</div>
+                                    <div class="text-gray-400 text-xs">Total 845h 12m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-10-28 21:15:42</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-10-28</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Steam</span>
+                            </div>
+                        </div>
+
+                        <!-- Valorant -->
+                        <div class="mobile-game-card md:hidden p-3 rounded-lg mb-2 bg-transparent">
+                            <div class="mobile-top-row flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=100&h=100&fit=crop" alt="Valorant" class="w-12 h-12 rounded object-cover">
+                                <div class="mobile-meta flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="mobile-title font-semibold text-base">Valorant</div>
+                                        <div class="mobile-trophies text-sm flex items-center gap-2"><i class="fas fa-trophy text-yellow-400"></i><span class="font-semibold">31 / 50</span></div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress-bar bg-gray-700 rounded-full overflow-hidden h-2">
+                                            <div class="progress-fill bg-emerald-500" style="width:62%"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs text-gray-400 mt-1">
+                                            <span>62%</span>
+                                            <span>2025-10-25</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mobile-meta-extra mt-2 text-xs text-gray-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold">234h 45m</div>
+                                    <div class="text-xs text-gray-500">Total 234h 45m</div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="platform-badge inline-block px-3 py-1 rounded text-xs bg-blue-700/30">Steam</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="game-row hidden md:grid md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=100&h=100&fit=crop" 
+                                     alt="Valorant" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Valorant</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-emerald-600" style="width: 62%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">62%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 31 / 50</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>234h 45m</div>
+                                    <div class="text-gray-400 text-xs">Total 234h 45m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-10-25 18:22:33</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-10-25</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Steam</span>
+                            </div>
+                        </div>
+
+                        <!-- Apex Legends -->
+                        <div class="mobile-game-card md:hidden p-3 rounded-lg mb-2 bg-transparent">
+                            <div class="mobile-top-row flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=100&h=100&fit=crop" alt="Apex Legends" class="w-12 h-12 rounded object-cover">
+                                <div class="mobile-meta flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="mobile-title font-semibold text-base">Apex Legends</div>
+                                        <div class="mobile-trophies text-sm flex items-center gap-2"><i class="fas fa-trophy text-yellow-400"></i><span class="font-semibold">48 / 100</span></div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress-bar bg-gray-700 rounded-full overflow-hidden h-2">
+                                            <div class="progress-fill bg-blue-500" style="width:48%"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs text-gray-400 mt-1">
+                                            <span>48%</span>
+                                            <span>2025-10-20</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mobile-meta-extra mt-2 text-xs text-gray-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold">156h 30m</div>
+                                    <div class="text-xs text-gray-500">Total 156h 30m</div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="platform-badge inline-block px-3 py-1 rounded text-xs bg-blue-700/30">Steam</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="game-row hidden md:grid md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=100&h=100&fit=crop" 
+                                     alt="Apex Legends" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Apex Legends</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-blue-500 to-blue-600" style="width: 48%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">48%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 48 / 100</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>156h 30m</div>
+                                    <div class="text-gray-400 text-xs">Total 156h 30m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-10-20 14:55:12</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-10-20</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Steam</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- JavaScript Modular -->
+    <script src="js/global.js"></script>
+    <script src="js/profile.js"></script>
+</body>
+</html>
+

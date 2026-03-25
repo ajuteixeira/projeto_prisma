@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - Prisma</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- CSS Modular -->
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/modals.css">
+</head>
+<body class="text-gray-100">
+    <!-- Prisma Background Effect -->
+    <div class="prisma-background">
+        <div class="light-beam beam-steam"></div>
+        <div class="light-beam beam-playstation"></div>
+        <div class="light-beam beam-xbox"></div>
+        <div class="light-beam beam-retro"></div>
+        <div class="prisma-core"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-icon" onclick="window.location.href='dashboard.html'">
+            <i class="fas fa-gamepad"></i>
+        </div>
+        <div class="sidebar-icon" onclick="window.location.href='ranking.html'">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <div class="sidebar-icon" onclick="window.location.href='followers.html'">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="flex-1"></div>
+        <div class="sidebar-icon active">
+            <i class="fas fa-cog"></i>
+        </div>
+    </div>
+
+    <div class="content-layer min-h-screen">
+        <!-- Main Content -->
+        <div class="p-6 md:ml-14 overflow-y-auto scrollbar-thin">
+            <div class="max-w-7xl mx-auto">
+                
+                <!-- Settings Page -->
+                <div class="settings-page">
+                    <div class="settings-header">
+                        <i class="fas fa-cog"></i>
+                        <h1>Configurações</h1>
+                    </div>
+
+                    <!-- Logout Card -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <div class="settings-card-icon logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </div>
+                            <h3>Deslogar conta</h3>
+                        </div>
+                        <p>Encerre sua sessão em todos os dispositivos conectados. Você precisará fazer login novamente.</p>
+                        <button class="btn-logout">Sair</button>
+                    </div>
+
+                    <!-- Delete Account Card -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <div class="settings-card-icon delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </div>
+                            <h3>Excluir conta permanentemente</h3>
+                        </div>
+                        <p>Esta ação é irreversível. Todos os seus dados, conquistas e progresso serão apagados desta plataforma.</p>
+                        <button class="btn-delete">Excluir</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Success Modal -->
+    <div id="logoutModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50" style="display: none;">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-12 max-w-md w-full mx-4 shadow-2xl border border-gray-700/50 text-center">
+            <h2 class="text-3xl font-bold text-white mb-4">Logout Realizado com Sucesso!</h2>
+            <p class="text-gray-300 mb-3">Você foi desconectado(a) da Plataforma Moderna.</p>
+            <p class="text-gray-400 text-sm mb-8">Sua sessão foi encerrada por segurança.</p>
+            <button onclick="confirmLogout()" class="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold text-lg rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                Entrar Novamente
+            </button>
+        </div>
+    </div>
+
+    <!-- Delete Account Confirmation Modal -->
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50" style="display: none;">
+        <div class="modal-inner--settings bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-red-900/50 flex flex-col" role="dialog" aria-modal="true">
+            <!-- Scrollable body so actions can stay sticky -->
+            <div class="modal-scroll overflow-y-auto pb-4">
+                <div class="text-center mb-6">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
+                    <h2 class="text-2xl font-bold text-white mb-2">ATENÇÃO: Esta ação é irreversível!</h2>
+                </div>
+                <p class="text-gray-300 mb-4 text-center">Todos os seus dados, conquistas e progresso serão permanentemente apagados.</p>
+                <div class="mb-6">
+                    <label class="block text-gray-400 text-sm mb-2 text-left">Digite "EXCLUIR" para confirmar:</label>
+                    <input type="text" id="deleteConfirmInput" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-red-500 focus:outline-none text-center font-bold" placeholder="EXCLUIR">
+                </div>
+            </div>
+
+            <!-- Actions: sticky on mobile, stays visible above safe-area/keyboard -->
+            <div class="modal-actions mt-3 px-6 py-3 bg-gradient-to-b from-transparent to-gray-900/40 rounded-b-2xl">
+                <div class="flex gap-3">
+                    <button onclick="closeDeleteConfirm()" class="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition-all duration-300">
+                        Cancelar
+                    </button>
+                    <button onclick="processDelete()" class="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-lg transition-all duration-300">
+                        Excluir Permanentemente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Success Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50" style="display: none;">
+        <div class="modal-inner--settings bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-12 max-w-md w-full mx-4 shadow-2xl border border-gray-700/50 text-center">
+            <h2 class="text-3xl font-bold text-white mb-4">Conta Excluída com Sucesso!</h2>
+            <p class="text-gray-300 mb-3">Sua conta foi removida permanentemente.</p>
+            <p class="text-gray-400 text-sm mb-8">Esperamos vê-lo(a) novamente em breve.</p>
+            <button onclick="confirmDelete()" class="w-full py-4 mb-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold text-lg rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                Voltar ao Início
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/global.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

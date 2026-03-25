@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Ícones</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+    
+    <style>
+        body {
+            background: #0a0e14;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 40px;
+        }
+        .icon-test {
+            font-size: 48px;
+            margin: 20px;
+            display: inline-block;
+        }
+        .trophy { color: #fbbf24; }
+        .gamepad { color: #60a5fa; }
+        .users { color: #34d399; }
+        .cog { color: #9ca3af; }
+    </style>
+</head>
+<body>
+    <h1>Teste de Ícones Font Awesome</h1>
+    
+    <div style="margin: 40px 0;">
+        <h2>Ícones das Stats:</h2>
+        <i class="fas fa-trophy icon-test trophy"></i>
+        <span>Troféu</span>
+        <br>
+        <i class="fas fa-gamepad icon-test gamepad"></i>
+        <span>Gamepad</span>
+        <br>
+        <i class="fas fa-users icon-test users"></i>
+        <span>Usuários</span>
+    </div>
+    
+    <div style="margin: 40px 0;">
+        <h2>Ícones da Sidebar:</h2>
+        <i class="fas fa-gamepad icon-test gamepad"></i>
+        <span>Dashboard</span>
+        <br>
+        <i class="fas fa-trophy icon-test trophy"></i>
+        <span>Ranking</span>
+        <br>
+        <i class="fas fa-users icon-test users"></i>
+        <span>Seguidores</span>
+        <br>
+        <i class="fas fa-cog icon-test cog"></i>
+        <span>Configurações</span>
+    </div>
+    
+    <div style="margin: 40px 0; padding: 20px; background: #1a1f2e; border-radius: 8px;">
+        <h3>Status do Font Awesome:</h3>
+        <p id="status">Carregando...</p>
+    </div>
+    
+    <script>
+        window.addEventListener('load', function() {
+            // Verifica se Font Awesome carregou
+            const testIcon = document.querySelector('.fas');
+            const computed = window.getComputedStyle(testIcon, ':before');
+            const content = computed.getPropertyValue('content');
+            
+            const statusEl = document.getElementById('status');
+            
+            if (content && content !== 'none' && content !== '') {
+                statusEl.innerHTML = '✅ Font Awesome carregado com sucesso!';
+                statusEl.style.color = '#34d399';
+            } else {
+                statusEl.innerHTML = '❌ Font Awesome NÃO carregou! Verifique sua conexão com a internet.';
+                statusEl.style.color = '#ef4444';
+            }
+        });
+    </script>
+</body>
+</html>

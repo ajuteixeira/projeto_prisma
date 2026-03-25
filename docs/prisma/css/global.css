@@ -1,0 +1,210 @@
+/* Global Prisma Styles */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background: #0a0e14;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Prisma effect - Light beams based on platform percentages */
+.prisma-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.light-beam {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    opacity: 0;
+    animation: fadeIn 1s ease-out forwards;
+    mix-blend-mode: screen;
+    filter: blur(60px);
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(20px, -20px) rotate(2deg); }
+    50% { transform: translate(-15px, 15px) rotate(-1deg); }
+    75% { transform: translate(15px, 10px) rotate(1deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+}
+
+/* PlayStation beam - 20% intensity */
+.beam-playstation {
+    background: radial-gradient(ellipse at center, 
+        rgba(0, 112, 204, 0.25) 0%,
+        rgba(0, 112, 204, 0.15) 30%,
+        rgba(0, 112, 204, 0.05) 50%,
+        transparent 70%
+    );
+    top: -50%;
+    left: -20%;
+    animation: float 20s ease-in-out infinite, pulse 8s ease-in-out infinite;
+}
+
+/* Steam beam - 60% intensity (strongest) */
+.beam-steam {
+    background: radial-gradient(ellipse at center, 
+        rgba(102, 192, 244, 0.45) 0%,
+        rgba(102, 192, 244, 0.35) 25%,
+        rgba(102, 192, 244, 0.2) 45%,
+        rgba(102, 192, 244, 0.08) 60%,
+        transparent 75%
+    );
+    top: -60%;
+    right: -30%;
+    animation: float 25s ease-in-out infinite reverse, pulse 10s ease-in-out infinite;
+    animation-delay: 1s;
+}
+
+/* Xbox beam - 10% intensity */
+.beam-xbox {
+    background: radial-gradient(ellipse at center, 
+        rgba(16, 124, 16, 0.2) 0%,
+        rgba(16, 124, 16, 0.12) 35%,
+        rgba(16, 124, 16, 0.04) 55%,
+        transparent 70%
+    );
+    bottom: -40%;
+    left: 10%;
+    animation: float 18s ease-in-out infinite, pulse 9s ease-in-out infinite;
+    animation-delay: 2s;
+}
+
+/* RetroAchievements beam - 10% intensity */
+.beam-retro {
+    background: radial-gradient(ellipse at center, 
+        rgba(212, 160, 23, 0.2) 0%,
+        rgba(212, 160, 23, 0.12) 35%,
+        rgba(212, 160, 23, 0.04) 55%,
+        transparent 70%
+    );
+    bottom: -30%;
+    right: 5%;
+    animation: float 22s ease-in-out infinite reverse, pulse 11s ease-in-out infinite;
+    animation-delay: 3s;
+}
+
+/* Prisma center glow - mixing point */
+.prisma-core {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle at center,
+        rgba(102, 192, 244, 0.15) 0%,
+        rgba(0, 112, 204, 0.1) 25%,
+        rgba(16, 124, 16, 0.05) 50%,
+        rgba(212, 160, 23, 0.05) 75%,
+        transparent 100%
+    );
+    filter: blur(80px);
+    animation: pulse 15s ease-in-out infinite;
+}
+
+/* Content layer */
+.content-layer {
+    position: relative;
+    z-index: 1;
+}
+
+/* Dark overlay for readability */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 14, 20, 0.75);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Floating particles for prisma effect */
+.prisma-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    animation: floatParticle linear infinite;
+    opacity: 0;
+}
+
+@keyframes floatParticle {
+    0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100px) scale(1);
+        opacity: 0;
+    }
+}
+
+/* Scrollbar Styles */
+.scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: rgba(30, 35, 45, 0.3);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(96, 165, 250, 0.3);
+    border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(96, 165, 250, 0.5);
+}
+
+/* Hide scrollbars on small screens (mobile) but keep scrolling enabled */
+@media (max-width: 768px) {
+    .scrollbar-thin {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;     /* Firefox */
+    }
+
+    .scrollbar-thin::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
+}
+
+/* Utility Classes */
+.gradient-text {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}

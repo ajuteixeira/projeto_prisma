@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seguidores - Prisma</title>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      crossorigin="anonymous"
+    />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- CSS Modular -->
+    <link rel="stylesheet" href="css/global.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="css/followers.css" />
+  </head>
+  <body class="text-gray-100">
+    <!-- Prisma Background Effect -->
+    <div class="prisma-background">
+      <div class="light-beam beam-steam"></div>
+      <div class="light-beam beam-playstation"></div>
+      <div class="light-beam beam-xbox"></div>
+      <div class="light-beam beam-retro"></div>
+      <div class="prisma-core"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-icon" onclick="window.location.href='dashboard.html'">
+        <i class="fas fa-gamepad"></i>
+      </div>
+      <div class="sidebar-icon" onclick="window.location.href='ranking.html'">
+        <i class="fas fa-trophy"></i>
+      </div>
+      <div class="sidebar-icon active">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="flex-1"></div>
+      <div class="sidebar-icon" onclick="window.location.href='settings.html'">
+        <i class="fas fa-cog"></i>
+      </div>
+    </div>
+
+    <div class="content-layer min-h-screen">
+      <!-- Main Content -->
+      <div
+        class="p-4 md:p-6 md:ml-14 overflow-y-auto overflow-x-hidden scrollbar-thin"
+      >
+        <div class="max-w-7xl mx-auto w-full">
+          <!-- Followers Page -->
+          <div class="followers-page">
+            <div class="followers-header">
+              <i class="fas fa-users"></i>
+              <h1>Seguidores (12)</h1>
+            </div>
+
+            <!-- Tabs -->
+            <div class="followers-tabs">
+              <button class="followers-tab active" data-tab="seguidores">
+                Seguidores
+              </button>
+              <button class="followers-tab" data-tab="seguindo">
+                Seguindo
+              </button>
+              <button class="followers-tab" data-tab="pesquisar">
+                Pesquisar
+              </button>
+            </div>
+
+            <!-- Seguidores Tab Content -->
+            <div class="tab-content active" id="seguidores">
+              <div class="followers-grid">
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Cypher"
+                    alt="Cypher Blade"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">Cypher Blade</div>
+                  <div class="follower-username">@cipher.pro</div>
+                  <button class="btn-follow following"></button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mystic"
+                    alt="MysticShadow"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">MysticShadow</div>
+                  <div class="follower-username">@shadow.caster</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nova"
+                    alt="Nova Burst"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">Nova Burst</div>
+                  <div class="follower-username">@nova.star</div>
+                  <button class="btn-follow following"></button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Pyro"
+                    alt="PyroPhoenix"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">PyroPhoenix</div>
+                  <div class="follower-username">@phoenix.ignite</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Galactic"
+                    alt="GalacticHunter"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">GalacticHunter</div>
+                  <div class="follower-username">@star.chaser</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Tech"
+                    alt="Tech Sorcerer"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">Tech Sorcerer</div>
+                  <div class="follower-username">@code.mage</div>
+                  <button class="btn-follow following"></button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aqua"
+                    alt="AquaDiva"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">AquaDiva</div>
+                  <div class="follower-username">@ocean.song</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Grim"
+                    alt="GrimReaper"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">GrimReaper</div>
+                  <div class="follower-username">@dark.harvester</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Pixel"
+                    alt="PixelPrincess"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">PixelPrincess</div>
+                  <div class="follower-username">@8bit.queen</div>
+                  <button class="btn-follow following"></button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Voltage"
+                    alt="VoltageWarrior"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">VoltageWarrior</div>
+                  <div class="follower-username">@shock.wave</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Crimson"
+                    alt="CrimsonValkyrie"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">CrimsonValkyrie</div>
+                  <div class="follower-username">@blood.wing</div>
+                  <button class="btn-follow following"></button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Chrono"
+                    alt="ChronoSage"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">ChronoSage</div>
+                  <div class="follower-username">@time.bender</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Seguindo Tab Content -->
+            <div class="tab-content" id="seguindo">
+              <div class="followers-grid">
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Cypher"
+                    alt="Cypher Blade"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">Cypher Blade</div>
+                  <div class="follower-username">@cipher.pro</div>
+                  <button class="btn-follow following"></button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nova"
+                    alt="Nova Burst"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">Nova Burst</div>
+                  <div class="follower-username">@nova.star</div>
+                  <button class="btn-follow following"></button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Tech"
+                    alt="Tech Sorcerer"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">Tech Sorcerer</div>
+                  <div class="follower-username">@code.mage</div>
+                  <button class="btn-follow following"></button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Pixel"
+                    alt="PixelPrincess"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">PixelPrincess</div>
+                  <div class="follower-username">@8bit.queen</div>
+                  <button class="btn-follow following"></button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Crimson"
+                    alt="CrimsonValkyrie"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">CrimsonValkyrie</div>
+                  <div class="follower-username">@blood.wing</div>
+                  <button class="btn-follow following"></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pesquisar Tab Content -->
+            <div class="tab-content" id="pesquisar">
+              <div class="search-box">
+                <input
+                  type="text"
+                  class="search-input"
+                  placeholder="Pesquisar usuários..."
+                />
+              </div>
+              <div class="followers-grid">
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Shadow"
+                    alt="ShadowNinja"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">ShadowNinja</div>
+                  <div class="follower-username">@shadow.stealth</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Frost"
+                    alt="FrostByte"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">FrostByte</div>
+                  <div class="follower-username">@frost.core</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Thunder"
+                    alt="ThunderStrike"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">ThunderStrike</div>
+                  <div class="follower-username">@thunder.bolt</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna"
+                    alt="LunarEclipse"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">LunarEclipse</div>
+                  <div class="follower-username">@moon.shadow</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Venom"
+                    alt="VenomViper"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">VenomViper</div>
+                  <div class="follower-username">@toxic.fang</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Blaze"
+                    alt="BlazeRunner"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">BlazeRunner</div>
+                  <div class="follower-username">@fire.dash</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Neon"
+                    alt="NeonGhost"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">NeonGhost</div>
+                  <div class="follower-username">@neon.specter</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+
+                <div class="follower-card">
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Storm"
+                    alt="StormBreaker"
+                    class="follower-avatar"
+                  />
+                  <div class="follower-name">StormBreaker</div>
+                  <div class="follower-username">@storm.fury</div>
+                  <button class="btn-follow">Seguir</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/global.js"></script>
+    <script src="js/followers.js"></script>
+  </body>
+</html>

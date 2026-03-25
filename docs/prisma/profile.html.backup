@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@carly - Perfil - Prisma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #0a0e14;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Prisma effect - Light beams based on platform percentages */
+        .prisma-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .light-beam {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            opacity: 0;
+            animation: fadeIn 1s ease-out forwards;
+            mix-blend-mode: screen;
+            filter: blur(60px);
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(20px, -20px) rotate(2deg); }
+            50% { transform: translate(-15px, 15px) rotate(-1deg); }
+            75% { transform: translate(15px, 10px) rotate(1deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* PlayStation beam - 20% intensity */
+        .beam-playstation {
+            background: radial-gradient(ellipse at center, 
+                rgba(0, 112, 204, 0.25) 0%,
+                rgba(0, 112, 204, 0.15) 30%,
+                rgba(0, 112, 204, 0.05) 50%,
+                transparent 70%
+            );
+            top: -50%;
+            left: -20%;
+            animation: float 20s ease-in-out infinite, pulse 8s ease-in-out infinite;
+        }
+
+        /* Steam beam - 60% intensity (strongest) */
+        .beam-steam {
+            background: radial-gradient(ellipse at center, 
+                rgba(102, 192, 244, 0.45) 0%,
+                rgba(102, 192, 244, 0.35) 25%,
+                rgba(102, 192, 244, 0.2) 45%,
+                rgba(102, 192, 244, 0.08) 60%,
+                transparent 75%
+            );
+            top: -60%;
+            right: -30%;
+            animation: float 25s ease-in-out infinite reverse, pulse 10s ease-in-out infinite;
+            animation-delay: 1s;
+        }
+
+        /* Xbox beam - 10% intensity */
+        .beam-xbox {
+            background: radial-gradient(ellipse at center, 
+                rgba(16, 124, 16, 0.2) 0%,
+                rgba(16, 124, 16, 0.12) 35%,
+                rgba(16, 124, 16, 0.04) 55%,
+                transparent 70%
+            );
+            bottom: -40%;
+            left: 10%;
+            animation: float 18s ease-in-out infinite, pulse 9s ease-in-out infinite;
+            animation-delay: 2s;
+        }
+
+        /* RetroAchievements beam - 10% intensity */
+        .beam-retro {
+            background: radial-gradient(ellipse at center, 
+                rgba(212, 160, 23, 0.2) 0%,
+                rgba(212, 160, 23, 0.12) 35%,
+                rgba(212, 160, 23, 0.04) 55%,
+                transparent 70%
+            );
+            bottom: -30%;
+            right: 5%;
+            animation: float 22s ease-in-out infinite reverse, pulse 11s ease-in-out infinite;
+            animation-delay: 3s;
+        }
+
+        /* Prisma center glow - mixing point */
+        .prisma-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle at center,
+                rgba(102, 192, 244, 0.15) 0%,
+                rgba(0, 112, 204, 0.1) 25%,
+                rgba(16, 124, 16, 0.05) 50%,
+                rgba(212, 160, 23, 0.05) 75%,
+                transparent 100%
+            );
+            filter: blur(80px);
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        /* Content layer */
+        .content-layer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Dark overlay for readability */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 14, 20, 0.75);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Floating particles for prisma effect */
+        .prisma-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: floatParticle linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Shimmer effect on cards */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(102, 192, 244, 0.1),
+                transparent
+            );
+            transition: left 0.5s;
+        }
+
+        .card:hover::after {
+            left: 100%;
+        }
+
+        .card {
+            position: relative;
+            overflow: hidden;
+            background: rgba(30, 35, 45, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-card {
+            background: rgba(30, 35, 45, 0.9);
+            border: 2px solid rgba(96, 165, 250, 0.3);
+            box-shadow: 
+                0 0 20px rgba(102, 192, 244, 0.1),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .profile-card:hover {
+            box-shadow: 
+                0 0 30px rgba(102, 192, 244, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15);
+        }
+
+        .stat-card {
+            background: rgba(20, 25, 35, 0.9);
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 
+                0 8px 30px rgba(102, 192, 244, 0.15),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar {
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .game-row {
+            transition: all 0.2s ease;
+        }
+
+        .game-row:hover {
+            background: rgba(96, 165, 250, 0.1);
+            transform: translateX(4px);
+        }
+
+        .trophy-icon {
+            color: #fbbf24;
+        }
+
+        .controller-icon {
+            color: #60a5fa;
+        }
+
+        .users-icon {
+            color: #34d399;
+        }
+
+        .online-indicator {
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border-radius: 50%;
+            border: 2px solid #0f1419;
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+        }
+
+        .platform-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: rgba(96, 165, 250, 0.1);
+            color: #93c5fd;
+        }
+
+        .game-thumbnail {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .table-header {
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: rgba(30, 35, 45, 0.3);
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgba(96, 165, 250, 0.3);
+            border-radius: 3px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: rgba(96, 165, 250, 0.5);
+        }
+
+        /* Small follow button - discrete style */
+        .btn-follow-small {
+            background: transparent;
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.4);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        .btn-follow-small:hover {
+            background: rgba(96, 165, 250, 0.1);
+            border-color: #60a5fa;
+            transform: translateY(-1px);
+        }
+
+        .btn-follow-small i {
+            font-size: 10px;
+            margin-right: 4px;
+        }
+
+        /* Pinned Achievements Styles */
+        .pinned-achievements {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .pinned-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .pinned-achievement {
+            background: rgba(96, 165, 250, 0.08);
+            border: 1px solid rgba(96, 165, 250, 0.15);
+            border-radius: 10px;
+            padding: 10px 8px;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pinned-achievement:hover {
+            background: rgba(96, 165, 250, 0.12);
+            border-color: rgba(96, 165, 250, 0.3);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(96, 165, 250, 0.15);
+        }
+
+        .achievement-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            flex-shrink: 0;
+        }
+
+        .achievement-name {
+            font-size: 10px;
+            font-weight: 600;
+            color: #e5e7eb;
+            line-height: 1.25;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            width: 100%;
+            padding: 0 4px;
+            word-break: break-word;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <!-- Prisma Background Effect -->
+    <div class="prisma-background">
+        <div class="light-beam beam-steam"></div>
+        <div class="light-beam beam-playstation"></div>
+        <div class="light-beam beam-xbox"></div>
+        <div class="light-beam beam-retro"></div>
+        <div class="prisma-core"></div>
+    </div>
+
+    <div class="content-layer min-h-screen">
+        <!-- Main Content -->
+        <div class="p-6 overflow-y-auto scrollbar-thin">
+            <div class="max-w-7xl mx-auto">
+                
+                <!-- Top Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Profile Card -->
+                    <div class="profile-card card p-6 lg:col-span-1">
+                        <div class="flex items-start space-x-4">
+                            <div class="relative">
+                                <img id="profileAvatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Carly&backgroundColor=c0aede" 
+                                     alt="Carly" 
+                                     class="w-20 h-20 rounded-full border-2 border-purple-400">
+                                <div class="online-indicator pulse"></div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <h2 id="profileUsername" class="text-2xl font-bold">@carly</h2>
+                                </div>
+                                <div class="flex items-center space-x-3 text-xs text-gray-400">
+                                    <span><strong class="text-white" id="followersCount">89</strong> Seguidores</span>
+                                    <span>•</span>
+                                    <span><strong class="text-white" id="followingCount">23</strong> Seguindo</span>
+                                    <button class="btn-follow-small" id="followBtn" style="display: none;">
+                                        <i class="fas fa-user-plus"></i> Seguir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pinned Achievements -->
+                        <div class="mt-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Conquistas Fixadas</h3>
+                            </div>
+                            <div class="pinned-achievements">
+                                <div class="pinned-grid">
+                                    <div class="pinned-achievement">
+                                        <div class="achievement-icon">🎯</div>
+                                        <div class="achievement-name">Mestre Atirador</div>
+                                    </div>
+
+                                    <div class="pinned-achievement">
+                                        <div class="achievement-icon">👻</div>
+                                        <div class="achievement-name">Fantasma</div>
+                                    </div>
+
+                                    <div class="pinned-achievement">
+                                        <div class="achievement-icon">⚡</div>
+                                        <div class="achievement-name">Velocidade da Luz</div>
+                                    </div>
+
+                                    <div class="pinned-achievement">
+                                        <div class="achievement-icon">🏆</div>
+                                        <div class="achievement-name">Perfeição</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recently Played Game Card -->
+                    <div class="card p-0 lg:col-span-2 overflow-hidden">
+                        <div class="relative h-48" style="background: linear-gradient(to bottom, rgba(15, 20, 25, 0.3), rgba(15, 20, 25, 0.95)), url('https://cdn.akamai.steamstatic.com/steam/apps/730/library_hero.jpg?t=1698860631') center/cover;">
+                            <div class="absolute bottom-0 left-0 right-0 p-6">
+                                <div class="flex items-start space-x-4">
+                                    <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/730/capsule_184x69.jpg" 
+                                         alt="CS:GO" 
+                                         class="w-20 h-20 rounded border-2 border-gray-700 shadow-lg object-cover">
+                                    <div class="flex-1">
+                                        <h3 class="text-xl font-bold mb-2">Counter-Strike: Global Offensive</h3>
+                                        <div class="text-sm text-gray-300 mb-3">
+                                            <span class="font-semibold">845 horas registradas</span>
+                                        </div>
+                                        <div class="text-xs text-gray-400">
+                                            jogado pela última vez em 28 de out.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Achievements Preview Bar -->
+                        <div class="bg-gray-800/50 px-6 py-3 border-t border-gray-700/50">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-400 font-medium uppercase tracking-wider">Conquistas</span>
+                                <span class="text-xs text-gray-400">142 de 167</span>
+                            </div>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <div class="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" style="width: 85%;"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 1">
+                                    🎯
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 2">
+                                    💣
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 3">
+                                    🔫
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 4">
+                                    👑
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 5">
+                                    ⚡
+                                </div>
+                                <div class="flex items-center justify-center text-sm text-gray-400 font-semibold ml-2">
+                                    +137
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Platform Distribution Bar -->
+                <div class="card p-4 mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Distribuição de Troféus por Plataforma</h3>
+                    </div>
+                    <div class="flex h-3 rounded-full overflow-hidden">
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 20%; background-color: #0070CC;" 
+                             title="PlayStation - 20%"></div>
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 10%; background-color: #107C10;" 
+                             title="Xbox - 10%"></div>
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 60%; background-color: #66c0f4;" 
+                             title="Steam - 60%"></div>
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 10%; background-color: #D4A017;" 
+                             title="RetroAchievements - 10%"></div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #0070CC;"></div>
+                            <span class="text-xs text-gray-400">PlayStation <strong class="text-white">20%</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #107C10;"></div>
+                            <span class="text-xs text-gray-400">Xbox <strong class="text-white">10%</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #66c0f4;"></div>
+                            <span class="text-xs text-gray-400">Steam <strong class="text-white">60%</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #D4A017;"></div>
+                            <span class="text-xs text-gray-400">RetroAchievements <strong class="text-white">10%</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Conquistas -->
+                    <div class="stat-card card p-6 text-center">
+                        <i class="fas fa-trophy trophy-icon text-4xl mb-3"></i>
+                        <h3 class="text-4xl font-bold mb-1">2,847</h3>
+                        <p class="text-gray-400 text-sm uppercase tracking-wide">Conquistas</p>
+                    </div>
+
+                    <!-- Média de Conclusão -->
+                    <div class="stat-card card p-6 text-center">
+                        <i class="fas fa-gamepad controller-icon text-4xl mb-3"></i>
+                        <div class="flex items-center justify-center mb-1">
+                            <h3 class="text-4xl font-bold gradient-text">34</h3>
+                            <span class="text-2xl font-bold text-gray-400">%</span>
+                        </div>
+                        <p class="text-gray-400 text-sm uppercase tracking-wide mb-3">Média de Conclusão</p>
+                        <div class="progress-bar bg-gray-700 mx-auto" style="width: 80%;">
+                            <div class="progress-fill bg-gradient-to-r from-blue-500 to-blue-600" style="width: 34%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Jogos Perfeitos -->
+                    <div class="stat-card card p-6 text-center">
+                        <i class="fas fa-users users-icon text-4xl mb-3"></i>
+                        <h3 class="text-4xl font-bold mb-1">8</h3>
+                        <p class="text-gray-400 text-sm uppercase tracking-wide">Jogos Perfeitos</p>
+                    </div>
+                </div>
+
+                <!-- Recent Games Section -->
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold">Jogos Recentes</h2>
+                    </div>
+
+                    <!-- Table Header -->
+                    <div class="hidden md:grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-700">
+                        <div class="col-span-3 table-header">Jogo</div>
+                        <div class="col-span-2 table-header">Conclusão</div>
+                        <div class="col-span-1 table-header">Conquistas</div>
+                        <div class="col-span-2 table-header">Tempo de Jogo</div>
+                        <div class="col-span-2 table-header">Último Desbloqueio</div>
+                        <div class="col-span-1 table-header">Última Vez Jogado</div>
+                        <div class="col-span-1 table-header">Plataforma</div>
+                    </div>
+
+                    <!-- Game Rows -->
+                    <div class="space-y-2 mt-2">
+                        <!-- CS:GO -->
+                        <div class="game-row grid grid-cols-1 md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=100&h=100&fit=crop" 
+                                     alt="CS:GO" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">CS:GO</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-emerald-600" style="width: 85%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">85%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 142 / 167</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>845h 12m</div>
+                                    <div class="text-gray-400 text-xs">Total 845h 12m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-10-28 21:15:42</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-10-28</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Steam</span>
+                            </div>
+                        </div>
+
+                        <!-- Valorant -->
+                        <div class="game-row grid grid-cols-1 md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=100&h=100&fit=crop" 
+                                     alt="Valorant" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Valorant</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-emerald-600" style="width: 62%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">62%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 31 / 50</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>234h 45m</div>
+                                    <div class="text-gray-400 text-xs">Total 234h 45m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-10-25 18:22:33</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-10-25</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Steam</span>
+                            </div>
+                        </div>
+
+                        <!-- Apex Legends -->
+                        <div class="game-row grid grid-cols-1 md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=100&h=100&fit=crop" 
+                                     alt="Apex Legends" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Apex Legends</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-blue-500 to-blue-600" style="width: 48%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">48%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 48 / 100</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>156h 30m</div>
+                                    <div class="text-gray-400 text-xs">Total 156h 30m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-10-20 14:55:12</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-10-20</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Steam</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Platform trophy statistics (percentages)
+        // Total must equal 100%
+        // Percentages control the intensity/opacity of each light beam
+        const platformStats = {
+            playstation: { percentage: 20, color: '#0070CC', name: 'PlayStation' },
+            xbox: { percentage: 10, color: '#107C10', name: 'Xbox' },
+            steam: { percentage: 60, color: '#66c0f4', name: 'Steam' },
+            retroachievements: { percentage: 10, color: '#D4A017', name: 'RetroAchievements' }
+        };
+
+        // Generate dynamic prisma effect based on platform percentages
+        function generatePrismaEffect() {
+            const beams = {
+                'beam-playstation': platformStats.playstation,
+                'beam-xbox': platformStats.xbox,
+                'beam-steam': platformStats.steam,
+                'beam-retro': platformStats.retroachievements
+            };
+
+            Object.entries(beams).forEach(([className, platform]) => {
+                const beam = document.querySelector(`.${className}`);
+                if (beam) {
+                    // Calculate opacity based on percentage (10% = 0.2, 60% = 0.6, etc)
+                    const baseOpacity = platform.percentage / 100;
+                    beam.style.opacity = baseOpacity;
+                }
+            });
+        }
+
+        // Apply prisma effect on load
+        window.addEventListener('load', () => {
+            generatePrismaEffect();
+            createPrismaParticles();
+        });
+
+        // Create floating particles based on platform colors
+        function createPrismaParticles() {
+            const prismaBackground = document.querySelector('.prisma-background');
+            const platforms = Object.values(platformStats);
+            
+            // Create particles proportional to platform percentage
+            platforms.forEach(platform => {
+                const particleCount = Math.floor(platform.percentage / 5); // 60% = 12 particles, 10% = 2 particles
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'prisma-particle';
+                    particle.style.backgroundColor = platform.color;
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                    particle.style.animationDelay = Math.random() * 5 + 's';
+                    particle.style.boxShadow = `0 0 10px ${platform.color}`;
+                    
+                    prismaBackground.appendChild(particle);
+                }
+            });
+        }
+
+        // Get profile username from URL parameter
+        function getProfileUsername() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('user') || 'carly';
+        }
+
+        // Profile data map
+        const profilesData = {
+            'cipher.pro': { name: 'Cypher Blade', seed: 'Cypher', followers: 234, following: 189, borderColor: 'border-blue-400' },
+            'shadow.caster': { name: 'MysticShadow', seed: 'Mystic', followers: 156, following: 98, borderColor: 'border-purple-400' },
+            'nova.star': { name: 'Nova Burst', seed: 'Nova', followers: 445, following: 312, borderColor: 'border-pink-400' },
+            'phoenix.ignite': { name: 'PyroPhoenix', seed: 'Pyro', followers: 567, following: 423, borderColor: 'border-red-400' },
+            'star.chaser': { name: 'GalacticHunter', seed: 'Galactic', followers: 789, following: 654, borderColor: 'border-indigo-400' },
+            'code.mage': { name: 'Tech Sorcerer', seed: 'Tech', followers: 892, following: 723, borderColor: 'border-green-400' },
+            'ocean.song': { name: 'AquaDiva', seed: 'Aqua', followers: 345, following: 267, borderColor: 'border-cyan-400' },
+            'dark.harvester': { name: 'GrimReaper', seed: 'Grim', followers: 678, following: 534, borderColor: 'border-gray-400' },
+            '8bit.queen': { name: 'PixelPrincess', seed: 'Pixel', followers: 923, following: 812, borderColor: 'border-pink-400' },
+            'shock.wave': { name: 'VoltageWarrior', seed: 'Voltage', followers: 456, following: 378, borderColor: 'border-yellow-400' },
+            'blood.wing': { name: 'CrimsonValkyrie', seed: 'Crimson', followers: 734, following: 621, borderColor: 'border-red-400' },
+            'time.bender': { name: 'ChronoSage', seed: 'Chrono', followers: 512, following: 445, borderColor: 'border-purple-400' },
+            'shadow.stealth': { name: 'ShadowNinja', seed: 'Shadow', followers: 289, following: 201, borderColor: 'border-gray-400' },
+            'frost.core': { name: 'FrostByte', seed: 'Frost', followers: 398, following: 312, borderColor: 'border-blue-400' },
+            'thunder.bolt': { name: 'ThunderStrike', seed: 'Thunder', followers: 623, following: 534, borderColor: 'border-yellow-400' },
+            'moon.shadow': { name: 'LunarEclipse', seed: 'Luna', followers: 445, following: 367, borderColor: 'border-purple-400' },
+            'toxic.fang': { name: 'VenomViper', seed: 'Venom', followers: 534, following: 423, borderColor: 'border-green-400' },
+            'fire.dash': { name: 'BlazeRunner', seed: 'Blaze', followers: 712, following: 589, borderColor: 'border-orange-400' },
+            'neon.specter': { name: 'NeonGhost', seed: 'Neon', followers: 456, following: 378, borderColor: 'border-pink-400' },
+            'storm.fury': { name: 'StormBreaker', seed: 'Storm', followers: 823, following: 701, borderColor: 'border-blue-400' },
+            'carly': { name: 'Carly', seed: 'Carly', followers: 89, following: 23, borderColor: 'border-purple-400' }
+        };
+
+        // Update profile information based on username
+        function updateProfileInfo() {
+            const username = getProfileUsername();
+            const profileData = profilesData[username] || profilesData['carly'];
+            
+            // Update avatar
+            const profileAvatar = document.getElementById('profileAvatar');
+            profileAvatar.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileData.seed}&backgroundColor=c0aede`;
+            profileAvatar.alt = profileData.name;
+            profileAvatar.className = `w-20 h-20 rounded-full border-2 ${profileData.borderColor}`;
+            
+            // Update username
+            const profileUsername = document.getElementById('profileUsername');
+            profileUsername.textContent = `@${username}`;
+            
+            // Update counters
+            document.getElementById('followersCount').textContent = profileData.followers;
+            document.getElementById('followingCount').textContent = profileData.following;
+            
+            // Update page title
+            document.title = `@${username} - Perfil - Prisma`;
+        }
+
+        // Check if current user is following this profile
+        function isFollowing(username) {
+            const following = JSON.parse(localStorage.getItem('following') || '[]');
+            const normalizedUsername = username.toLowerCase().replace('@', '');
+            console.log('Checking if following:', normalizedUsername, 'in', following);
+            return following.includes(normalizedUsername);
+        }
+
+        // Update follow button state
+        function updateFollowButton() {
+            const followBtn = document.getElementById('followBtn');
+            const username = getProfileUsername();
+            
+            console.log('Updating follow button for user:', username);
+            
+            if (followBtn) {
+                if (isFollowing(username)) {
+                    console.log('User is following, hiding button');
+                    // Se já está seguindo, esconde o botão
+                    followBtn.style.display = 'none';
+                } else {
+                    console.log('User is NOT following, showing "Seguir" button');
+                    // Se não está seguindo, mostra o botão
+                    followBtn.style.display = 'inline-block';
+                    followBtn.innerHTML = '<i class="fas fa-user-plus"></i> Seguir';
+                }
+            }
+        }
+
+        // Follow/Unfollow functionality
+        const followBtn = document.getElementById('followBtn');
+        if (followBtn) {
+            followBtn.addEventListener('click', function() {
+                const username = getProfileUsername();
+                const normalizedUsername = username.toLowerCase().replace('@', '');
+                let following = JSON.parse(localStorage.getItem('following') || '[]');
+                
+                console.log('Current following list:', following);
+                console.log('Following user:', normalizedUsername);
+                
+                // Seguir (botão só aparece quando NÃO está seguindo)
+                if (!following.includes(normalizedUsername)) {
+                    following.push(normalizedUsername);
+                    localStorage.setItem('following', JSON.stringify(following));
+                }
+                
+                // Esconder o botão após seguir
+                this.style.display = 'none';
+                
+                console.log('Followed. New list:', following);
+                
+                // Mostrar notificação
+                showNotification('Você agora está seguindo @' + normalizedUsername);
+            });
+        }
+
+        // Show notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 24px;
+                background: rgba(30, 35, 45, 0.95);
+                color: white;
+                padding: 16px 24px;
+                border-radius: 8px;
+                border: 1px solid rgba(96, 165, 250, 0.3);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+                z-index: 1000;
+                font-size: 14px;
+                backdrop-filter: blur(10px);
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize follow button state on page load
+        window.addEventListener('load', () => {
+            updateProfileInfo();
+            updateFollowButton();
+        });
+
+        // Animate progress bars on load
+        window.addEventListener('load', () => {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+        });
+
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

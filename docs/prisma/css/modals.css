@@ -1,0 +1,317 @@
+/* Modal Styles */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: linear-gradient(to bottom right, #1f2937, #111827);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    margin: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+/* Ensure modals have a reliable bottom padding so action buttons don't sit flush
+   against the modal edge. This gives a consistent visual gap across desktop and
+   mobile and acts as a fallback when per-modal rules are missing. */
+.modal > div,
+.modal-content,
+.modal-inner--settings {
+    box-sizing: border-box;
+    padding-bottom: 28px; /* reasonable default gap under content */
+}
+
+/* Robust fallback: target any overlay/modal whose id ends with "Modal".
+   Many of our modals use id names like #editProfileModal, #pinAchievementsModal, etc.
+   This rule ensures all those overlays keep a safe bottom gap so buttons don't
+   sit flush to the rounded edge or screen safe-area. We use a safe-area inset
+   when available. */
+[id$="Modal"] > div,
+[id$="Modal"] .modal-content,
+[id$="Modal"] .modal-inner--settings {
+    padding-bottom: calc(env(safe-area-inset-bottom, 12px) + 20px) !important;
+    box-sizing: border-box;
+}
+
+/* If the last flex container inside a modal holds actions, ensure it has extra bottom margin
+   so buttons remain visually separated from the modal edge. This is a safe fallback
+   for modals that don't use a `.modal-actions` wrapper. */
+[id$="Modal"] .flex:last-child {
+    margin-bottom: calc(env(safe-area-inset-bottom, 6px) + 8px) !important;
+}
+
+/* Settings Styles */
+
+.settings-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+    color: #60a5fa;
+}
+
+.settings-header i {
+    font-size: 32px;
+}
+
+.settings-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.settings-card {
+    background: rgba(30, 35, 45, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
+}
+
+.settings-card:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.settings-card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.settings-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.settings-card-icon.logout {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+}
+
+.settings-card-icon.delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.settings-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #f3f4f6;
+}
+
+.settings-card p {
+    color: #9ca3af;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.btn-logout {
+    background: linear-gradient(to right, #3b82f6, #2563eb);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.btn-delete {
+    background: linear-gradient(to right, #dc2626, #b91c1c);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
+}
+
+/* Adjustments for Delete Account Confirmation Modal */
+@media (max-width: 768px) {
+    /* Ensure the modal inner wrapper is columnar, constrained to viewport height and won't overflow horizontally */
+    #deleteConfirmModal > div.modal-inner--settings {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        position: relative; /* ensure inner is positioning context for absolute actions */
+        /* per-modal variable ensures consistent reserved space for the action bar */
+        /* bump up actions height to avoid overlap on tighter screens/with keyboard */
+        --modal-actions-height: 140px;
+        max-height: calc(100vh - 44px);
+        box-sizing: border-box;
+        overflow-x: hidden; /* prevent horizontal scrollbar caused by inner margins/padding */
+    }
+
+    /* The scrollable part of the modal should expand while actions stay fixed */
+    /* default gap reserved for modal actions on mobile (made smaller to keep UI compact) */
+    :root { --modal-actions-safe-gap: 40px; }
+
+     /* Make the modal scrollable and always reserve space for the action bar so
+         the action buttons never overlap content even when the keyboard opens.
+         Use a variable for the action bar height which makes it easier to tune
+         and keep the scrollable content always clear of the action container. */
+    /* reasonable default height for actions area (per-modal copy declared below) */
+    #deleteConfirmModal .modal-scroll {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-right: 6px; /* small space for native scrollbars */
+        /* Reserve bottom padding that includes safe-area + action bar height; use fallback */
+        padding-bottom: calc(var(--modal-actions-height, 92px) + env(safe-area-inset-bottom, 8px));
+    }
+
+    /* The actions block remains visible and behaves like a sticky footer */
+    /* The action bar is positioned absolutely inside the modal inner wrapper
+       so it is always visually part of the modal and will not jump to the
+       viewport bottom when inputs receive focus. */
+    #deleteConfirmModal .modal-actions {
+        flex: 0 0 auto;
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: calc(env(safe-area-inset-bottom, 8px) + 8px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 8px) + 6px); /* smaller gap so actions sit closer */
+        padding-top: 6px;
+        padding-left: 12px;
+        padding-right: 12px;
+        background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.25));
+        margin-top: 8px;
+        z-index: 20;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+        width: auto;
+        /* ensure the action bar itself reports a predictable height */
+        min-height: var(--modal-actions-height, 92px);
+        box-sizing: border-box;
+    }
+
+    /* If modal overlay is marked compact (while open) keep actions closer */
+    #deleteConfirmModal.actions-compact .modal-scroll {
+        /* when compact, still keep generous padding but slightly smaller (with fallback) */
+        padding-bottom: calc(var(--modal-actions-height, 92px) - 12px + env(safe-area-inset-bottom, 8px));
+    }
+
+    #deleteConfirmModal.actions-compact .modal-actions {
+        margin-top: 6px;
+        padding-top: 6px;
+        padding-bottom: calc(env(safe-area-inset-bottom, 8px) + 6px);
+    }
+
+     /* No special 'actions-pinned' styles — actions are always kept inside the modal
+         and the scrollable area reserves enough bottom padding. Keeping static layout
+         reduces visual movement when inputs gain focus. */
+
+     /* actions-shifted behavior removed: we no longer translate the modal vertically
+         because it caused overlap — we rely on actions-pinned padding & scrollIntoView. */
+
+    #deleteConfirmModal .flex {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    #deleteConfirmModal .flex > button {
+        flex: 1 1 100%;
+        margin-bottom: 8px;
+    }
+
+    #deleteConfirmModal .flex > button:last-child {
+        margin-bottom: 0;
+    }
+
+    #deleteConfirmModal input {
+        margin-bottom: 8px;
+    }
+
+    /* Make buttons slightly taller so they sit clearly above safe area */
+    #deleteConfirmModal .modal-actions .flex > button {
+        min-height: 42px; /* slightly smaller height brings them closer to input */
+    }
+
+    /* Strong override: ensure modal action buttons are always visible
+       (some other rules or scripts may accidentally set display:none) */
+    #deleteConfirmModal .modal-actions .flex > button {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 100% !important;
+    }
+}
+
+/* Keep modal z-index high ONLY on mobile, and apply scroll/safe-area rules only for small screens so desktop layout is unchanged */
+@media (max-width: 768px) {
+    #logoutModal,
+    #deleteConfirmModal,
+    #deleteModal,
+    #achievementModal,
+    #pinAchievementsModal,
+    #editProfileModal {
+        z-index: 100000 !important;
+    }
+
+    /* Make the immediate inner wrapper scrollable and respect safe-area insets (handles Tailwind inner divs) */
+     #logoutModal > div,
+     /* make settings modals taller on mobile so action buttons remain visible */
+     #deleteConfirmModal > div.modal-inner--settings,
+     /* success modal needs extra bottom spacing so the large action button
+         doesn't sit flush with the rounded bottom on small devices */
+     #deleteModal > div.modal-inner--settings,
+    #achievementModal > div,
+    #pinAchievementsModal > div,
+    #editProfileModal > div {
+        /* increase usable height on small screens so the actions aren't pushed offscreen */
+        max-height: calc(100vh - 44px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: env(safe-area-inset-bottom, 48px);
+        padding-left: 18px;
+        padding-right: 18px;
+        box-sizing: border-box;
+        width: min(calc(100% - 32px), 640px);
+    }
+
+    /* Extra bottom padding specifically for delete/success modal to keep its
+       large button away from the rounded corner / safe-area on mobile. */
+    #deleteModal > div.modal-inner--settings {
+        padding-bottom: calc(env(safe-area-inset-bottom, 48px) + 24px);
+    }
+}

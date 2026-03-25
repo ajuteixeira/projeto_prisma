@@ -1,0 +1,2941 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaming Dashboard - Prisma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS Modular -->
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/modals.css">
+    <link rel="stylesheet" href="css/followers.css">
+</head>
+<body class="text-gray-100">
+        .beam-retro {
+            background: radial-gradient(ellipse at center, 
+                rgba(212, 160, 23, 0.2) 0%,
+                rgba(212, 160, 23, 0.12) 35%,
+                rgba(212, 160, 23, 0.04) 55%,
+                transparent 70%
+            );
+            bottom: -30%;
+            right: 5%;
+            animation: float 22s ease-in-out infinite reverse, pulse 11s ease-in-out infinite;
+            animation-delay: 3s;
+        }
+
+        /* Prisma center glow - mixing point */
+        .prisma-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle at center,
+                rgba(102, 192, 244, 0.15) 0%,
+                rgba(0, 112, 204, 0.1) 25%,
+                rgba(16, 124, 16, 0.05) 50%,
+                rgba(212, 160, 23, 0.05) 75%,
+                transparent 100%
+            );
+            filter: blur(80px);
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        /* Content layer */
+        .content-layer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Dark overlay for readability */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 14, 20, 0.75);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Floating particles for prisma effect */
+        .prisma-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: floatParticle linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Shimmer effect on cards */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(102, 192, 244, 0.1),
+                transparent
+            );
+            transition: left 0.5s;
+        }
+
+        .card:hover::after {
+            left: 100%;
+        }
+
+        .card {
+            position: relative;
+            overflow: hidden;
+            background: rgba(30, 35, 45, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-card {
+            background: rgba(30, 35, 45, 0.9);
+            border: 2px solid rgba(96, 165, 250, 0.3);
+            box-shadow: 
+                0 0 20px rgba(102, 192, 244, 0.1),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .profile-card:hover {
+            box-shadow: 
+                0 0 30px rgba(102, 192, 244, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15);
+        }
+
+        .stat-card {
+            background: rgba(20, 25, 35, 0.9);
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 
+                0 8px 30px rgba(102, 192, 244, 0.15),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar {
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .game-row {
+            transition: all 0.2s ease;
+        }
+
+        .game-row:hover {
+            background: rgba(96, 165, 250, 0.1);
+            transform: translateX(4px);
+        }
+
+        .trophy-icon {
+            color: #fbbf24;
+        }
+
+        .controller-icon {
+            color: #60a5fa;
+        }
+
+        .users-icon {
+            color: #34d399;
+        }
+
+        .level-badge {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .online-indicator {
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border-radius: 50%;
+            border: 2px solid #0f1419;
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+        }
+
+        .achievement-star {
+            color: #9ca3af;
+            font-size: 20px;
+            transition: color 0.2s ease;
+        }
+
+        .achievement-star:hover {
+            color: #fbbf24;
+        }
+
+        .view-toggle {
+            background: rgba(30, 35, 45, 0.6);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .view-toggle button {
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .view-toggle button.active {
+            background: rgba(96, 165, 250, 0.2);
+            color: #60a5fa;
+        }
+
+        .platform-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: rgba(96, 165, 250, 0.1);
+            color: #93c5fd;
+        }
+
+        .sidebar {
+            background: rgba(15, 20, 25, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .sidebar-icon:hover {
+            background: rgba(96, 165, 250, 0.1);
+        }
+
+        .sidebar-icon.active {
+            background: rgba(96, 165, 250, 0.2);
+        }
+
+        /* Profile Edit Overlay */
+        .profile-avatar-container {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .profile-edit-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .profile-avatar-container:hover .profile-edit-overlay {
+            opacity: 1;
+        }
+
+        .edit-profile-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .edit-profile-modal.active {
+            display: flex;
+        }
+
+        .edit-profile-content {
+            background: rgba(30, 35, 45, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 500px;
+            width: 100%;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #60a5fa;
+            margin: 0 auto 20px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: rgba(96, 165, 250, 0.2);
+            border: 1px solid #60a5fa;
+            border-radius: 12px;
+            color: #60a5fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .file-input-label:hover {
+            background: rgba(96, 165, 250, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .form-input-profile {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(20, 25, 35, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #e5e7eb;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-input-profile:focus {
+            border-color: rgba(96, 165, 250, 0.5);
+            background: rgba(20, 25, 35, 0.8);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        .game-thumbnail {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .completion-circle {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .table-header {
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: rgba(30, 35, 45, 0.3);
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgba(96, 165, 250, 0.3);
+            border-radius: 3px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: rgba(96, 165, 250, 0.5);
+        }
+
+        /* Settings Page Styles */
+        .settings-page {
+            display: none;
+        }
+
+        .settings-page.active {
+            display: block;
+        }
+
+        .dashboard-page.active {
+            display: block;
+        }
+
+        .dashboard-page {
+            display: none;
+        }
+
+        .settings-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-header i {
+            color: #10b981;
+            font-size: 32px;
+        }
+
+        .settings-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .settings-card {
+            background: rgba(30, 35, 45, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .settings-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .settings-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .settings-card-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(96, 165, 250, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .settings-card-icon.logout {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .settings-card-icon.delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .settings-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .settings-card p {
+            color: #9ca3af;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Followers/Following Page Styles */
+        .followers-page {
+            display: none;
+        }
+
+        .followers-page.active {
+            display: block;
+        }
+
+        .followers-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .followers-header i {
+            color: #10b981;
+            font-size: 32px;
+        }
+
+        .followers-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .followers-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .followers-tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .followers-tab.active {
+            color: #60a5fa;
+        }
+
+        .followers-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #60a5fa, #3b82f6);
+        }
+
+        .followers-tab:hover {
+            color: #93c5fd;
+        }
+
+        .followers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .follower-card {
+            background: rgba(30, 35, 45, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .follower-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(102, 192, 244, 0.1),
+                transparent
+            );
+            transition: left 0.5s;
+        }
+
+        .follower-card:hover::after {
+            left: 100%;
+        }
+
+        .follower-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(96, 165, 250, 0.3);
+            box-shadow: 0 8px 20px rgba(96, 165, 250, 0.15);
+        }
+
+        .follower-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            border: 2px solid rgba(96, 165, 250, 0.3);
+            object-fit: cover;
+        }
+
+        .follower-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+
+        .follower-username {
+            color: #9ca3af;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .btn-follow {
+            background: transparent;
+            color: #60a5fa;
+            border: 1px solid #60a5fa;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .btn-follow:hover {
+            background: #60a5fa;
+            color: white;
+        }
+
+        .btn-follow.following {
+            background: rgba(96, 165, 250, 0.2);
+            color: #60a5fa;
+            border-color: #60a5fa;
+        }
+
+        .btn-follow.following:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .btn-follow.following:hover::after {
+            content: 'Deixar de seguir';
+        }
+
+        .btn-follow.following::after {
+            content: 'Seguindo';
+        }
+
+        .search-box {
+            margin-bottom: 24px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(30, 35, 45, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px 20px;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: #6b7280;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Pinned Achievements Styles */
+        .pinned-achievements {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .pinned-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .pinned-achievements {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: visible;
+            position: relative;
+            z-index: 10;
+        }
+
+        .pinned-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .pinned-achievement {
+            background: rgba(96, 165, 250, 0.08);
+            border: 1px solid rgba(96, 165, 250, 0.15);
+            border-radius: 10px;
+            padding: 10px 8px;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pinned-achievement:hover {
+            background: rgba(96, 165, 250, 0.12);
+            border-color: rgba(96, 165, 250, 0.3);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(96, 165, 250, 0.15);
+        }
+
+        .achievement-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            flex-shrink: 0;
+        }
+
+        .achievement-name {
+            font-size: 10px;
+            font-weight: 600;
+            color: #e5e7eb;
+            line-height: 1.25;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            width: 100%;
+            padding: 0 4px;
+            word-break: break-word;
+        }
+
+        .achievement-game {
+            display: none;
+        }
+
+        /* Achievement Modal */
+        .achievement-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .achievement-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(30, 35, 45, 0.98);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: #9ca3af;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 20px;
+        }
+
+        .modal-close:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-icon {
+            font-size: 64px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .modal-title-section h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .modal-game {
+            font-size: 14px;
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-info-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-info-label {
+            font-size: 12px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            min-width: 100px;
+        }
+
+        .modal-info-value {
+            font-size: 14px;
+            color: #e5e7eb;
+            font-weight: 500;
+        }
+
+        .rarity-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .rarity-common {
+            background: rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+        }
+
+        .rarity-uncommon {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .rarity-rare {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .rarity-epic {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+        }
+
+        .rarity-legendary {
+            background: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+        }
+
+        .rarity-percentage {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .modal-description {
+            background: rgba(20, 25, 35, 0.6);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 8px;
+        }
+
+        .modal-description p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #d1d5db;
+            margin: 0;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 200px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-top: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Tooltip - Remover */
+        .pinned-achievement[data-tooltip]::after {
+            display: none;
+        }
+
+        /* Pin Achievements Modal */
+        .pin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .pin-modal.active {
+            display: flex;
+        }
+
+        .pin-modal-content {
+            background: rgba(30, 35, 45, 0.98);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 16px;
+            padding: 0;
+            max-width: 700px;
+            width: 90%;
+            max-height: 85vh;
+            position: relative;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pin-modal-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pin-modal-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            color: #fff;
+        }
+
+        .pin-modal-header p {
+            font-size: 14px;
+            color: #9ca3af;
+            margin: 0;
+        }
+
+        .pin-modal-search {
+            padding: 20px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .pin-search-box {
+            position: relative;
+        }
+
+        .pin-search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .pin-search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            background: rgba(20, 25, 35, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e5e7eb;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .pin-search-input::placeholder {
+            color: #6b7280;
+        }
+
+        .pin-search-input:focus {
+            border-color: rgba(96, 165, 250, 0.5);
+            background: rgba(20, 25, 35, 0.8);
+        }
+
+        .pin-modal-body {
+            padding: 20px 32px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .pin-modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .pin-modal-body::-webkit-scrollbar-track {
+            background: rgba(20, 25, 35, 0.4);
+        }
+
+        .pin-modal-body::-webkit-scrollbar-thumb {
+            background: rgba(96, 165, 250, 0.3);
+            border-radius: 4px;
+        }
+
+        .pin-modal-body::-webkit-scrollbar-thumb:hover {
+            background: rgba(96, 165, 250, 0.5);
+        }
+
+        .pin-achievement-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(20, 25, 35, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pin-achievement-item:hover {
+            background: rgba(20, 25, 35, 0.6);
+            border-color: rgba(96, 165, 250, 0.3);
+        }
+
+        .pin-achievement-item.selected {
+            background: rgba(96, 165, 250, 0.1);
+            border-color: rgba(96, 165, 250, 0.5);
+        }
+
+        .pin-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(96, 165, 250, 0.3);
+            border-radius: 6px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .pin-achievement-item.selected .pin-checkbox {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .pin-checkbox i {
+            color: #fff;
+            font-size: 12px;
+            display: none;
+        }
+
+        .pin-achievement-item.selected .pin-checkbox i {
+            display: block;
+        }
+
+        .pin-achievement-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            background: rgba(96, 165, 250, 0.1);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .pin-achievement-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pin-achievement-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #e5e7eb;
+            margin-bottom: 4px;
+        }
+
+        .pin-achievement-desc {
+            font-size: 13px;
+            color: #9ca3af;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pin-modal-footer {
+            padding: 20px 32px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .pin-modal-btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            outline: none;
+        }
+
+        .pin-modal-btn-cancel {
+            background: rgba(255, 255, 255, 0.05);
+            color: #e5e7eb;
+        }
+
+        .pin-modal-btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .pin-modal-btn-confirm {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: #fff;
+        }
+
+        .pin-modal-btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+        }
+
+        .pin-modal-btn-confirm:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .pin-achievement-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+
+        .pin-achievement-empty i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .pinned-achievements {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: visible;
+        }
+
+        .pinned-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            overflow: visible;
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <!-- Prisma Background Effect -->
+    <div class="prisma-background">
+        <div class="light-beam beam-steam"></div>
+        <div class="light-beam beam-playstation"></div>
+        <div class="light-beam beam-xbox"></div>
+        <div class="light-beam beam-retro"></div>
+        <div class="prisma-core"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar w-14 flex flex-col items-center py-4 space-y-3">
+        <div class="sidebar-icon active" data-page="dashboard">
+            <i class="fas fa-gamepad text-blue-400"></i>
+        </div>
+        <div class="sidebar-icon" data-page="ranking">
+            <i class="fas fa-trophy text-gray-400"></i>
+        </div>
+        <div class="sidebar-icon" data-page="followers">
+            <i class="fas fa-user text-gray-400"></i>
+        </div>
+        <div class="flex-1"></div>
+        <div class="sidebar-icon" data-page="settings">
+            <i class="fas fa-cog text-gray-400"></i>
+        </div>
+    </div>
+
+    <div class="content-layer min-h-screen">
+        <!-- Main Content -->
+        <div class="ml-14 p-6 overflow-y-auto scrollbar-thin">
+            <div class="max-w-7xl mx-auto">
+                
+                <!-- Dashboard Page -->
+                <div class="dashboard-page active">
+                <!-- Top Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Profile Card -->
+                    <div class="profile-card card p-6 lg:col-span-1">
+                        <div class="flex items-start space-x-4">
+                            <div class="relative profile-avatar-container" onclick="openEditProfile()">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nolan&backgroundColor=b6e3f4" 
+                                     alt="Nolan" 
+                                     id="profileAvatar"
+                                     class="w-20 h-20 rounded-full border-2 border-blue-400">
+                                <div class="profile-edit-overlay">
+                                    <i class="fas fa-camera text-white text-xl"></i>
+                                </div>
+                                <div class="online-indicator pulse"></div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <h2 class="text-2xl font-bold" id="profileName">@nolan</h2>
+                                </div>
+                                <div class="flex items-center space-x-3 text-xs text-gray-400">
+                                    <span><strong class="text-white" id="followersCount">12</strong> Seguidores</span>
+                                    <span>•</span>
+                                    <span><strong class="text-white" id="followingCount">5</strong> Seguindo</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pinned Achievements -->
+                        <div class="mt-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Conquistas Fixadas</h3>
+                                <button id="openPinModal" class="text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium flex items-center gap-2">
+                                    <i class="fas fa-thumbtack"></i>
+                                    Gerenciar
+                                </button>
+                            </div>
+                            <div class="pinned-achievements">
+                                <div class="pinned-grid" id="pinnedGrid">
+                                    <div class="pinned-achievement" data-achievement='{"name":"Conflito Intenso","game":"Far Cry 6","percentage":"45.2","rarity":"uncommon","description":"Complete 10 missões de conflito em áreas de alta tensão. Domine as bases inimigas sem ser detectado.","icon":"🎮","image":"https://images.unsplash.com/photo-1580234811497-9df7fd2f357e?w=500&h=300&fit=crop"}'>
+                                        <div class="achievement-icon">🎮</div>
+                                        <div class="achievement-name">Conflito Intenso</div>
+                                        <div class="achievement-game">Far Cry 6</div>
+                                    </div>
+
+                                    <div class="pinned-achievement" data-achievement='{"name":"Mochilão","game":"Far Cry 6","percentage":"78.5","rarity":"common","description":"Colete todos os itens de mochila espalhados pelo mapa. Aumente sua capacidade de carga ao máximo.","icon":"🎒","image":"https://images.unsplash.com/photo-1580234811497-9df7fd2f357e?w=500&h=300&fit=crop"}'>
+                                        <div class="achievement-icon">🎒</div>
+                                        <div class="achievement-name">Mochilão</div>
+                                        <div class="achievement-game">Far Cry 6</div>
+                                    </div>
+
+                                    <div class="pinned-achievement" data-achievement='{"name":"Até Não Sobrar Nenhum","game":"The Last of Us™ Parte II Remastered","percentage":"2.8","rarity":"legendary","description":"Elimine todos os inimigos em modo Realista+ sem morrer uma única vez. Uma conquista apenas para os verdadeiros mestres.","icon":"💀","image":"https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=500&h=300&fit=crop"}'>
+                                        <div class="achievement-icon">💀</div>
+                                        <div class="achievement-name">Até Não Sobrar Nenhum</div>
+                                        <div class="achievement-game">TLOU II Remastered</div>
+                                    </div>
+
+                                    <div class="pinned-achievement" data-achievement='{"name":"Platina","game":"God of War","percentage":"8.3","rarity":"epic","description":"Obtenha todas as conquistas do jogo. Complete todos os desafios de Muspelheim e Niflheim, e derrote todas as Valquírias.","icon":"🏆","image":"https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500&h=300&fit=crop"}'>
+                                        <div class="achievement-icon">🏆</div>
+                                        <div class="achievement-name">Platina</div>
+                                        <div class="achievement-game">God of War</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recently Played Game Card -->
+                    <div class="card p-0 lg:col-span-2 overflow-hidden">
+                        <div class="relative h-48" style="background: linear-gradient(to bottom, rgba(15, 20, 25, 0.3), rgba(15, 20, 25, 0.95)), url('https://cdn.akamai.steamstatic.com/steam/apps/251570/library_hero.jpg?t=1698080003') center/cover;">
+                            <div class="absolute bottom-0 left-0 right-0 p-6">
+                                <div class="flex items-start space-x-4">
+                                    <img src="assets/images/logo7daystodie.png" 
+                                         alt="7 Days to Die" 
+                                         class="w-20 h-20 rounded border-2 border-gray-700 shadow-lg object-cover">
+                                    <div class="flex-1">
+                                        <h3 class="text-xl font-bold mb-2">7 Days to Die</h3>
+                                        <div class="text-sm text-gray-300 mb-3">
+                                            <span class="font-semibold">229 horas registradas</span>
+                                        </div>
+                                        <div class="text-xs text-gray-400">
+                                            jogado pela última vez em 29 de out.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Achievements Preview Bar -->
+                        <div class="bg-gray-800/50 px-6 py-3 border-t border-gray-700/50">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-400 font-medium uppercase tracking-wider">Conquistas</span>
+                                <span class="text-xs text-gray-400">38 de 43</span>
+                            </div>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <div class="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" style="width: 88.4%;"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 1">
+                                    🎯
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 2">
+                                    💡
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 3">
+                                    🗽
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 4">
+                                    🏍️
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 5">
+                                    🎓
+                                </div>
+                                <div class="flex items-center justify-center text-sm text-gray-400 font-semibold ml-2">
+                                    +33
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Platform Distribution Bar -->
+                <div class="card p-4 mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Distribuição de Troféus por Plataforma</h3>
+                    </div>
+                    <div class="flex h-3 rounded-full overflow-hidden">
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 20%; background-color: #0070CC;" 
+                             title="PlayStation - 20%"></div>
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 10%; background-color: #107C10;" 
+                             title="Xbox - 10%"></div>
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 60%; background-color: #66c0f4;" 
+                             title="Steam - 60%"></div>
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 10%; background-color: #D4A017;" 
+                             title="RetroAchievements - 10%"></div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #0070CC;"></div>
+                            <span class="text-xs text-gray-400">PlayStation <strong class="text-white">20%</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #107C10;"></div>
+                            <span class="text-xs text-gray-400">Xbox <strong class="text-white">10%</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #66c0f4;"></div>
+                            <span class="text-xs text-gray-400">Steam <strong class="text-white">60%</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #D4A017;"></div>
+                            <span class="text-xs text-gray-400">RetroAchievements <strong class="text-white">10%</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Conquistas -->
+                    <div class="stat-card card p-6 text-center">
+                        <i class="fas fa-trophy trophy-icon text-4xl mb-3"></i>
+                        <h3 class="text-4xl font-bold mb-1">3,303</h3>
+                        <p class="text-gray-400 text-sm uppercase tracking-wide">Conquistas</p>
+                    </div>
+
+                    <!-- Média de Conclusão -->
+                    <div class="stat-card card p-6 text-center">
+                        <i class="fas fa-gamepad controller-icon text-4xl mb-3"></i>
+                        <div class="flex items-center justify-center mb-1">
+                            <h3 class="text-4xl font-bold gradient-text">26</h3>
+                            <span class="text-2xl font-bold text-gray-400">%</span>
+                        </div>
+                        <p class="text-gray-400 text-sm uppercase tracking-wide mb-3">Média de Conclusão</p>
+                        <div class="progress-bar bg-gray-700 mx-auto" style="width: 80%;">
+                            <div class="progress-fill bg-gradient-to-r from-blue-500 to-blue-600" style="width: 26%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Jogos Perfeitos -->
+                    <div class="stat-card card p-6 text-center">
+                        <i class="fas fa-users users-icon text-4xl mb-3"></i>
+                        <h3 class="text-4xl font-bold mb-1">11</h3>
+                        <p class="text-gray-400 text-sm uppercase tracking-wide">Jogos Perfeitos</p>
+                    </div>
+                </div>
+
+                <!-- Recent Games Section -->
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold">Jogos Recentes</h2>
+                    </div>
+
+                    <!-- Table Header -->
+                    <div class="hidden md:grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-700">
+                        <div class="col-span-3 table-header">Jogo</div>
+                        <div class="col-span-2 table-header">Conclusão</div>
+                        <div class="col-span-1 table-header">Conquistas</div>
+                        <div class="col-span-2 table-header">Tempo de Jogo</div>
+                        <div class="col-span-2 table-header">Último Desbloqueio</div>
+                        <div class="col-span-1 table-header">Última Vez Jogado</div>
+                        <div class="col-span-1 table-header">Plataforma</div>
+                    </div>
+
+                    <!-- Game Rows -->
+                    <div class="space-y-2 mt-2">
+                        <!-- Dead by Daylight -->
+                        <div class="game-row grid grid-cols-1 md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1580234811497-9df7fd2f357e?w=100&h=100&fit=crop" 
+                                     alt="Dead by Daylight" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Dead by Daylight</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-emerald-600" style="width: 71%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">71%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 71 / 288</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>48h 37m</div>
+                                    <div class="text-gray-400 text-xs">Total 86h 57m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-10-01 19:30:58</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-10-01</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Playstation</span>
+                            </div>
+                        </div>
+
+                        <!-- Cronus: The New Dawn -->
+                        <div class="game-row grid grid-cols-1 md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=100&h=100&fit=crop" 
+                                     alt="Cronus: The New Dawn" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Cronus: The New Dawn</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-emerald-600" style="width: 29%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">29%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 29 / 47</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>22h 50m</div>
+                                    <div class="text-gray-400 text-xs">Total 22h 50m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-10-01 18:00:38</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-08-30</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Xbox</span>
+                            </div>
+                        </div>
+
+                        <!-- Darius 2 -->
+                        <div class="game-row grid grid-cols-1 md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=100&h=100&fit=crop" 
+                                     alt="Darius 2" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Darius 2</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-emerald-600" style="width: 15%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">15%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 15 / 307</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>18h 58m</div>
+                                    <div class="text-gray-400 text-xs">Total 8h 38m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-08-27 15:55:33</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-08-27</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Retro/Archriments</span>
+                            </div>
+                        </div>
+
+                        <!-- Hollow Knight: Silksong -->
+                        <div class="game-row grid grid-cols-1 md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=100&h=100&fit=crop" 
+                                     alt="Hollow Knight: Silksong" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Hollow Knight: Silksong</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-blue-500 to-blue-600" style="width: 43%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">43%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 43 / 52</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>77h 2m</div>
+                                    <div class="text-gray-400 text-xs">Total 77h 2m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-08-22 09:01:53</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-08-22</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Steam</span>
+                            </div>
+                        </div>
+
+                        <!-- Resident Evil 5 -->
+                        <div class="game-row grid grid-cols-1 md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=100&h=100&fit=crop" 
+                                     alt="Resident Evil 5" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Resident Evil 5</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-emerald-600" style="width: 32%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">32%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 32 / 70</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>29h 53m</div>
+                                    <div class="text-gray-400 text-xs">Total 29h 53m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-08-18 05:58:19</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-08-18</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Playstation</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div class="settings-page">
+                <div class="settings-header">
+                    <i class="fas fa-cog"></i>
+                    <h1>Configurações</h1>
+                </div>
+
+                <!-- Logout Card -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <div class="settings-card-icon logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <h3>Deslogar conta</h3>
+                    </div>
+                    <p>Encerre sua sessão em todos os dispositivos conectados. Você precisará fazer login novamente.</p>
+                    <button class="btn-logout">Sair</button>
+                </div>
+
+                <!-- Delete Account Card -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <div class="settings-card-icon delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h3>Excluir conta permanentemente</h3>
+                    </div>
+                    <p>Esta ação é irreversível. Todos os seus dados, conquistas e progresso serão apagados desta plataforma.</p>
+                    <button class="btn-delete">Excluir</button>
+                </div>
+            </div>
+
+            <!-- Followers/Following Page -->
+            <div class="followers-page">
+                <div class="followers-header">
+                    <i class="fas fa-users"></i>
+                    <h1>Seguidores (12)</h1>
+                </div>
+
+                <!-- Tabs -->
+                <div class="followers-tabs">
+                    <button class="followers-tab active" data-tab="seguidores">Seguidores</button>
+                    <button class="followers-tab" data-tab="seguindo">Seguindo</button>
+                    <button class="followers-tab" data-tab="pesquisar">Pesquisar</button>
+                </div>
+
+                <!-- Seguidores Tab Content -->
+                <div class="tab-content active" id="seguidores">
+                    <div class="followers-grid">
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Cypher" alt="Cypher Blade" class="follower-avatar">
+                            <div class="follower-name">Cypher Blade</div>
+                            <div class="follower-username">@cipher.pro</div>
+                            <button class="btn-follow following"></button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mystic" alt="MysticShadow" class="follower-avatar">
+                            <div class="follower-name">MysticShadow</div>
+                            <div class="follower-username">@shadow.caster</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nova" alt="Nova Burst" class="follower-avatar">
+                            <div class="follower-name">Nova Burst</div>
+                            <div class="follower-username">@nova.star</div>
+                            <button class="btn-follow following"></button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Pyro" alt="PyroPhoenix" class="follower-avatar">
+                            <div class="follower-name">PyroPhoenix</div>
+                            <div class="follower-username">@phoenix.ignite</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Galactic" alt="GalacticHunter" class="follower-avatar">
+                            <div class="follower-name">GalacticHunter</div>
+                            <div class="follower-username">@star.chaser</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Tech" alt="Tech Sorcerer" class="follower-avatar">
+                            <div class="follower-name">Tech Sorcerer</div>
+                            <div class="follower-username">@code.mage</div>
+                            <button class="btn-follow following"></button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aqua" alt="AquaDiva" class="follower-avatar">
+                            <div class="follower-name">AquaDiva</div>
+                            <div class="follower-username">@ocean.song</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Grim" alt="GrimReaper" class="follower-avatar">
+                            <div class="follower-name">GrimReaper</div>
+                            <div class="follower-username">@dark.harvester</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Pixel" alt="PixelPrincess" class="follower-avatar">
+                            <div class="follower-name">PixelPrincess</div>
+                            <div class="follower-username">@8bit.queen</div>
+                            <button class="btn-follow following"></button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Voltage" alt="VoltageWarrior" class="follower-avatar">
+                            <div class="follower-name">VoltageWarrior</div>
+                            <div class="follower-username">@shock.wave</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Crimson" alt="CrimsonValkyrie" class="follower-avatar">
+                            <div class="follower-name">CrimsonValkyrie</div>
+                            <div class="follower-username">@blood.wing</div>
+                            <button class="btn-follow following"></button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Chrono" alt="ChronoSage" class="follower-avatar">
+                            <div class="follower-name">ChronoSage</div>
+                            <div class="follower-username">@time.bender</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seguindo Tab Content -->
+                <div class="tab-content" id="seguindo">
+                    <div class="followers-grid">
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Cypher" alt="Cypher Blade" class="follower-avatar">
+                            <div class="follower-name">Cypher Blade</div>
+                            <div class="follower-username">@cipher.pro</div>
+                            <button class="btn-follow following"></button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nova" alt="Nova Burst" class="follower-avatar">
+                            <div class="follower-name">Nova Burst</div>
+                            <div class="follower-username">@nova.star</div>
+                            <button class="btn-follow following"></button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Tech" alt="Tech Sorcerer" class="follower-avatar">
+                            <div class="follower-name">Tech Sorcerer</div>
+                            <div class="follower-username">@code.mage</div>
+                            <button class="btn-follow following"></button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Pixel" alt="PixelPrincess" class="follower-avatar">
+                            <div class="follower-name">PixelPrincess</div>
+                            <div class="follower-username">@8bit.queen</div>
+                            <button class="btn-follow following"></button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Crimson" alt="CrimsonValkyrie" class="follower-avatar">
+                            <div class="follower-name">CrimsonValkyrie</div>
+                            <div class="follower-username">@blood.wing</div>
+                            <button class="btn-follow following"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pesquisar Tab Content -->
+                <div class="tab-content" id="pesquisar">
+                    <div class="search-box">
+                        <input type="text" class="search-input" placeholder="Pesquisar usuários...">
+                    </div>
+                    <div class="followers-grid">
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Shadow" alt="ShadowNinja" class="follower-avatar">
+                            <div class="follower-name">ShadowNinja</div>
+                            <div class="follower-username">@shadow.stealth</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Frost" alt="FrostByte" class="follower-avatar">
+                            <div class="follower-name">FrostByte</div>
+                            <div class="follower-username">@frost.core</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Thunder" alt="ThunderStrike" class="follower-avatar">
+                            <div class="follower-name">ThunderStrike</div>
+                            <div class="follower-username">@thunder.bolt</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" alt="LunarEclipse" class="follower-avatar">
+                            <div class="follower-name">LunarEclipse</div>
+                            <div class="follower-username">@moon.shadow</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Venom" alt="VenomViper" class="follower-avatar">
+                            <div class="follower-name">VenomViper</div>
+                            <div class="follower-username">@toxic.fang</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Blaze" alt="BlazeRunner" class="follower-avatar">
+                            <div class="follower-name">BlazeRunner</div>
+                            <div class="follower-username">@fire.dash</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Neon" alt="NeonGhost" class="follower-avatar">
+                            <div class="follower-name">NeonGhost</div>
+                            <div class="follower-username">@neon.specter</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+
+                        <div class="follower-card">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Storm" alt="StormBreaker" class="follower-avatar">
+                            <div class="follower-name">StormBreaker</div>
+                            <div class="follower-username">@storm.fury</div>
+                            <button class="btn-follow">Seguir</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Logout Success Modal -->
+    <div id="logoutModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50" style="display: none;">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-12 max-w-md w-full mx-4 shadow-2xl border border-gray-700/50 text-center">
+            <h2 class="text-3xl font-bold text-white mb-4">Logout Realizado com Sucesso!</h2>
+            <p class="text-gray-300 mb-3">Você foi desconectado(a) da Plataforma Moderna.</p>
+            <p class="text-gray-400 text-sm mb-8">Sua sessão foi encerrada por segurança.</p>
+            <button onclick="confirmLogout()" class="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold text-lg rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                Entrar Novamente
+            </button>
+        </div>
+    </div>
+
+    <!-- Delete Account Confirmation Modal -->
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50" style="display: none;">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-red-900/50">
+            <div class="text-center mb-6">
+                <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
+                <h2 class="text-2xl font-bold text-white mb-2">ATENÇÃO: Esta ação é irreversível!</h2>
+            </div>
+            <p class="text-gray-300 mb-4 text-center">Todos os seus dados, conquistas e progresso serão permanentemente apagados.</p>
+            <div class="mb-6">
+                <label class="block text-gray-400 text-sm mb-2 text-left">Digite "EXCLUIR" para confirmar:</label>
+                <input type="text" id="deleteConfirmInput" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-red-500 focus:outline-none text-center font-bold" placeholder="EXCLUIR">
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteConfirm()" class="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition-all duration-300">
+                    Cancelar
+                </button>
+                <button onclick="processDelete()" class="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    Excluir Conta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Success Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50" style="display: none;">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-12 max-w-md w-full mx-4 shadow-2xl border border-red-900/50 text-center">
+            <div class="mb-6">
+                <i class="fas fa-trash-alt text-red-500 text-5xl"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-white mb-4">Conta Excluída com Sucesso!</h2>
+            <p class="text-gray-300 mb-3">Sua conta foi permanentemente removida.</p>
+            <p class="text-gray-400 text-sm mb-8">Todos os seus dados, conquistas e progresso foram apagados.</p>
+            <button onclick="confirmDelete()" class="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold text-lg rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                Sair
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Platform trophy statistics (percentages)
+        // Total must equal 100%
+        // Percentages control the intensity/opacity of each light beam
+        const platformStats = {
+            playstation: { percentage: 20, color: '#0070CC', name: 'PlayStation' },
+            xbox: { percentage: 10, color: '#107C10', name: 'Xbox' },
+            steam: { percentage: 60, color: '#66c0f4', name: 'Steam' },
+            retroachievements: { percentage: 10, color: '#D4A017', name: 'RetroAchievements' }
+        };
+
+        // Generate dynamic prisma effect based on platform percentages
+        function generatePrismaEffect() {
+            const beams = {
+                'beam-playstation': platformStats.playstation,
+                'beam-xbox': platformStats.xbox,
+                'beam-steam': platformStats.steam,
+                'beam-retro': platformStats.retroachievements
+            };
+
+            Object.entries(beams).forEach(([className, platform]) => {
+                const beam = document.querySelector(`.${className}`);
+                if (beam) {
+                    // Calculate opacity based on percentage (10% = 0.2, 60% = 0.6, etc)
+                    const baseOpacity = platform.percentage / 100;
+                    beam.style.opacity = baseOpacity;
+                }
+            });
+
+            // Update prisma core with mixed colors
+            const core = document.querySelector('.prisma-core');
+            if (core) {
+                // Create dynamic radial gradient based on strongest platforms
+                const sortedPlatforms = Object.values(platformStats)
+                    .sort((a, b) => b.percentage - a.percentage);
+                
+                const gradientStops = sortedPlatforms.map((platform, index) => {
+                    const opacity = (platform.percentage / 100) * 0.2;
+                    return `${platform.color}${Math.floor(opacity * 255).toString(16).padStart(2, '0')} ${index * 25}%`;
+                }).join(', ');
+            }
+        }
+
+        // Apply prisma effect on load
+        window.addEventListener('load', () => {
+            generatePrismaEffect();
+            createPrismaParticles();
+        });
+
+        // Create floating particles based on platform colors
+        function createPrismaParticles() {
+            const prismaBackground = document.querySelector('.prisma-background');
+            const platforms = Object.values(platformStats);
+            
+            // Create particles proportional to platform percentage
+            platforms.forEach(platform => {
+                const particleCount = Math.floor(platform.percentage / 5); // 60% = 12 particles, 10% = 2 particles
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'prisma-particle';
+                    particle.style.backgroundColor = platform.color;
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                    particle.style.animationDelay = Math.random() * 5 + 's';
+                    particle.style.boxShadow = `0 0 10px ${platform.color}`;
+                    
+                    prismaBackground.appendChild(particle);
+                }
+            });
+        }
+
+        // Add smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Sidebar navigation
+        const sidebarIcons = document.querySelectorAll('.sidebar-icon');
+        const pages = {
+            dashboard: document.querySelector('.dashboard-page'),
+            settings: document.querySelector('.settings-page'),
+            followers: document.querySelector('.followers-page')
+        };
+
+        sidebarIcons.forEach(icon => {
+            icon.addEventListener('click', function() {
+                const page = this.getAttribute('data-page');
+                
+                // Handle ranking page redirect
+                if (page === 'ranking') {
+                    window.location.href = 'ranking.html';
+                    return;
+                }
+                
+                if (page && pages[page]) {
+                    // Remove active from all icons
+                    sidebarIcons.forEach(i => i.classList.remove('active'));
+                    
+                    // Add active to clicked icon
+                    this.classList.add('active');
+                    
+                    // Hide all pages
+                    Object.values(pages).forEach(p => p.classList.remove('active'));
+                    
+                    // Show selected page
+                    pages[page].classList.add('active');
+                    
+                    // Update icon colors
+                    sidebarIcons.forEach(i => {
+                        const iconElement = i.querySelector('i');
+                        if (i.classList.contains('active')) {
+                            iconElement.classList.remove('text-gray-400');
+                            iconElement.classList.add('text-blue-400');
+                        } else {
+                            iconElement.classList.remove('text-blue-400');
+                            iconElement.classList.add('text-gray-400');
+                        }
+                    });
+                }
+            });
+        });
+
+        // Logout button functionality
+        const logoutBtn = document.querySelector('.btn-logout');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                // Show logout modal
+                const logoutModal = document.getElementById('logoutModal');
+                logoutModal.style.display = 'flex';
+            });
+        }
+
+        // Confirm logout and redirect
+        window.confirmLogout = function() {
+            window.location.href = 'index.html';
+        };
+
+        // Delete account button functionality
+        const deleteBtn = document.querySelector('.btn-delete');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                // Show delete confirmation modal
+                const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+                deleteConfirmModal.style.display = 'flex';
+                // Clear input
+                document.getElementById('deleteConfirmInput').value = '';
+            });
+        }
+
+        // Close delete confirmation modal
+        window.closeDeleteConfirm = function() {
+            const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+            deleteConfirmModal.style.display = 'none';
+            document.getElementById('deleteConfirmInput').value = '';
+        };
+
+        // Process delete account
+        window.processDelete = function() {
+            const input = document.getElementById('deleteConfirmInput').value;
+            if (input === 'EXCLUIR') {
+                // Hide confirmation modal
+                document.getElementById('deleteConfirmModal').style.display = 'none';
+                // Show success modal
+                const deleteModal = document.getElementById('deleteModal');
+                deleteModal.style.display = 'flex';
+            } else {
+                alert('Confirmação incorreta. Digite "EXCLUIR" para confirmar a exclusão.');
+            }
+        };
+
+        // Confirm delete and redirect
+        window.confirmDelete = function() {
+            window.location.href = 'index.html';
+        };
+
+        // Followers tabs functionality
+        const followersTabs = document.querySelectorAll('.followers-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        followersTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                
+                // Remove active from all tabs
+                followersTabs.forEach(t => t.classList.remove('active'));
+                
+                // Add active to clicked tab
+                this.classList.add('active');
+                
+                // Hide all tab contents
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Show selected tab content
+                const targetContent = document.getElementById(tabName);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+
+                // Update page title based on tab
+                const followersHeader = document.querySelector('.followers-header h1');
+                if (followersHeader) {
+                    if (tabName === 'seguidores') {
+                        followersHeader.textContent = 'Seguidores (12)';
+                    } else if (tabName === 'seguindo') {
+                        followersHeader.textContent = 'Seguindo (5)';
+                    } else if (tabName === 'pesquisar') {
+                        followersHeader.textContent = 'Pesquisar Pessoas';
+                    }
+                }
+            });
+        });
+
+        // Open profile page when clicking on follower card
+        document.addEventListener('click', function(e) {
+            const followerCard = e.target.closest('.follower-card');
+            
+            // Se clicar no card mas não no botão de seguir
+            if (followerCard && !e.target.classList.contains('btn-follow')) {
+                const username = followerCard.querySelector('.follower-username').textContent.replace('@', '');
+                window.location.href = `profile.html?user=${username}`;
+                return;
+            }
+        });
+
+        // Follow/Unfollow button functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn-follow')) {
+                e.stopPropagation(); // Previne a abertura do perfil
+                
+                const followingCountElement = document.getElementById('followingCount');
+                let currentCount = parseInt(followingCountElement.textContent);
+                const followerCard = e.target.closest('.follower-card');
+                const username = followerCard.querySelector('.follower-username').textContent.replace('@', '').toLowerCase();
+                
+                // Gerenciar localStorage de following
+                let following = JSON.parse(localStorage.getItem('following') || '[]');
+                
+                console.log('Dashboard - Toggle follow for:', username);
+                console.log('Current following list:', following);
+                
+                if (e.target.classList.contains('following')) {
+                    // Deixar de seguir
+                    e.target.classList.remove('following');
+                    e.target.textContent = 'Seguir';
+                    
+                    // Remover do localStorage
+                    following = following.filter(user => user !== username);
+                    localStorage.setItem('following', JSON.stringify(following));
+                    
+                    console.log('Unfollowed. New list:', following);
+                    
+                    // Atualizar contador
+                    currentCount--;
+                    followingCountElement.textContent = currentCount;
+                    
+                    // Atualizar título da aba "Seguindo"
+                    const followersHeader = document.querySelector('.followers-header h1');
+                    const activeTab = document.querySelector('.followers-tab.active');
+                    if (activeTab && activeTab.getAttribute('data-tab') === 'seguindo') {
+                        followersHeader.textContent = `Seguindo (${currentCount})`;
+                    }
+                } else {
+                    // Seguir
+                    e.target.classList.add('following');
+                    e.target.textContent = '';
+                    
+                    // Adicionar ao localStorage
+                    if (!following.includes(username)) {
+                        following.push(username);
+                        localStorage.setItem('following', JSON.stringify(following));
+                    }
+                    
+                    console.log('Followed. New list:', following);
+                    
+                    // Atualizar contador
+                    currentCount++;
+                    followingCountElement.textContent = currentCount;
+                    
+                    // Atualizar título da aba "Seguindo"
+                    const followersHeader = document.querySelector('.followers-header h1');
+                    const activeTab = document.querySelector('.followers-tab.active');
+                    if (activeTab && activeTab.getAttribute('data-tab') === 'seguindo') {
+                        followersHeader.textContent = `Seguindo (${currentCount})`;
+                    }
+                }
+            }
+        });
+
+        // Search functionality
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const followerCards = document.querySelectorAll('#pesquisar .follower-card');
+                
+                followerCards.forEach(card => {
+                    const name = card.querySelector('.follower-name').textContent.toLowerCase();
+                    const username = card.querySelector('.follower-username').textContent.toLowerCase();
+                    
+                    if (name.includes(searchTerm) || username.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Animate progress bars on load
+        window.addEventListener('load', () => {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+        });
+
+        // Achievement stars interactive
+        const stars = document.querySelectorAll('.achievement-star');
+        stars.forEach((star, index) => {
+            star.addEventListener('mouseenter', () => {
+                for (let i = 0; i <= index; i++) {
+                    stars[i].style.color = '#fbbf24';
+                }
+            });
+        });
+
+        const achievementContainer = stars[0]?.parentElement;
+        if (achievementContainer) {
+            achievementContainer.addEventListener('mouseleave', () => {
+                stars.forEach(star => {
+                    star.style.color = '#9ca3af';
+                });
+            });
+        }
+
+        // Achievement Modal Functions
+        window.openAchievementModal = function(element, e) {
+            console.log('openAchievementModal called', element);
+            if (e) {
+                e.stopPropagation();
+            }
+            
+            try {
+                const data = JSON.parse(element.getAttribute('data-achievement'));
+                const modal = document.getElementById('achievementModal');
+                
+                if (!modal) {
+                    console.error('Modal not found!');
+                    return;
+                }
+                
+                console.log('Modal element:', modal);
+                console.log('Achievement data:', data);
+                
+                const modalIcon = document.getElementById('modalIcon');
+                const modalTitle = document.getElementById('modalTitle');
+                const modalGame = document.getElementById('modalGame');
+                const modalRarity = document.getElementById('modalRarity');
+                const modalDescription = document.getElementById('modalDescription');
+                const modalImage = document.getElementById('modalImage');
+                
+                console.log('Modal elements found:', {modalIcon, modalTitle, modalGame, modalRarity, modalDescription, modalImage});
+                
+                if (!modalIcon || !modalTitle || !modalGame || !modalRarity || !modalDescription || !modalImage) {
+                    console.error('Some modal elements not found!');
+                    return;
+                }
+                
+                modalIcon.textContent = data.icon;
+                modalTitle.textContent = data.name;
+                modalGame.textContent = data.game;
+                
+                // Define a classe de raridade baseada na porcentagem
+                let rarityClass = 'rarity-common';
+                let rarityLabel = 'Comum';
+                
+                if (data.percentage >= 50) {
+                    rarityClass = 'rarity-common';
+                    rarityLabel = 'Comum';
+                } else if (data.percentage >= 20) {
+                    rarityClass = 'rarity-uncommon';
+                    rarityLabel = 'Incomum';
+                } else if (data.percentage >= 10) {
+                    rarityClass = 'rarity-rare';
+                    rarityLabel = 'Raro';
+                } else if (data.percentage >= 5) {
+                    rarityClass = 'rarity-epic';
+                    rarityLabel = 'Épico';
+                } else {
+                    rarityClass = 'rarity-legendary';
+                    rarityLabel = 'Lendário';
+                }
+                
+                modalRarity.className = `rarity-badge ${rarityClass}`;
+                modalRarity.innerHTML = `<span>${rarityLabel}</span><span class="rarity-percentage">${data.percentage}%</span>`;
+                
+                modalDescription.textContent = data.description;
+                modalImage.src = data.image;
+                
+                console.log('Adding active class to modal');
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                console.log('Modal classes:', modal.className);
+            } catch (error) {
+                console.error('Error opening modal:', error);
+            }
+        }
+
+        window.closeAchievementModal = function(e) {
+            console.log('closeAchievementModal called');
+            if (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            const modal = document.getElementById('achievementModal');
+            if (modal) {
+                console.log('Removing active class from modal');
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                console.log('Modal classes after close:', modal.className);
+            }
+        }
+
+        // Use event delegation on document for achievement cards
+        document.addEventListener('click', function(e) {
+            console.log('Document click:', e.target);
+            
+            // Check if clicked element or its parent is a pinned-achievement (not in modal)
+            const achievementCard = e.target.closest('.pinned-achievement');
+            if (achievementCard && achievementCard.hasAttribute('data-achievement') && !e.target.closest('#pinModal')) {
+                console.log('Achievement card clicked!');
+                e.stopPropagation();
+                e.preventDefault();
+                window.openAchievementModal(achievementCard, e);
+                return;
+            }
+
+            // Check if clicked on modal background
+            if (e.target.id === 'achievementModal') {
+                console.log('Modal background clicked');
+                window.closeAchievementModal(e);
+                return;
+            }
+
+            // Check if clicked on close button or its child (icon) for achievement modal
+            const closeButton = e.target.closest('.modal-close');
+            if (closeButton && !e.target.closest('#pinModal')) {
+                console.log('Close button clicked');
+                window.closeAchievementModal(e);
+                return;
+            }
+        });
+
+        // Close modal on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('achievementModal');
+                if (modal && modal.classList.contains('active')) {
+                    console.log('ESC key pressed');
+                    window.closeAchievementModal(e);
+                }
+                
+                const pinModal = document.getElementById('pinModal');
+                if (pinModal && pinModal.classList.contains('active')) {
+                    closePinModal();
+                }
+            }
+        });
+
+        // Pin Modal Functionality
+        const allAchievements = [
+            {name: "Primeira Vitória", desc: "Vença seu primeiro jogo.", icon: "⭐", game: "Far Cry 6", percentage: "95.2"},
+            {name: "Mestre da Espada", desc: "Derrote 100 inimigos com uma espada.", icon: "⚔️", game: "Dark Souls", percentage: "32.5"},
+            {name: "Explorador Nato", desc: "Descubra todos os locais ocultos.", icon: "🌍", game: "Skyrim", percentage: "15.8"},
+            {name: "Colecionador Lendário", desc: "Adquira todos os itens lendários.", icon: "💎", game: "Diablo IV", percentage: "3.2"},
+            {name: "Protetor da Cidade", desc: "Salve a cidade de uma ameaça.", icon: "🛡️", game: "Spider-Man", percentage: "67.9"},
+            {name: "Caçador de Tesouros", desc: "Encontre 50 tesouros escondidos.", icon: "🏆", game: "Uncharted 4", percentage: "24.1"},
+            {name: "Artesão Mágico", desc: "Crie 100 itens mágicos.", icon: "🔮", game: "Minecraft", percentage: "41.3"},
+            {name: "Conflito Intenso", desc: "Complete 10 missões de conflito em áreas de alta tensão.", icon: "🎮", game: "Far Cry 6", percentage: "45.2"},
+            {name: "Mochilão", desc: "Colete todos os itens de mochila espalhados pelo mapa.", icon: "🎒", game: "Far Cry 6", percentage: "78.5"},
+            {name: "Até Não Sobrar Nenhum", desc: "Elimine todos os inimigos em modo Realista+.", icon: "💀", game: "TLOU II", percentage: "2.8"},
+            {name: "Platina", desc: "Obtenha todas as conquistas do jogo.", icon: "🏆", game: "God of War", percentage: "8.3"},
+            {name: "Velocista", desc: "Complete o jogo em menos de 2 horas.", icon: "⚡", game: "Celeste", percentage: "5.7"},
+            {name: "Pacifista", desc: "Complete sem matar nenhum inimigo.", icon: "💚", game: "Undertale", percentage: "12.4"},
+            {name: "Mestre Chef", desc: "Prepare todas as receitas disponíveis.", icon: "👨‍🍳", game: "Overcooked", percentage: "18.9"},
+        ];
+
+        let selectedAchievements = [];
+        const MAX_PINS = 4;
+
+        function openPinModal() {
+            const modal = document.getElementById('pinModal');
+            const body = document.getElementById('pinModalBody');
+            
+            // Get currently pinned achievements
+            const pinnedGrid = document.getElementById('pinnedGrid');
+            const currentPinned = Array.from(pinnedGrid.querySelectorAll('.pinned-achievement')).map(el => {
+                const data = JSON.parse(el.getAttribute('data-achievement'));
+                return data.name;
+            });
+            
+            selectedAchievements = [...currentPinned];
+            
+            renderAchievementList(allAchievements);
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePinModal() {
+            const modal = document.getElementById('pinModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('pinSearchInput').value = '';
+        }
+
+        function renderAchievementList(achievements) {
+            const body = document.getElementById('pinModalBody');
+            
+            if (achievements.length === 0) {
+                body.innerHTML = `
+                    <div class="pin-achievement-empty">
+                        <i class="fas fa-search"></i>
+                        <p>Nenhuma conquista encontrada</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            body.innerHTML = achievements.map(ach => {
+                const isSelected = selectedAchievements.includes(ach.name);
+                return `
+                    <div class="pin-achievement-item ${isSelected ? 'selected' : ''}" data-name="${ach.name}">
+                        <div class="pin-checkbox">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="pin-achievement-icon-wrapper">
+                            ${ach.icon}
+                        </div>
+                        <div class="pin-achievement-info">
+                            <div class="pin-achievement-title">${ach.name}</div>
+                            <div class="pin-achievement-desc">${ach.desc}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            updateConfirmButton();
+        }
+
+        function updateConfirmButton() {
+            const btn = document.getElementById('pinConfirmBtn');
+            btn.disabled = selectedAchievements.length === 0;
+        }
+
+        // Setup event listeners after DOM loads
+        window.addEventListener('load', function() {
+            // Event delegation for achievement selection in pin modal
+            const pinModalBody = document.getElementById('pinModalBody');
+            if (pinModalBody) {
+                pinModalBody.addEventListener('click', function(e) {
+                    console.log('Pin modal body click:', e.target);
+                    const item = e.target.closest('.pin-achievement-item');
+                    if (item) {
+                        console.log('Pin achievement item clicked:', item);
+                        e.stopPropagation();
+                        
+                        const name = item.getAttribute('data-name');
+                        const isSelected = selectedAchievements.includes(name);
+                        
+                        console.log('Achievement name:', name, 'Is selected:', isSelected);
+                        
+                        if (isSelected) {
+                            selectedAchievements = selectedAchievements.filter(n => n !== name);
+                            item.classList.remove('selected');
+                        } else {
+                            if (selectedAchievements.length < MAX_PINS) {
+                                selectedAchievements.push(name);
+                                item.classList.add('selected');
+                            } else {
+                                alert(`Você pode fixar no máximo ${MAX_PINS} conquistas!`);
+                            }
+                        }
+                        
+                        console.log('Updated selected achievements:', selectedAchievements);
+                        updateConfirmButton();
+                    }
+                });
+            }
+
+            // Search functionality
+            const pinSearchInput = document.getElementById('pinSearchInput');
+            if (pinSearchInput) {
+                pinSearchInput.addEventListener('input', function(e) {
+                    const search = e.target.value.toLowerCase();
+                    const filtered = allAchievements.filter(ach => 
+                        ach.name.toLowerCase().includes(search) || 
+                        ach.desc.toLowerCase().includes(search) ||
+                        ach.game.toLowerCase().includes(search)
+                    );
+                    renderAchievementList(filtered);
+                });
+            }
+        });
+
+        // Edit Profile Functions
+        let currentAvatarUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Nolan&backgroundColor=b6e3f4';
+        let currentFullName = 'Nolan Bateman';
+        let currentNickname = 'nolan';
+
+        window.openEditProfile = function() {
+            const modal = document.getElementById('editProfileModal');
+            const nicknameInput = document.getElementById('nicknameInput');
+            const fullNameInput = document.getElementById('fullNameInput');
+            const avatarPreview = document.getElementById('avatarPreview');
+            
+            // Load current data
+            nicknameInput.value = currentNickname;
+            fullNameInput.value = currentFullName;
+            avatarPreview.src = currentAvatarUrl;
+            
+            modal.classList.add('active');
+        };
+
+        window.closeEditProfile = function() {
+            const modal = document.getElementById('editProfileModal');
+            modal.classList.remove('active');
+        };
+
+        window.handleAvatarChange = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Check file size (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('A imagem deve ter no máximo 2MB');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    avatarPreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        window.saveProfile = function() {
+            const nicknameInput = document.getElementById('nicknameInput');
+            const fullNameInput = document.getElementById('fullNameInput');
+            const avatarPreview = document.getElementById('avatarPreview');
+            const profileName = document.getElementById('profileName');
+            const profileAvatar = document.getElementById('profileAvatar');
+            
+            // Convert nickname to lowercase and remove spaces
+            let nickname = nicknameInput.value.trim().toLowerCase().replace(/\s+/g, '_');
+            
+            // Validate nickname - only letters, numbers, and underscore
+            const nicknameRegex = /^[a-z0-9_]+$/;
+            if (!nickname) {
+                alert('Por favor, insira um nickname');
+                return;
+            }
+            
+            if (!nicknameRegex.test(nickname)) {
+                alert('O nickname deve conter apenas letras minúsculas, números e underscore (_)');
+                return;
+            }
+
+            if (nickname.length < 3) {
+                alert('O nickname deve ter pelo menos 3 caracteres');
+                return;
+            }
+
+            if (!fullNameInput.value.trim()) {
+                alert('Por favor, insira seu nome completo');
+                return;
+            }
+
+            // Update profile - nickname with @ is displayed on dashboard
+            profileName.textContent = '@' + nickname;
+            profileAvatar.src = avatarPreview.src;
+            currentAvatarUrl = avatarPreview.src;
+            currentNickname = nickname;
+            currentFullName = fullNameInput.value;
+            
+            // Update input to show formatted nickname
+            nicknameInput.value = nickname;
+            
+            // Close modal
+            closeEditProfile();
+            
+            // Show success message
+            alert('Perfil atualizado com sucesso!');
+        };
+
+        // Close modal on backdrop click
+        document.getElementById('editProfileModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditProfile();
+            }
+        });
+
+        // Setup pin modal buttons after DOM is ready
+        window.addEventListener('load', function() {
+            const openBtn = document.getElementById('openPinModal');
+            const cancelBtn = document.getElementById('pinCancelBtn');
+            const confirmBtn = document.getElementById('pinConfirmBtn');
+            const pinModal = document.getElementById('pinModal');
+            
+            console.log('Setting up pin modal buttons:', {openBtn, cancelBtn, confirmBtn, pinModal});
+            
+            if (openBtn) {
+                openBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Open pin modal clicked');
+                    openPinModal();
+                });
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    console.log('Cancel button clicked');
+                    closePinModal();
+                });
+            }
+            
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function(e) {
+                    console.log('Confirm button clicked');
+                    console.log('Selected achievements:', selectedAchievements);
+                    
+                    e.stopPropagation();
+                    e.preventDefault();
+                    
+                    const pinnedGrid = document.getElementById('pinnedGrid');
+                    console.log('Pinned grid element:', pinnedGrid);
+                    
+                    if (!pinnedGrid) {
+                        console.error('Pinned grid not found!');
+                        return;
+                    }
+                    
+                    const selectedData = allAchievements.filter(ach => selectedAchievements.includes(ach.name));
+                    console.log('Selected data:', selectedData);
+                    
+                    pinnedGrid.innerHTML = selectedData.map(ach => {
+                        const achievementData = {
+                            name: ach.name,
+                            game: ach.game,
+                            percentage: ach.percentage,
+                            rarity: ach.percentage >= 50 ? 'common' : ach.percentage >= 20 ? 'uncommon' : ach.percentage >= 10 ? 'rare' : ach.percentage >= 5 ? 'epic' : 'legendary',
+                            description: ach.desc,
+                            icon: ach.icon,
+                            image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500&h=300&fit=crop'
+                        };
+                        
+                        return `
+                            <div class="pinned-achievement" data-achievement='${JSON.stringify(achievementData)}'>
+                                <div class="achievement-icon">${ach.icon}</div>
+                                <div class="achievement-name">${ach.name}</div>
+                                <div class="achievement-game">${ach.game}</div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    console.log('Grid updated, closing modal');
+                    closePinModal();
+                });
+            }
+            
+            if (pinModal) {
+                pinModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closePinModal();
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="edit-profile-modal">
+        <div class="edit-profile-content">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-white">Editar Perfil</h2>
+                <button onclick="closeEditProfile()" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Avatar Preview -->
+            <div class="text-center mb-6">
+                <img id="avatarPreview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nolan&backgroundColor=b6e3f4" 
+                     alt="Avatar Preview" 
+                     class="avatar-preview">
+            </div>
+
+            <!-- Upload Photo -->
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Foto de Perfil</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="avatarInput" accept="image/*" onchange="handleAvatarChange(event)">
+                    <label for="avatarInput" class="file-input-label">
+                        <i class="fas fa-camera"></i>
+                        Escolher Nova Foto
+                    </label>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">JPG, PNG ou GIF. Máximo 2MB.</p>
+            </div>
+
+            <!-- Nome Completo -->
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Nome Completo</label>
+                <input type="text" id="fullNameInput" class="form-input-profile" placeholder="Digite seu nome completo" value="Nolan Bateman">
+            </div>
+
+            <!-- Nickname -->
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-300 mb-2">Nickname</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">@</span>
+                    <input type="text" id="nicknameInput" class="form-input-profile pl-8" placeholder="digite_seu_nickname" value="nolan" style="text-transform: lowercase;">
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Apenas letras minúsculas, números e underscore. Este será exibido no seu perfil</p>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-3">
+                <button onclick="closeEditProfile()" class="flex-1 px-4 py-3 bg-transparent border border-gray-600 rounded-lg text-gray-300 font-semibold hover:bg-gray-800 transition-colors">
+                    Cancelar
+                </button>
+                <button onclick="saveProfile()" class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg text-white font-semibold hover:shadow-lg transition-all">
+                    Salvar Alterações
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Modal -->
+    <div id="achievementModal" class="achievement-modal">
+        <div class="modal-content">
+            <button class="modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="modal-header">
+                <div id="modalIcon" class="modal-icon">🏆</div>
+                <div class="modal-title-section">
+                    <h2 id="modalTitle">Nome da Conquista</h2>
+                    <div id="modalGame" class="modal-game">Nome do Jogo</div>
+                </div>
+            </div>
+            
+            <div class="modal-body">
+                <div class="modal-info-row">
+                    <span class="modal-info-label">Raridade</span>
+                    <span id="modalRarity" class="rarity-badge rarity-common">
+                        <span>Comum</span>
+                        <span id="modalPercentage" class="rarity-percentage">50%</span>
+                    </span>
+                </div>
+                
+                <div class="modal-description">
+                    <p id="modalDescription">Descrição da conquista aparece aqui com todos os detalhes necessários.</p>
+                </div>
+                
+                <img id="modalImage" src="" alt="Game Screenshot" class="modal-image">
+            </div>
+        </div>
+    </div>
+
+    <!-- Pin Achievements Modal -->
+    <div id="pinModal" class="pin-modal">
+        <div class="pin-modal-content">
+            <div class="pin-modal-header">
+                <h2>Pinagem de Conquistas</h2>
+                <p>Selecione as conquistas que deseja exibir no seu perfil.</p>
+            </div>
+
+            <div class="pin-modal-search">
+                <div class="pin-search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="pinSearchInput" class="pin-search-input" placeholder="Buscar conquistas...">
+                </div>
+            </div>
+
+            <div class="pin-modal-body" id="pinModalBody">
+                <!-- Achievement items will be dynamically inserted here -->
+            </div>
+
+            <div class="pin-modal-footer">
+                <button class="pin-modal-btn pin-modal-btn-cancel" id="pinCancelBtn">Cancelar</button>
+                <button class="pin-modal-btn pin-modal-btn-confirm" id="pinConfirmBtn">Pinar Selecionadas</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

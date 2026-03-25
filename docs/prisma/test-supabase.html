@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teste - Conexões Supabase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      body {
+        background: #0f1419;
+        color: #fff;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      .card {
+        background: rgba(30, 35, 45, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      .status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .status.connected {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+      }
+      .status.disconnected {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+      .btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      .btn-primary {
+        background: #3b82f6;
+        color: white;
+      }
+      .btn-primary:hover {
+        background: #2563eb;
+      }
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+      .btn-danger:hover {
+        background: #dc2626;
+      }
+      .log-area {
+        background: #000;
+        color: #0f0;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+      <h1 class="text-3xl font-bold mb-2">🧪 Teste de Conexões Supabase</h1>
+      <p class="text-gray-400 mb-8">
+        Teste a integração com Supabase para vincular plataformas
+      </p>
+
+      <!-- Status Card -->
+      <div class="card">
+        <h2 class="text-xl font-bold mb-4">📊 Status do Sistema</h2>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <span>Supabase Client:</span>
+            <span id="supabaseStatus" class="status disconnected"
+              >Não Carregado</span
+            >
+          </div>
+          <div class="flex justify-between items-center">
+            <span>Usuário Autenticado:</span>
+            <span id="authStatus" class="status disconnected"
+              >Não Autenticado</span
+            >
+          </div>
+          <div class="flex justify-between items-center">
+            <span>User ID:</span>
+            <span id="userId" class="text-gray-400 text-sm">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Platform Connections -->
+      <div class="card">
+        <h2 class="text-xl font-bold mb-4">🎮 Conexões de Plataformas</h2>
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <div>
+              <i class="fab fa-steam text-blue-400 mr-2"></i>
+              <span>Steam</span>
+            </div>
+            <div class="space-x-2">
+              <span id="steamStatus" class="status disconnected"
+                >Desconectado</span
+              >
+              <button onclick="testConnect('steam')" class="btn btn-primary">
+                Conectar
+              </button>
+              <button onclick="testDisconnect('steam')" class="btn btn-danger">
+                Desconectar
+              </button>
+            </div>
+          </div>
+          <div class="flex justify-between items-center">
+            <div>
+              <i class="fab fa-playstation text-blue-500 mr-2"></i>
+              <span>PlayStation</span>
+            </div>
+            <div class="space-x-2">
+              <span id="playstationStatus" class="status disconnected"
+                >Desconectado</span
+              >
+              <button
+                onclick="testConnect('playstation')"
+                class="btn btn-primary"
+              >
+                Conectar
+              </button>
+              <button
+                onclick="testDisconnect('playstation')"
+                class="btn btn-danger"
+              >
+                Desconectar
+              </button>
+            </div>
+          </div>
+          <div class="flex justify-between items-center">
+            <div>
+              <i class="fab fa-xbox text-green-500 mr-2"></i>
+              <span>Xbox</span>
+            </div>
+            <div class="space-x-2">
+              <span id="xboxStatus" class="status disconnected"
+                >Desconectado</span
+              >
+              <button onclick="testConnect('xbox')" class="btn btn-primary">
+                Conectar
+              </button>
+              <button onclick="testDisconnect('xbox')" class="btn btn-danger">
+                Desconectar
+              </button>
+            </div>
+          </div>
+          <div class="flex justify-between items-center">
+            <div>
+              <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+              <span>RetroAchievements</span>
+            </div>
+            <div class="space-x-2">
+              <span id="retroStatus" class="status disconnected"
+                >Desconectado</span
+              >
+              <button onclick="testConnect('retro')" class="btn btn-primary">
+                Conectar
+              </button>
+              <button onclick="testDisconnect('retro')" class="btn btn-danger">
+                Desconectar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card">
+        <h2 class="text-xl font-bold mb-4">⚙️ Ações de Teste</h2>
+        <div class="space-x-2">
+          <button onclick="refreshData()" class="btn btn-primary">
+            <i class="fas fa-sync-alt mr-2"></i>Atualizar Dados
+          </button>
+          <button onclick="clearLogs()" class="btn btn-primary">
+            <i class="fas fa-eraser mr-2"></i>Limpar Logs
+          </button>
+          <button onclick="testAllConnections()" class="btn btn-primary">
+            <i class="fas fa-link mr-2"></i>Conectar Todas
+          </button>
+        </div>
+      </div>
+
+      <!-- Console Log -->
+      <div class="card">
+        <h2 class="text-xl font-bold mb-4">📝 Console de Logs</h2>
+        <div id="logArea" class="log-area">
+          <div>Sistema iniciado...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="js/env-config.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/platform-connections.js"></script>
+
+    <script>
+      // Initialize
+      let connectionsManager;
+
+      // Log function
+      function log(message, type = "info") {
+        const logArea = document.getElementById("logArea");
+        const timestamp = new Date().toLocaleTimeString();
+        const colors = {
+          info: "#0f0",
+          error: "#f00",
+          success: "#0ff",
+          warning: "#ff0",
+        };
+        const color = colors[type] || colors.info;
+        logArea.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+        logArea.scrollTop = logArea.scrollHeight;
+      }
+
+      // Clear logs
+      function clearLogs() {
+        document.getElementById("logArea").innerHTML =
+          "<div>Logs limpos...</div>";
+      }
+
+      // Update status displays
+      function updateStatusDisplay() {
+        if (connectionsManager) {
+          // Update platform statuses
+          const platforms = ["steam", "playstation", "xbox", "retro"];
+          platforms.forEach((platform) => {
+            const statusEl = document.getElementById(`${platform}Status`);
+            const isConnected = connectionsManager.connections[platform];
+            statusEl.textContent = isConnected ? "Conectado" : "Desconectado";
+            statusEl.className = isConnected
+              ? "status connected"
+              : "status disconnected";
+          });
+
+          log(
+            `Status atualizado - Conectadas: ${connectionsManager.getConnectedCount()}/4`,
+            "success"
+          );
+        }
+      }
+
+      // Test connect platform
+      async function testConnect(platform) {
+        log(`Tentando conectar ${platform}...`, "info");
+        try {
+          await connectionsManager.connectPlatform(platform);
+          log(`✓ ${platform} conectado com sucesso!`, "success");
+          updateStatusDisplay();
+        } catch (error) {
+          log(`✗ Erro ao conectar ${platform}: ${error.message}`, "error");
+        }
+      }
+
+      // Test disconnect platform
+      async function testDisconnect(platform) {
+        log(`Tentando desconectar ${platform}...`, "info");
+        try {
+          await connectionsManager.disconnectPlatform(platform);
+          log(`✓ ${platform} desconectado com sucesso!`, "success");
+          updateStatusDisplay();
+        } catch (error) {
+          log(`✗ Erro ao desconectar ${platform}: ${error.message}`, "error");
+        }
+      }
+
+      // Test all connections
+      async function testAllConnections() {
+        const platforms = ["steam", "playstation", "xbox", "retro"];
+        log("Conectando todas as plataformas...", "info");
+        for (const platform of platforms) {
+          await testConnect(platform);
+        }
+      }
+
+      // Refresh data
+      async function refreshData() {
+        log("Recarregando dados do Supabase...", "info");
+        try {
+          await connectionsManager.init();
+          updateStatusDisplay();
+          log("✓ Dados recarregados!", "success");
+        } catch (error) {
+          log(`✗ Erro ao recarregar: ${error.message}`, "error");
+        }
+      }
+
+      // Initialize on load
+      window.addEventListener("DOMContentLoaded", async function () {
+        log("Inicializando sistema de testes...", "info");
+
+        // Check Supabase
+        if (typeof supabaseClient !== "undefined") {
+          document.getElementById("supabaseStatus").textContent = "Carregado";
+          document.getElementById("supabaseStatus").className =
+            "status connected";
+          log("✓ Supabase client carregado", "success");
+        } else {
+          log("✗ Supabase client não encontrado", "error");
+          return;
+        }
+
+        // Create manager
+        connectionsManager = new PlatformConnectionsManager();
+        log("Manager de conexões criado", "info");
+
+        // Initialize
+        try {
+          const authenticated = await connectionsManager.init();
+
+          if (authenticated && connectionsManager.userId) {
+            document.getElementById("authStatus").textContent = "Autenticado";
+            document.getElementById("authStatus").className =
+              "status connected";
+            document.getElementById("userId").textContent =
+              connectionsManager.userId;
+            log(
+              `✓ Usuário autenticado: ${connectionsManager.userId}`,
+              "success"
+            );
+          } else {
+            log("⚠ Nenhum usuário autenticado, usando localStorage", "warning");
+          }
+
+          updateStatusDisplay();
+          log("Sistema pronto para testes!", "success");
+        } catch (error) {
+          log(`✗ Erro na inicialização: ${error.message}`, "error");
+        }
+      });
+    </script>
+  </body>
+</html>

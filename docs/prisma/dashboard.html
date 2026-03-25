@@ -1,0 +1,781 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaming Dashboard - Prisma</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- CSS Modular -->
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/modals.css">
+    <link rel="stylesheet" href="css/followers.css">
+</head>
+<body class="text-gray-100">
+    <!-- Prisma Background Effect -->
+    <div class="prisma-background">
+        <div class="light-beam beam-steam"></div>
+        <div class="light-beam beam-playstation"></div>
+        <div class="light-beam beam-xbox"></div>
+        <div class="light-beam beam-retro"></div>
+        <div class="prisma-core"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-icon active">
+            <i class="fas fa-gamepad"></i>
+        </div>
+        <div class="sidebar-icon" onclick="window.location.href='ranking.html'">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <div class="sidebar-icon" onclick="window.location.href='followers.html'">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="flex-1"></div>
+        <div class="sidebar-icon" onclick="window.location.href='settings.html'">
+            <i class="fas fa-cog"></i>
+        </div>
+    </div>
+
+    <div class="content-layer min-h-screen">
+        <!-- Main Content -->
+        <div class="p-6 md:ml-14 overflow-y-auto scrollbar-thin">
+            <div class="max-w-7xl mx-auto">
+                
+                <!-- Dashboard Page -->
+                <div class="dashboard-page page-section active">
+                <!-- Top Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Profile Card -->
+                    <div class="profile-card card p-6 lg:col-span-1">
+                        <div class="flex items-start space-x-4">
+                            <div class="relative profile-avatar-container" onclick="openEditProfile()">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nolan&backgroundColor=b6e3f4" 
+                                     alt="Nolan" 
+                                     id="profileAvatar"
+                                     class="w-20 h-20 rounded-full border-2 border-blue-400">
+                                <div class="profile-edit-overlay">
+                                    <i class="fas fa-camera text-white text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <h2 class="text-2xl font-bold" id="profileName">@nolan</h2>
+                                </div>
+                                <div class="profile-stats flex items-center space-x-3 text-xs text-gray-400">
+                                    <span><strong class="text-white" id="followersCount">12</strong> Seguidores</span>
+                                    <span><strong class="text-white" id="followingCount">5</strong> Seguindo</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pinned Achievements -->
+                        <div class="mt-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Conquistas Fixadas</h3>
+                                <button id="openPinModal" type="button" onclick="openPinAchievements()" class="text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium flex items-center gap-2">
+                                    <i class="fas fa-thumbtack"></i>
+                                    Gerenciar
+                                </button>
+                            </div>
+                            <div class="pinned-achievements">
+                                <div class="pinned-grid" id="pinnedGrid">
+                                    <div class="pinned-achievement" data-achievement='{"name":"Conflito Intenso","game":"Far Cry 6","percentage":"45.2","rarity":"uncommon","description":"Complete 10 missões de conflito em áreas de alta tensão. Domine as bases inimigas sem ser detectado.","icon":"🎮","image":"https://images.unsplash.com/photo-1580234811497-9df7fd2f357e?w=500&h=300&fit=crop"}'>
+                                        <div class="achievement-icon">🎮</div>
+                                        <div class="achievement-name">Conflito Intenso</div>
+                                    </div>
+
+                                    <div class="pinned-achievement" data-achievement='{"name":"Mochilão","game":"Far Cry 6","percentage":"78.5","rarity":"common","description":"Colete todos os itens de mochila espalhados pelo mapa. Aumente sua capacidade de carga ao máximo.","icon":"🎒","image":"https://images.unsplash.com/photo-1580234811497-9df7fd2f357e?w=500&h=300&fit=crop"}'>
+                                        <div class="achievement-icon">🎒</div>
+                                        <div class="achievement-name">Mochilão</div>
+                                    </div>
+
+                                    <div class="pinned-achievement" data-achievement='{"name":"Até Não Sobrar Nenhum","game":"The Last of Us™ Parte II Remastered","percentage":"2.8","rarity":"legendary","description":"Elimine todos os inimigos em modo Realista+ sem morrer uma única vez. Uma conquista apenas para os verdadeiros mestres.","icon":"💀","image":"https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=500&h=300&fit=crop"}'>
+                                        <div class="achievement-icon">💀</div>
+                                        <div class="achievement-name">Até Não Sobrar Nenhum</div>
+                                    </div>
+
+                                    <div class="pinned-achievement" data-achievement='{"name":"Platina","game":"God of War","percentage":"8.3","rarity":"epic","description":"Obtenha todas as conquistas do jogo. Complete todos os desafios de Muspelheim e Niflheim, e derrote todas as Valquírias.","icon":"🏆","image":"https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500&h=300&fit=crop"}'>
+                                        <div class="achievement-icon">🏆</div>
+                                        <div class="achievement-name">Platina</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Additional sample achievements (hidden) to populate the pin modal -->
+                            <div id="sampleAchievements" style="display:none;">
+                                <div data-achievement='{"name":"Caçador de Tesouros","game":"Treasure Quest","percentage":"12.4","rarity":"rare","description":"Encontre 50 tesouros escondidos ao redor do mundo.","icon":"🏆","image":"https://images.unsplash.com/photo-1504198453319-5ce911bafcde?w=500&h=300&fit=crop"}'></div>
+                                <div data-achievement='{"name":"Artesão Mágico","game":"Mystic Forge","percentage":"5.6","rarity":"epic","description":"Crie 100 itens mágicos usando a forja mística.","icon":"🧪","image":"https://images.unsplash.com/photo-1524600564-8f3b78f7c0b2?w=500&h=300&fit=crop"}'></div>
+                                <div data-achievement='{"name":"Caçador Noturno","game":"Night Stalker","percentage":"22.1","rarity":"uncommon","description":"Derrote 200 inimigos durante a noite sem ser detectado.","icon":"🌙","image":"https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6?w=500&h=300&fit=crop"}'></div>
+                                <div data-achievement='{"name":"Maratonista","game":"Endless Run","percentage":"8.9","rarity":"rare","description":"Complete 100 corridas sem perder uma única vez.","icon":"🏃‍♂️","image":"https://images.unsplash.com/photo-1508973376-1a8d7b8a6f4b?w=500&h=300&fit=crop"}'></div>
+                                <div data-achievement='{"name":"Colecionador Mestre","game":"Relic Hunter","percentage":"3.2","rarity":"legendary","description":"Colecione todas as relíquias lendárias do jogo.","icon":"🗝️","image":"https://images.unsplash.com/photo-1470770903676-69b98201ea1c?w=500&h=300&fit=crop"}'></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recently Played Game Card -->
+                    <div class="card p-0 lg:col-span-2 overflow-hidden recently-played-card">
+                        <div class="relative h-48" style="background: linear-gradient(to bottom, rgba(15, 20, 25, 0.3), rgba(15, 20, 25, 0.95)), url('https://cdn.akamai.steamstatic.com/steam/apps/251570/library_hero.jpg?t=1698080003') center/cover;">
+                            <div class="absolute bottom-0 left-0 right-0 p-6">
+                                <div class="flex items-start space-x-4">
+                                    <img src="assets/images/logo7daystodie.png" 
+                                         alt="7 Days to Die" 
+                                         class="w-20 h-20 rounded border-2 border-gray-700 shadow-lg object-cover">
+                                    <div class="flex-1">
+                                        <h3 class="text-xl font-bold mb-2">7 Days to Die</h3>
+                                        <div class="text-sm text-gray-300 mb-3">
+                                            <span class="font-semibold">229 horas registradas</span>
+                                        </div>
+                                        <div class="text-xs text-gray-400">
+                                            jogado pela última vez em 29 de out.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Achievements Preview Bar -->
+                        <div class="bg-gray-800/50 px-6 py-3 border-t border-gray-700/50">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-400 font-medium uppercase tracking-wider">Conquistas</span>
+                                <span class="text-xs text-gray-400">38 de 43</span>
+                            </div>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <div class="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" style="width: 88.4%;"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 1">
+                                    🎯
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 2">
+                                    💡
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 3">
+                                    🗽
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 4">
+                                                                        🏍️
+                                </div>
+                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-lg" title="Conquista 5">
+                                    🎓
+                                </div>
+                                <div class="flex items-center justify-center text-sm text-gray-400 font-semibold ml-2">
+                                    +33
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Platform Distribution Bar -->
+                <div class="card p-4 mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Distribuição de Troféus por Plataforma</h3>
+                    </div>
+                    <div class="flex h-3 rounded-full overflow-hidden">
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 20%; background-color: #0070CC;" 
+                             title="PlayStation - 20%"></div>
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 10%; background-color: #107C10;" 
+                             title="Xbox - 10%"></div>
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 60%; background-color: #66c0f4;" 
+                             title="Steam - 60%"></div>
+                        <div class="transition-all duration-500 hover:opacity-80 cursor-pointer" 
+                             style="width: 10%; background-color: #D4A017;" 
+                             title="RetroAchievements - 10%"></div>
+                    </div>
+                    <!-- Desktop: show names + percent in grid; hide on mobile -->
+                    <div class="hidden md:grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #0070CC;"></div>
+                            <span class="text-xs text-gray-400">PlayStation <strong class="text-white">20%</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #107C10;"></div>
+                            <span class="text-xs text-gray-400">Xbox <strong class="text-white">10%</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #66c0f4;"></div>
+                            <span class="text-xs text-gray-400">Steam <strong class="text-white">60%</strong></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #D4A017;"></div>
+                            <span class="text-xs text-gray-400">RetroAchievements <strong class="text-white">10%</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Mobile: icon-only circles; hidden on md+ -->
+                    <div class="platform-list flex items-center justify-between gap-4 mt-4 flex-wrap md:hidden">
+                        <!-- PlayStation -->
+                        <div class="platform-item flex flex-col items-center text-center">
+                            <div class="platform-circle inline-flex items-center justify-center" style="background-color: #0070CC;">
+                                <i class="fab fa-playstation" aria-hidden="true"></i>
+                            </div>
+                            <span class="platform-percent text-xs text-gray-400 mt-2"><strong class="text-white">20%</strong></span>
+                        </div>
+
+                        <!-- Xbox -->
+                        <div class="platform-item flex flex-col items-center text-center">
+                            <div class="platform-circle inline-flex items-center justify-center" style="background-color: #107C10;">
+                                <i class="fab fa-xbox" aria-hidden="true"></i>
+                            </div>
+                            <span class="platform-percent text-xs text-gray-400 mt-2"><strong class="text-white">10%</strong></span>
+                        </div>
+
+                        <!-- Steam -->
+                        <div class="platform-item flex flex-col items-center text-center">
+                            <div class="platform-circle inline-flex items-center justify-center" style="background-color: #66c0f4;">
+                                <i class="fab fa-steam" aria-hidden="true"></i>
+                            </div>
+                            <span class="platform-percent text-xs text-gray-400 mt-2"><strong class="text-white">60%</strong></span>
+                        </div>
+
+                        <!-- RetroAchievements (no official brand icon) -->
+                        <div class="platform-item flex flex-col items-center text-center">
+                            <div class="platform-circle inline-flex items-center justify-center" style="background-color: #D4A017;">
+                                <i class="fas fa-gamepad" aria-hidden="true"></i>
+                            </div>
+                            <span class="platform-percent text-xs text-gray-400 mt-2"><strong class="text-white">10%</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Conquistas -->
+                    <div class="stat-card card p-6 text-center">
+                        <div class="stat-inner">
+                            <i class="fas fa-trophy trophy-icon stat-icon"></i>
+                            <div class="stat-content">
+                                <div class="stat-title text-gray-400 text-sm uppercase tracking-wide">Conquistas</div>
+                                <h3 class="stat-value text-4xl font-bold mb-1">3,303</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Média de Conclusão -->
+                    <div class="stat-card card p-6 text-center has-progress">
+                        <div class="stat-inner">
+                            <i class="fas fa-gamepad controller-icon stat-icon"></i>
+                            <div class="stat-content">
+                                <div class="stat-title text-gray-400 text-sm uppercase tracking-wide">Média de Conclusão</div>
+                                <div class="stat-value flex items-center justify-start md:justify-center gap-2 mb-1">
+                                    <h3 class="text-4xl font-bold gradient-text">26</h3>
+                                    <span class="text-2xl font-bold text-gray-400">%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-progress mt-3 w-full">
+                            <div class="progress-bar bg-gray-700 mx-auto" style="width: 80%;">
+                                <div class="progress-fill bg-gradient-to-r from-blue-500 to-blue-600" style="width: 26%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jogos Perfeitos -->
+                    <div class="stat-card card p-6 text-center">
+                        <div class="stat-inner">
+                            <i class="fas fa-users users-icon stat-icon"></i>
+                            <div class="stat-content">
+                                <div class="stat-title text-gray-400 text-sm uppercase tracking-wide">Jogos Perfeitos</div>
+                                <h3 class="stat-value text-4xl font-bold mb-1">11</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Games Section -->
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold">Jogos Recentes</h2>
+                    </div>
+
+                    <!-- Table Header -->
+                    <div class="hidden md:grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-700">
+                        <div class="col-span-3 table-header">Jogo</div>
+                        <div class="col-span-2 table-header">Conclusão</div>
+                        <div class="col-span-1 table-header">Conquistas</div>
+                        <div class="col-span-2 table-header">Tempo de Jogo</div>
+                        <div class="col-span-2 table-header">Último Desbloqueio</div>
+                        <div class="col-span-1 table-header">Última Vez Jogado</div>
+                        <div class="col-span-1 table-header">Plataforma</div>
+                    </div>
+
+                    <!-- Game Rows -->
+                    <div class="space-y-2 mt-2">
+                        <!-- Dead by Daylight -->
+                        <!-- Mobile card (only shown on small screens) -->
+                        <div class="mobile-game-card md:hidden p-3 rounded-lg mb-2 bg-transparent">
+                            <div class="mobile-top-row flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1580234811497-9df7fd2f357e?w=100&h=100&fit=crop" alt="Dead by Daylight" class="w-12 h-12 rounded object-cover">
+                                <div class="mobile-meta flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="mobile-title font-semibold text-base">Dead by Daylight</div>
+                                        <div class="mobile-trophies text-sm flex items-center gap-2"><i class="fas fa-trophy text-yellow-400"></i><span class="font-semibold">71 / 288</span></div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress-bar bg-gray-700 rounded-full overflow-hidden h-2">
+                                            <div class="progress-fill bg-green-500" style="width:71%"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs text-gray-400 mt-1">
+                                            <span>71%</span>
+                                            <span>2025-10-01</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mobile-meta-extra mt-2 text-xs text-gray-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold">48h 37m</div>
+                                    <div class="text-xs text-gray-500">Total 86h 57m</div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="platform-badge inline-block px-3 py-1 rounded text-xs bg-blue-700/30">Playstation</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="game-row hidden md:grid md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1580234811497-9df7fd2f357e?w=100&h=100&fit=crop" 
+                                     alt="Dead by Daylight" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Dead by Daylight</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-emerald-600" style="width: 71%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">71%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 71 / 288</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>48h 37m</div>
+                                    <div class="text-gray-400 text-xs">Total 86h 57m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-10-01 19:30:58</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-10-01</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Playstation</span>
+                            </div>
+                        </div>
+
+                        <!-- Cronus: The New Dawn -->
+                        <div class="mobile-game-card md:hidden p-3 rounded-lg mb-2 bg-transparent">
+                            <div class="mobile-top-row flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=100&h=100&fit=crop" alt="Cronus: The New Dawn" class="w-12 h-12 rounded object-cover">
+                                <div class="mobile-meta flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="mobile-title font-semibold text-base">Cronus: The New Dawn</div>
+                                        <div class="mobile-trophies text-sm flex items-center gap-2"><i class="fas fa-trophy text-yellow-400"></i><span class="font-semibold">29 / 47</span></div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress-bar bg-gray-700 rounded-full overflow-hidden h-2">
+                                            <div class="progress-fill bg-emerald-500" style="width:29%"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs text-gray-400 mt-1">
+                                            <span>29%</span>
+                                            <span>2025-08-30</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mobile-meta-extra mt-2 text-xs text-gray-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold">22h 50m</div>
+                                    <div class="text-xs text-gray-500">Total 22h 50m</div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="platform-badge inline-block px-3 py-1 rounded text-xs bg-emerald-700/30">Xbox</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="game-row hidden md:grid md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=100&h=100&fit=crop" 
+                                     alt="Cronus: The New Dawn" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Cronus: The New Dawn</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-emerald-600" style="width: 29%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">29%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 29 / 47</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>22h 50m</div>
+                                    <div class="text-gray-400 text-xs">Total 22h 50m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-10-01 18:00:38</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-08-30</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Xbox</span>
+                            </div>
+                        </div>
+
+                        <!-- Darius 2 -->
+                        <div class="mobile-game-card md:hidden p-3 rounded-lg mb-2 bg-transparent">
+                            <div class="mobile-top-row flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=100&h=100&fit=crop" alt="Darius 2" class="w-12 h-12 rounded object-cover">
+                                <div class="mobile-meta flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="mobile-title font-semibold text-base">Darius 2</div>
+                                        <div class="mobile-trophies text-sm flex items-center gap-2"><i class="fas fa-trophy text-yellow-400"></i><span class="font-semibold">15 / 307</span></div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress-bar bg-gray-700 rounded-full overflow-hidden h-2">
+                                            <div class="progress-fill bg-green-500" style="width:15%"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs text-gray-400 mt-1">
+                                            <span>15%</span>
+                                            <span>2025-08-27</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mobile-meta-extra mt-2 text-xs text-gray-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold">18h 58m</div>
+                                    <div class="text-xs text-gray-500">Total 8h 38m</div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="platform-badge inline-block px-3 py-1 rounded text-xs bg-yellow-700/30">Retro/Archriments</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="game-row hidden md:grid md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=100&h=100&fit=crop" 
+                                     alt="Darius 2" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Darius 2</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-emerald-600" style="width: 15%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">15%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 15 / 307</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>18h 58m</div>
+                                    <div class="text-gray-400 text-xs">Total 8h 38m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-08-27 15:55:33</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-08-27</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Retro/Archriments</span>
+                            </div>
+                        </div>
+
+                        <!-- Hollow Knight: Silksong -->
+                        <div class="mobile-game-card md:hidden p-3 rounded-lg mb-2 bg-transparent">
+                            <div class="mobile-top-row flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=100&h=100&fit=crop" alt="Hollow Knight: Silksong" class="w-12 h-12 rounded object-cover">
+                                <div class="mobile-meta flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="mobile-title font-semibold text-base">Hollow Knight: Silksong</div>
+                                        <div class="mobile-trophies text-sm flex items-center gap-2"><i class="fas fa-trophy text-yellow-400"></i><span class="font-semibold">43 / 52</span></div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress-bar bg-gray-700 rounded-full overflow-hidden h-2">
+                                            <div class="progress-fill bg-blue-500" style="width:43%"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs text-gray-400 mt-1">
+                                            <span>43%</span>
+                                            <span>2025-08-22</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mobile-meta-extra mt-2 text-xs text-gray-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold">77h 2m</div>
+                                    <div class="text-xs text-gray-500">Total 77h 2m</div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="platform-badge inline-block px-3 py-1 rounded text-xs bg-blue-700/30">Playstation</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="game-row hidden md:grid md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=100&h=100&fit=crop" 
+                                     alt="Hollow Knight: Silksong" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Hollow Knight: Silksong</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-blue-500 to-blue-600" style="width: 43%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">43%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 43 / 52</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>77h 2m</div>
+                                    <div class="text-gray-400 text-xs">Total 77h 2m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-08-22 09:01:53</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-08-22</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Steam</span>
+                            </div>
+                        </div>
+
+                        <!-- Resident Evil 5 (mobile card + desktop grid) -->
+                        <div class="mobile-game-card md:hidden p-3 rounded-lg mb-2 bg-transparent">
+                            <div class="mobile-top-row flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=100&h=100&fit=crop" alt="Resident Evil 5" class="w-12 h-12 rounded object-cover">
+                                <div class="mobile-meta flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="mobile-title font-semibold text-base">Resident Evil 5</div>
+                                        <div class="mobile-trophies text-sm flex items-center gap-2"><i class="fas fa-trophy text-yellow-400"></i><span class="font-semibold">32 / 70</span></div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress-bar bg-gray-700 rounded-full overflow-hidden h-2">
+                                            <div class="progress-fill bg-emerald-500" style="width:32%"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs text-gray-400 mt-1">
+                                            <span>32%</span>
+                                            <span>2025-08-18</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mobile-meta-extra mt-2 text-xs text-gray-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold">29h 53m</div>
+                                    <div class="text-xs text-gray-500">Total 29h 53m</div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="platform-badge inline-block px-3 py-1 rounded text-xs bg-blue-700/30">Playstation</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="game-row hidden md:grid md:grid-cols-12 gap-4 p-4 rounded-lg items-center">
+                            <div class="col-span-12 md:col-span-3 flex items-center space-x-3">
+                                <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=100&h=100&fit=crop" 
+                                     alt="Resident Evil 5" 
+                                     class="game-thumbnail">
+                                <span class="font-semibold">Resident Evil 5</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="progress-bar bg-gray-700">
+                                    <div class="progress-fill bg-gradient-to-r from-green-500 to-emerald-600" style="width: 32%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-400 mt-1 block">32%</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm"><i class="fas fa-trophy text-yellow-500 mr-1"></i> 32 / 70</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <div class="text-sm">
+                                    <div>29h 53m</div>
+                                    <div class="text-gray-400 text-xs">Total 29h 53m</div>
+                                </div>
+                            </div>
+                            <div class="col-span-6 md:col-span-2">
+                                <span class="text-sm text-gray-400">2025-08-18 05:58:19</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="text-sm text-gray-400">2025-08-18</span>
+                            </div>
+                            <div class="col-span-6 md:col-span-1">
+                                <span class="platform-badge">Playstation</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Achievement Details Modal -->
+    <div id="achievementModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50" style="display: none;">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 max-w-2xl w-full mx-4 shadow-2xl border border-gray-700/50">
+            <div class="flex justify-between items-start mb-6">
+                <h2 class="text-2xl font-bold text-white" id="modalAchievementName">Nome da Conquista</h2>
+                <button onclick="closeAchievementModal()" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="mb-6">
+                <img id="modalAchievementImage" src="" alt="Achievement" class="w-full h-64 object-cover rounded-lg mb-4">
+                
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="text-6xl" id="modalAchievementIcon">🏆</div>
+                    <div class="flex-1">
+                        <div class="text-gray-400 text-sm mb-1">Jogo</div>
+                        <div class="text-white font-semibold text-lg" id="modalAchievementGame">Nome do Jogo</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-gray-400 text-sm mb-1">Raridade</div>
+                        <div class="text-white font-semibold" id="modalAchievementRarity">Raro</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-gray-400 text-sm mb-1">Jogadores</div>
+                        <div class="text-white font-semibold" id="modalAchievementPercentage">45.2%</div>
+                    </div>
+                </div>
+                
+                    <!-- Pin Achievements Modal moved below to be a top-level modal -->
+
+                <div class="bg-gray-800/50 rounded-lg p-4">
+                    <div class="text-gray-400 text-sm mb-2">Descrição</div>
+                    <p class="text-gray-200" id="modalAchievementDescription">Descrição detalhada da conquista.</p>
+                </div>
+            </div>
+            
+            <button onclick="closeAchievementModal()" class="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300">
+                Fechar
+            </button>
+        </div>
+    </div>
+
+        <!-- Pin Achievements Modal -->
+        <div id="pinAchievementsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50" style="display: none;">
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 max-w-3xl w-full mx-4 shadow-2xl border border-gray-700/50">
+                <div class="mb-4">
+                    <h2 class="text-2xl font-bold text-white">Pinagem de Conquistas</h2>
+                    <p class="text-gray-400 text-sm">Selecione as conquistas que deseja exibir no seu perfil.</p>
+                </div>
+
+                <div class="mb-4">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                        <input id="pinSearch" type="text" placeholder="Buscar conquistas..." class="w-full pl-10 pr-4 py-3 bg-gray-800 rounded-lg border border-gray-700 text-gray-200 focus:outline-none">
+                    </div>
+                </div>
+
+                <div id="pinList" class="max-h-72 overflow-y-auto space-y-2 mb-4">
+                    <!-- JS will populate the list of achievements with checkboxes -->
+                </div>
+
+                <!-- Message shown when user tries to select more than allowed -->
+                <div id="pinLimitMessage" class="text-red-400 text-sm mb-2" style="display:none;"></div>
+
+                <div class="flex justify-between items-center">
+                    <button id="pinCancel" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg">Cancelar</button>
+                    <button id="pinSave" class="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg">Pinar Selecionadas</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50" style="display: none;">
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 max-w-2xl w-full mx-4 shadow-2xl border border-gray-700/50">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-white">Editar Perfil</h2>
+                <button onclick="closeEditProfile()" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <div class="flex flex-col items-center mb-6">
+                <div class="relative mb-4">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nolan&backgroundColor=b6e3f4" 
+                         alt="Avatar" 
+                         id="editProfileAvatar"
+                         class="w-32 h-32 rounded-full border-4 border-blue-400">
+                </div>
+                <h3 class="text-lg font-semibold text-gray-300 mb-2">Foto de Perfil</h3>
+                <input type="file" id="profilePhotoInput" accept="image/jpeg,image/png,image/gif" class="hidden">
+                <button onclick="document.getElementById('profilePhotoInput').click()" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-blue-400 font-medium rounded-lg transition-all duration-300 flex items-center gap-2">
+                    <i class="fas fa-camera"></i>
+                    Escolher Nova Foto
+                </button>
+                <p class="text-gray-500 text-sm mt-2">JPG, PNG ou GIF. Máximo 2MB.</p>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-gray-300 font-semibold mb-2">Nome Completo</label>
+                    <input type="text" 
+                           id="editFullName" 
+                           value="Nolan Bateman"
+                           class="w-full px-4 py-3 bg-gray-700/50 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-gray-300 font-semibold mb-2">Nickname</label>
+                    <div class="flex items-center">
+                        <span class="inline-flex items-center px-3 py-3 bg-gray-800 border border-r-0 border-gray-600 text-gray-300 rounded-l-lg">@</span>
+                        <input type="text" 
+                               id="editNickname" 
+                               value="nolan"
+                               placeholder="seunickname"
+                               class="flex-1 px-4 py-3 bg-gray-700/50 text-white rounded-r-lg border border-l-0 border-gray-600 focus:border-blue-500 focus:outline-none transition-colors">
+                    </div>
+                    <p class="text-gray-500 text-sm mt-2">Apenas letras minúsculas, números e underscore. O @ será exibido automaticamente no seu perfil.</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button onclick="closeEditProfile()" class="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition-all duration-300">
+                    Cancelar
+                </button>
+                <button onclick="saveProfile()" class="flex-1 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-300">
+                    Salvar Alterações
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Modular -->
+    <script src="js/global.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

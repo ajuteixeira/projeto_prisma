@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <style>
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed !important;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: 100vw;
+          height: 56px;
+          z-index: 9999;
+        }
+      }
+    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ranking - Prisma</title>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      crossorigin="anonymous"
+    />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- CSS Modular -->
+    <link rel="stylesheet" href="css/global.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="css/modals.css" />
+    <link rel="stylesheet" href="css/followers.css" />
+    <link rel="stylesheet" href="css/ranking.css" />
+
+    <style>
+      /* Sidebar sempre fixa e z-index alto */
+      .sidebar {
+        position: fixed !important;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: 56px;
+        background: rgba(15, 20, 25, 0.95);
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0;
+        z-index: 9999;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s;
+      }
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed !important;
+          left: 0;
+          right: 0;
+          top: auto;
+          bottom: 0;
+          height: 56px;
+          width: 100vw;
+          background: rgba(15, 20, 25, 0.95);
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
+          border-right: none;
+          flex-direction: row !important;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 10px;
+          z-index: 9999;
+        }
+      }
+      /* Conteúdo principal respeita sidebar */
+      .content-layer {
+        margin-left: 56px;
+        transition: margin 0.3s;
+      }
+      @media (max-width: 768px) {
+        .content-layer {
+          margin-left: 0;
+          padding-bottom: 56px;
+        }
+      }
+      /* Sidebar fixa igual dashboard */
+      .sidebar {
+        position: fixed !important;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: 56px;
+        background: rgba(15, 20, 25, 0.95);
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0;
+        z-index: 9999;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        will-change: transform;
+      }
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed !important;
+          left: 0;
+          right: 0;
+          top: auto;
+          bottom: 0;
+          height: 56px;
+          width: 100vw;
+          background: rgba(15, 20, 25, 0.95);
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
+          border-right: none;
+          flex-direction: row !important;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 10px;
+          z-index: 9999;
+        }
+        .sidebar-icon {
+          margin-bottom: 0;
+          margin-right: 12px;
+        }
+        .sidebar-icon:last-child {
+          margin-right: 0;
+        }
+        .flex-1 {
+          display: none !important;
+        }
+      }
+
+      /* Content layout */
+      .main-content {
+        margin-left: 56px;
+        transition: margin 0.3s;
+      }
+      @media (max-width: 768px) {
+        .main-content {
+          margin-left: 0;
+          padding-bottom: 56px;
+        }
+      }
+    </style>
+  </head>
+  <body class="text-gray-100">
+    <!-- Prisma Background Effect -->
+    <div class="prisma-background">
+      <div class="light-beam beam-steam"></div>
+      <div class="light-beam beam-playstation"></div>
+      <div class="light-beam beam-xbox"></div>
+      <div class="light-beam beam-retro"></div>
+      <div class="prisma-core"></div>
+    </div>
+
+    <!-- Sidebar igual dashboard -->
+    <div class="sidebar">
+      <div class="sidebar-icon" onclick="window.location.href='dashboard.html'">
+        <i class="fas fa-gamepad"></i>
+      </div>
+      <div class="sidebar-icon active">
+        <i class="fas fa-trophy"></i>
+      </div>
+      <div class="sidebar-icon" onclick="window.location.href='followers.html'">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="flex-1"></div>
+      <div class="sidebar-icon" onclick="window.location.href='settings.html'">
+        <i class="fas fa-cog"></i>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-layer min-h-screen md:ml-14 sm:ml-0 sm:pb-14">
+      <div
+        class="p-6 md:ml-14 overflow-y-auto scrollbar-thin h-screen pb-14 md:pb-0"
+        style="-webkit-overflow-scrolling: touch"
+      >
+        <div class="max-w-7xl mx-auto">
+          <!-- Page Header -->
+          <div class="page-header">
+            <div class="flex items-center justify-between">
+              <div>
+                <h1 class="text-3xl font-bold text-white mb-2">
+                  Ranking Geral
+                </h1>
+                <p class="text-gray-400 text-sm">
+                  Competição entre você e as pessoas que você segue
+                </p>
+              </div>
+              <!-- Botão 'Atualizar' removido conforme solicitado -->
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="filter-section">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm text-gray-400 filter-label">Filtros:</span>
+                <!-- Icon-only filter buttons (labels removed to keep the UI compact) -->
+                <div class="filter-buttons-group">
+                  <button
+                    class="filter-btn active"
+                    data-filter="all"
+                    aria-label="Todas"
+                    title="Todas"
+                  >
+                    <i class="fas fa-trophy"></i
+                    ><span class="sr-only">Todas</span>
+                  </button>
+                  <button
+                    class="filter-btn"
+                    data-filter="psn"
+                    aria-label="PSN"
+                    title="PSN"
+                  >
+                    <i class="fab fa-playstation"></i
+                    ><span class="sr-only">PSN</span>
+                  </button>
+                  <button
+                    class="filter-btn"
+                    data-filter="xbox"
+                    aria-label="XBOX"
+                    title="XBOX"
+                  >
+                    <i class="fab fa-xbox"></i><span class="sr-only">XBOX</span>
+                  </button>
+                  <button
+                    class="filter-btn"
+                    data-filter="steam"
+                    aria-label="STEAM"
+                    title="STEAM"
+                  >
+                    <i class="fab fa-steam"></i
+                    ><span class="sr-only">STEAM</span>
+                  </button>
+                  <button
+                    class="filter-btn"
+                    data-filter="retro"
+                    aria-label="RETRO"
+                    title="RETRO"
+                  >
+                    <i class="fas fa-gamepad"></i
+                    ><span class="sr-only">RETRO</span>
+                  </button>
+                </div>
+              </div>
+              <div class="relative search-container">
+                <i
+                  class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                ></i>
+                <input
+                  type="text"
+                  class="search-input"
+                  placeholder="Buscar jogador..."
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Ranking Table -->
+          <div class="ranking-container">
+            <h2 class="text-xl font-bold text-white mb-6">Top Jogadores</h2>
+
+            <table class="ranking-table">
+              <thead class="ranking-header">
+                <tr>
+                  <th style="width: 80px">Posição</th>
+                  <th>Jogador</th>
+                  <th>Plataformas</th>
+                  <th style="width: 120px">Conquistas</th>
+                  <th style="width: 140px; text-align: right">Pontos Totais</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Rank 1 -->
+                <tr class="ranking-row">
+                  <td>
+                    <div class="position-badge position-1">1º</div>
+                  </td>
+                  <td>
+                    <div class="player-info">
+                      <img
+                        src="https://i.pravatar.cc/150?img=12"
+                        alt="Avatar"
+                        class="player-avatar"
+                      />
+                      <div>
+                        <span class="player-name">SombraNoturna88</span>
+                        <div class="mobile-platforms">
+                          <span class="platform-tag platform-psn"
+                            ><i class="fab fa-playstation"></i> PSN</span
+                          >
+                          <span class="platform-tag platform-steam"
+                            ><i class="fab fa-steam"></i> STEAM</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="platform-tag platform-psn"
+                      ><i class="fab fa-playstation"></i> PSN</span
+                    >
+                    <span class="platform-tag platform-steam"
+                      ><i class="fab fa-steam"></i> STEAM</span
+                    >
+                  </td>
+                  <td><span class="achievements-count">1250</span></td>
+                  <td style="text-align: right">
+                    <span class="total-points">987.654</span>
+                  </td>
+                  <!-- Mobile-only card layout (keeps desktop table intact) -->
+                  <td class="mobile-card-wrapper" style="display: none">
+                    <div class="mobile-card">
+                      <div class="mobile-top-row">
+                        <div class="position-badge position-1">1º</div>
+                        <img
+                          src="https://i.pravatar.cc/150?img=12"
+                          alt="Avatar"
+                          class="player-avatar"
+                        />
+                        <div class="mobile-meta">
+                          <div class="player-name">SombraNoturna88</div>
+                          <div class="mobile-platforms">
+                            <span
+                              class="platform-tag platform-psn"
+                              aria-label="PSN"
+                              ><i class="fab fa-playstation"></i></span
+                            ><span
+                              class="platform-tag platform-steam"
+                              aria-label="STEAM"
+                              ><i class="fab fa-steam"></i
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mobile-stats">
+                        <div class="stat-box">
+                          <div class="stat-label">Conquistas</div>
+                          <div class="stat-value achievements-count">1250</div>
+                        </div>
+                        <div class="stat-box stat-total">
+                          <div class="stat-label">Pontos</div>
+                          <div class="stat-value total-points">987.654</div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Rank 2 -->
+                <tr class="ranking-row">
+                  <td>
+                    <div class="position-badge position-2">2º</div>
+                  </td>
+                  <td>
+                    <div class="player-info">
+                      <img
+                        src="https://i.pravatar.cc/150?img=33"
+                        alt="Avatar"
+                        class="player-avatar"
+                      />
+                      <div>
+                        <span class="player-name">MestreArcanoX</span>
+                        <div class="mobile-platforms">
+                          <span class="platform-tag platform-xbox"
+                            ><i class="fab fa-xbox"></i> XBOX</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="platform-tag platform-xbox"
+                      ><i class="fab fa-xbox"></i> XBOX</span
+                    >
+                  </td>
+                  <td><span class="achievements-count">1100</span></td>
+                  <td style="text-align: right">
+                    <span class="total-points">954.321</span>
+                  </td>
+                  <td class="mobile-card-wrapper" style="display: none">
+                    <div class="mobile-card">
+                      <div class="mobile-top-row">
+                        <div class="position-badge position-2">2º</div>
+                        <img
+                          src="https://i.pravatar.cc/150?img=33"
+                          alt="Avatar"
+                          class="player-avatar"
+                        />
+                        <div class="mobile-meta">
+                          <div class="player-name">MestreArcanoX</div>
+                          <div class="mobile-platforms">
+                            <span
+                              class="platform-tag platform-xbox"
+                              aria-label="XBOX"
+                              ><i class="fab fa-xbox"></i
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mobile-stats">
+                        <div class="stat-box">
+                          <div class="stat-label">Conquistas</div>
+                          <div class="stat-value achievements-count">1100</div>
+                        </div>
+                        <div class="stat-box stat-total">
+                          <div class="stat-label">Pontos</div>
+                          <div class="stat-value total-points">954.321</div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Rank 3 -->
+                <tr class="ranking-row">
+                  <td>
+                    <div class="position-badge position-3">3º</div>
+                  </td>
+                  <td>
+                    <div class="player-info">
+                      <img
+                        src="https://i.pravatar.cc/150?img=27"
+                        alt="Avatar"
+                        class="player-avatar"
+                      />
+                      <div>
+                        <span class="player-name">VikingGamerPT</span>
+                        <div class="mobile-platforms">
+                          <span class="platform-tag platform-steam"
+                            ><i class="fab fa-steam"></i> STEAM</span
+                          >
+                          <span class="platform-tag platform-retro"
+                            ><i class="fas fa-gamepad"></i> RETRO</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="platform-tag platform-steam"
+                      ><i class="fab fa-steam"></i> STEAM</span
+                    >
+                    <span class="platform-tag platform-retro"
+                      ><i class="fas fa-gamepad"></i> RETRO ARCHVIMENTS</span
+                    >
+                  </td>
+                  <td><span class="achievements-count">980</span></td>
+                  <td style="text-align: right">
+                    <span class="total-points">890.123</span>
+                  </td>
+                  <td class="mobile-card-wrapper" style="display: none">
+                    <div class="mobile-card">
+                      <div class="mobile-top-row">
+                        <div class="position-badge position-3">3º</div>
+                        <img
+                          src="https://i.pravatar.cc/150?img=27"
+                          alt="Avatar"
+                          class="player-avatar"
+                        />
+                        <div class="mobile-meta">
+                          <div class="player-name">VikingGamerPT</div>
+                          <div class="mobile-platforms">
+                            <span
+                              class="platform-tag platform-steam"
+                              aria-label="STEAM"
+                              ><i class="fab fa-steam"></i></span
+                            ><span
+                              class="platform-tag platform-retro"
+                              aria-label="RETRO"
+                              ><i class="fas fa-gamepad"></i
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mobile-stats">
+                        <div class="stat-box">
+                          <div class="stat-label">Conquistas</div>
+                          <div class="stat-value achievements-count">980</div>
+                        </div>
+                        <div class="stat-box stat-total">
+                          <div class="stat-label">Pontos</div>
+                          <div class="stat-value total-points">890.123</div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Rank 4 -->
+                <tr class="ranking-row">
+                  <td>
+                    <div class="position-badge position-other">4º</div>
+                  </td>
+                  <td>
+                    <div class="player-info">
+                      <img
+                        src="https://i.pravatar.cc/150?img=44"
+                        alt="Avatar"
+                        class="player-avatar"
+                      />
+                      <div>
+                        <span class="player-name">LobaSolitária</span>
+                        <div class="mobile-platforms">
+                          <span class="platform-tag platform-psn"
+                            ><i class="fab fa-playstation"></i> PSN</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="platform-tag platform-psn"
+                      ><i class="fab fa-playstation"></i> PSN</span
+                    >
+                  </td>
+                  <td><span class="achievements-count">870</span></td>
+                  <td style="text-align: right">
+                    <span class="total-points">812.345</span>
+                  </td>
+                  <td class="mobile-card-wrapper" style="display: none">
+                    <div class="mobile-card">
+                      <div class="mobile-top-row">
+                        <div class="position-badge position-other">4º</div>
+                        <img
+                          src="https://i.pravatar.cc/150?img=44"
+                          alt="Avatar"
+                          class="player-avatar"
+                        />
+                        <div class="mobile-meta">
+                          <div class="player-name">LobaSolitária</div>
+                          <div class="mobile-platforms">
+                            <span
+                              class="platform-tag platform-psn"
+                              aria-label="PSN"
+                              ><i class="fab fa-playstation"></i
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mobile-stats">
+                        <div class="stat-box">
+                          <div class="stat-label">Conquistas</div>
+                          <div class="stat-value achievements-count">870</div>
+                        </div>
+                        <div class="stat-box stat-total">
+                          <div class="stat-label">Pontos</div>
+                          <div class="stat-value total-points">812.345</div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Rank 5 -->
+                <tr class="ranking-row">
+                  <td>
+                    <div class="position-badge position-other">5º</div>
+                  </td>
+                  <td>
+                    <div class="player-info">
+                      <img
+                        src="https://i.pravatar.cc/150?img=58"
+                        alt="Avatar"
+                        class="player-avatar"
+                      />
+                      <div>
+                        <span class="player-name">ReiDoPixel</span>
+                        <div class="mobile-platforms">
+                          <span class="platform-tag platform-xbox"
+                            ><i class="fab fa-xbox"></i> XBOX</span
+                          >
+                          <span class="platform-tag platform-steam"
+                            ><i class="fab fa-steam"></i> STEAM</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="platform-tag platform-xbox"
+                      ><i class="fab fa-xbox"></i> XBOX</span
+                    >
+                    <span class="platform-tag platform-steam"
+                      ><i class="fab fa-steam"></i> STEAM</span
+                    >
+                  </td>
+                  <td><span class="achievements-count">750</span></td>
+                  <td style="text-align: right">
+                    <span class="total-points">765.432</span>
+                  </td>
+                  <td class="mobile-card-wrapper" style="display: none">
+                    <div class="mobile-card">
+                      <div class="mobile-top-row">
+                        <div class="position-badge position-other">5º</div>
+                        <img
+                          src="https://i.pravatar.cc/150?img=58"
+                          alt="Avatar"
+                          class="player-avatar"
+                        />
+                        <div class="mobile-meta">
+                          <div class="player-name">ReiDoPixel</div>
+                          <div class="mobile-platforms">
+                            <span
+                              class="platform-tag platform-xbox"
+                              aria-label="XBOX"
+                              ><i class="fab fa-xbox"></i></span
+                            ><span
+                              class="platform-tag platform-steam"
+                              aria-label="STEAM"
+                              ><i class="fab fa-steam"></i
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mobile-stats">
+                        <div class="stat-box">
+                          <div class="stat-label">Conquistas</div>
+                          <div class="stat-value achievements-count">750</div>
+                        </div>
+                        <div class="stat-box stat-total">
+                          <div class="stat-label">Pontos</div>
+                          <div class="stat-value total-points">765.432</div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Rank 6 -->
+                <tr class="ranking-row">
+                  <td>
+                    <div class="position-badge position-other">6º</div>
+                  </td>
+                  <td>
+                    <div class="player-info">
+                      <img
+                        src="https://i.pravatar.cc/150?img=15"
+                        alt="Avatar"
+                        class="player-avatar"
+                      />
+                      <div>
+                        <span class="player-name">Draconis_Rex</span>
+                        <div class="mobile-platforms">
+                          <span class="platform-tag platform-psn"
+                            ><i class="fab fa-playstation"></i> PSN</span
+                          >
+                          <span class="platform-tag platform-xbox"
+                            ><i class="fab fa-xbox"></i> XBOX</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="platform-tag platform-psn"
+                      ><i class="fab fa-playstation"></i> PSN</span
+                    >
+                    <span class="platform-tag platform-xbox"
+                      ><i class="fab fa-xbox"></i> XBOX</span
+                    >
+                  </td>
+                  <td><span class="achievements-count">630</span></td>
+                  <td style="text-align: right">
+                    <span class="total-points">700.100</span>
+                  </td>
+                  <td class="mobile-card-wrapper" style="display: none">
+                    <div class="mobile-card">
+                      <div class="mobile-top-row">
+                        <div class="position-badge position-other">6º</div>
+                        <img
+                          src="https://i.pravatar.cc/150?img=15"
+                          alt="Avatar"
+                          class="player-avatar"
+                        />
+                        <div class="mobile-meta">
+                          <div class="player-name">Draconis_Rex</div>
+                          <div class="mobile-platforms">
+                            <span
+                              class="platform-tag platform-psn"
+                              aria-label="PSN"
+                              ><i class="fab fa-playstation"></i></span
+                            ><span
+                              class="platform-tag platform-xbox"
+                              aria-label="XBOX"
+                              ><i class="fab fa-xbox"></i
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mobile-stats">
+                        <div class="stat-box">
+                          <div class="stat-label">Conquistas</div>
+                          <div class="stat-value achievements-count">630</div>
+                        </div>
+                        <div class="stat-box stat-total">
+                          <div class="stat-label">Pontos</div>
+                          <div class="stat-value total-points">700.100</div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Rank 7 -->
+                <tr class="ranking-row">
+                  <td>
+                    <div class="position-badge position-other">7º</div>
+                  </td>
+                  <td>
+                    <div class="player-info">
+                      <img
+                        src="https://i.pravatar.cc/150?img=68"
+                        alt="Avatar"
+                        class="player-avatar"
+                      />
+                      <div>
+                        <span class="player-name">FenixCinzento</span>
+                        <div class="mobile-platforms">
+                          <span class="platform-tag platform-steam"
+                            ><i class="fab fa-steam"></i> STEAM</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="platform-tag platform-steam"
+                      ><i class="fab fa-steam"></i> STEAM</span
+                    >
+                  </td>
+                  <td><span class="achievements-count">500</span></td>
+                  <td style="text-align: right">
+                    <span class="total-points">650.000</span>
+                  </td>
+                  <td class="mobile-card-wrapper" style="display: none">
+                    <div class="mobile-card">
+                      <div class="mobile-top-row">
+                        <div class="position-badge position-other">7º</div>
+                        <img
+                          src="https://i.pravatar.cc/150?img=68"
+                          alt="Avatar"
+                          class="player-avatar"
+                        />
+                        <div class="mobile-meta">
+                          <div class="player-name">FenixCinzento</div>
+                          <div class="mobile-platforms">
+                            <span
+                              class="platform-tag platform-steam"
+                              aria-label="STEAM"
+                              ><i class="fab fa-steam"></i
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mobile-stats">
+                        <div class="stat-box">
+                          <div class="stat-label">Conquistas</div>
+                          <div class="stat-value achievements-count">500</div>
+                        </div>
+                        <div class="stat-box stat-total">
+                          <div class="stat-label">Pontos</div>
+                          <div class="stat-value total-points">650.000</div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Rank 8 -->
+                <tr class="ranking-row">
+                  <td>
+                    <div class="position-badge position-other">8º</div>
+                  </td>
+                  <td>
+                    <div class="player-info">
+                      <img
+                        src="https://i.pravatar.cc/150?img=29"
+                        alt="Avatar"
+                        class="player-avatar"
+                      />
+                      <div>
+                        <span class="player-name">EstrelaCadente</span>
+                        <div class="mobile-platforms">
+                          <span class="platform-tag platform-psn"
+                            ><i class="fab fa-playstation"></i> PSN</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="platform-tag platform-psn"
+                      ><i class="fab fa-playstation"></i> PSN</span
+                    >
+                  </td>
+                  <td><span class="achievements-count">450</span></td>
+                  <td style="text-align: right">
+                    <span class="total-points">600.000</span>
+                  </td>
+                  <td class="mobile-card-wrapper" style="display: none">
+                    <div class="mobile-card">
+                      <div class="mobile-top-row">
+                        <div class="position-badge position-other">8º</div>
+                        <img
+                          src="https://i.pravatar.cc/150?img=29"
+                          alt="Avatar"
+                          class="player-avatar"
+                        />
+                        <div class="mobile-meta">
+                          <div class="player-name">EstrelaCadente</div>
+                          <div class="mobile-platforms">
+                            <span class="platform-tag platform-psn"
+                              ><i class="fab fa-playstation"></i> PSN</span
+                            >
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mobile-stats">
+                        <div class="stat-box">
+                          <div class="stat-label">Conquistas</div>
+                          <div class="stat-value achievements-count">450</div>
+                        </div>
+                        <div class="stat-box stat-total">
+                          <div class="stat-label">Pontos</div>
+                          <div class="stat-value total-points">600.000</div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Rank 9 -->
+                <tr class="ranking-row">
+                  <td>
+                    <div class="position-badge position-other">9º</div>
+                  </td>
+                  <td>
+                    <div class="player-info">
+                      <img
+                        src="https://i.pravatar.cc/150?img=52"
+                        alt="Avatar"
+                        class="player-avatar"
+                      />
+                      <div>
+                        <span class="player-name">GuardiãoDaForça</span>
+                        <div class="mobile-platforms">
+                          <span class="platform-tag platform-xbox"
+                            ><i class="fab fa-xbox"></i> XBOX</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="platform-tag platform-xbox"
+                      ><i class="fab fa-xbox"></i> XBOX</span
+                    >
+                  </td>
+                  <td><span class="achievements-count">400</span></td>
+                  <td style="text-align: right">
+                    <span class="total-points">550.000</span>
+                  </td>
+                  <td class="mobile-card-wrapper" style="display: none">
+                    <div class="mobile-card">
+                      <div class="mobile-top-row">
+                        <div class="position-badge position-other">9º</div>
+                        <img
+                          src="https://i.pravatar.cc/150?img=52"
+                          alt="Avatar"
+                          class="player-avatar"
+                        />
+                        <div class="mobile-meta">
+                          <div class="player-name">GuardiãoDaForça</div>
+                          <div class="mobile-platforms">
+                            <span class="platform-tag platform-xbox"
+                              ><i class="fab fa-xbox"></i> XBOX</span
+                            >
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mobile-stats">
+                        <div class="stat-box">
+                          <div class="stat-label">Conquistas</div>
+                          <div class="stat-value achievements-count">400</div>
+                        </div>
+                        <div class="stat-box stat-total">
+                          <div class="stat-label">Pontos</div>
+                          <div class="stat-value total-points">550.000</div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Rank 10 -->
+                <tr class="ranking-row">
+                  <td>
+                    <div class="position-badge position-other">10º</div>
+                  </td>
+                  <td>
+                    <div class="player-info">
+                      <img
+                        src="https://i.pravatar.cc/150?img=40"
+                        alt="Avatar"
+                        class="player-avatar"
+                      />
+                      <span class="player-name">Sombreiro88</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="platform-tag platform-psn"
+                      ><i class="fab fa-playstation"></i> PSN</span
+                    >
+                    <span class="platform-tag platform-retro"
+                      ><i class="fas fa-gamepad"></i> RETRO ARCHVIMENTS</span
+                    >
+                  </td>
+                  <td><span class="achievements-count">350</span></td>
+                  <td style="text-align: right">
+                    <span class="total-points">500.000</span>
+                  </td>
+                  <td class="mobile-card-wrapper" style="display: none">
+                    <div class="mobile-card">
+                      <div class="mobile-top-row">
+                        <div class="position-badge position-other">10º</div>
+                        <img
+                          src="https://i.pravatar.cc/150?img=40"
+                          alt="Avatar"
+                          class="player-avatar"
+                        />
+                        <div class="mobile-meta">
+                          <div class="player-name">Sombreiro88</div>
+                          <div class="mobile-platforms">
+                            <span
+                              class="platform-tag platform-psn"
+                              aria-label="PSN"
+                              ><i class="fab fa-playstation"></i></span
+                            ><span
+                              class="platform-tag platform-retro"
+                              aria-label="RETRO"
+                              ><i class="fas fa-gamepad"></i
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mobile-stats">
+                        <div class="stat-box">
+                          <div class="stat-label">Conquistas</div>
+                          <div class="stat-value achievements-count">350</div>
+                        </div>
+                        <div class="stat-box stat-total">
+                          <div class="stat-label">Pontos</div>
+                          <div class="stat-value total-points">500.000</div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="mt-6 text-center">
+              <p class="text-sm text-gray-500">
+                <i class="fas fa-info-circle mr-2"></i>
+                Recursos • Legal
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Filter buttons functionality (inclui filtragem por plataforma)
+      document.querySelectorAll(".filter-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          // Remove active from all buttons in the same group
+          const filterGroup =
+            this.parentElement.querySelectorAll(".filter-btn");
+          filterGroup.forEach((b) => b.classList.remove("active"));
+
+          // Add active to clicked button
+          this.classList.add("active");
+
+          // Apply platform filter if data-filter is present
+          const filter = this.getAttribute("data-filter") || "all";
+          applyPlatformFilter(filter);
+        });
+      });
+
+      // Função que mostra/oculta linhas da tabela com base na plataforma selecionada
+      function applyPlatformFilter(filter) {
+        const rows = document.querySelectorAll(".ranking-row");
+        rows.forEach((row) => {
+          if (filter === "all") {
+            row.style.display = "";
+            return;
+          }
+
+          // Verifica se a linha possui uma tag de plataforma correspondente
+          const hasPlatform = row.querySelector(
+            `.platform-tag.platform-${filter}`
+          );
+          row.style.display = hasPlatform ? "" : "none";
+        });
+      }
+
+      // Search functionality
+      const searchInput = document.querySelector(".search-input");
+      searchInput.addEventListener("input", function () {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll(".ranking-row");
+
+        rows.forEach((row) => {
+          const playerName = row
+            .querySelector(".player-name")
+            .textContent.toLowerCase();
+          if (playerName.includes(searchTerm)) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

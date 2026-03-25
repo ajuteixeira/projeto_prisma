@@ -1,0 +1,54 @@
+/* Fallback para ícones caso Font Awesome não carregue */
+
+/* Se Font Awesome não carregar, usa emojis como fallback */
+.fas.fa-trophy::before {
+    content: "🏆";
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+}
+
+.fas.fa-gamepad::before {
+    content: "🎮";
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+}
+
+.fas.fa-users::before {
+    content: "👥";
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+}
+
+.fas.fa-cog::before {
+    content: "⚙️";
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+}
+
+.fas.fa-user::before {
+    content: "👤";
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+}
+
+.fas.fa-camera::before {
+    content: "📷";
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+}
+
+.fas.fa-sign-out-alt::before {
+    content: "🚪";
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+}
+
+.fas.fa-trash-alt::before {
+    content: "🗑️";
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+}
+
+.fas.fa-exclamation-triangle::before {
+    content: "⚠️";
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+}
+
+.fas.fa-thumbtack::before {
+    content: "📌";
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+}
+
+/* Nota: Este arquivo só deve ser usado se Font Awesome não carregar */
