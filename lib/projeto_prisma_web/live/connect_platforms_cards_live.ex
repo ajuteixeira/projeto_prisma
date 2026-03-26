@@ -4,6 +4,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
   alias ProjetoPrisma.Accounts
   alias ProjetoPrisma.Sync.Steam.Client, as: SteamClient
   alias ProjetoPrisma.Sync.RetroAchievements.Client, as: RetroClient
+  alias ProjetoPrisma.Sync.Psn.Client, as: PsnClient
 
   @platforms [
     %{
@@ -51,6 +52,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
      |> assign(:modal_platform, nil)
     |> assign(:modal_error, nil)
      |> assign(:form, to_form(%{"user_id" => "", "api_key" => ""}, as: :steam))
+     |> assign(:psn_form, to_form(%{"psn_id" => "", "access_token" => ""}, as: :psn))
      |> refresh_platforms()}
   end
 
@@ -99,13 +101,43 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
     end
   end
 
+  def handle_event("platform_action", %{"platform" => "playstation"}, socket) do
+    platform = Enum.find(socket.assigns.platforms, &(&1.slug == "playstation"))
+
+    cond do
+      is_nil(platform) ->
+        {:noreply, put_flash(socket, :error, "Plataforma PlayStation não encontrada na tela")}
+
+      platform.connected ->
+        disconnect_psn(socket)
+
+      true ->
+        {:noreply,
+         socket
+         |> assign(:modal_open, true)
+         |> assign(:modal_platform, platform)
+         |> assign(:modal_error, nil)
+         |> assign(:psn_form, to_form(%{"psn_id" => "", "access_token" => ""}, as: :psn))}
+    end
+  end
+
+  def handle_event("platform_action", %{"platform" => _platform_slug}, socket) do
+    {:noreply,
+     put_flash(
+       socket,
+       :info,
+       "A conexão desta plataforma será implementada por outro time. Por enquanto, somente Steam e Psn está ativa."
+     )}
+  end
+
   def handle_event("close_modal", _params, socket) do
     {:noreply,
      socket
      |> assign(:modal_open, false)
      |> assign(:modal_platform, nil)
       |> assign(:modal_error, nil)
-     |> assign(:form, to_form(%{"user_id" => "", "api_key" => ""}, as: :steam))}
+     |> assign(:form, to_form(%{"user_id" => "", "api_key" => ""}, as: :steam))
+     |> assign(:psn_form, to_form(%{"psn_id" => "", "access_token" => ""}, as: :psn))}
   end
 
   def handle_event("save_steam_connection", %{"steam" => steam_params}, socket) do
@@ -158,6 +190,59 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
 
       true ->
         connect_retro(socket, username, api_key)
+    end
+  end
+
+  def handle_event("save_psn_connection", %{"psn" => psn_params}, socket) do
+    psn_id = String.trim(psn_params["psn_id"] || "")
+    access_token = String.trim(psn_params["access_token"] || "")
+
+    cond do
+      is_nil(socket.assigns.profile_id) ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Não foi possível identificar o perfil atual")
+         |> put_flash(:error, "Não foi possível identificar o perfil atual")}
+
+      psn_id == "" or access_token == "" ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Preencha PSN ID e Token de Acesso para continuar")
+         |> put_flash(:error, "Preencha PSN ID e Token de Acesso para continuar")
+         |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "access_token" => access_token}, as: :psn))}
+
+      true ->
+        connect_psn(socket, psn_id, access_token)
+    end
+  end
+
+  def handle_event("save_steam_connection", %{"steam" => steam_params}, socket) do
+    steam_id = String.trim(steam_params["user_id"] || "")
+    api_key = String.trim(steam_params["api_key"] || "")
+
+    cond do
+      is_nil(socket.assigns.profile_id) ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Não foi possível identificar o perfil atual")
+         |> put_flash(:error, "Não foi possível identificar o perfil atual")}
+
+      steam_id == "" or api_key == "" ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Preencha Steam ID e API Key para continuar")
+         |> put_flash(:error, "Preencha Steam ID e API Key para continuar")
+         |> assign(:form, to_form(%{"user_id" => steam_id, "api_key" => api_key}, as: :steam))}
+
+      not valid_steam_id?(steam_id) ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Steam ID inválido. Use o SteamID64 com 17 dígitos")
+         |> put_flash(:error, "Steam ID inválido. Use o SteamID64 com 17 dígitos")
+         |> assign(:form, to_form(%{"user_id" => steam_id, "api_key" => api_key}, as: :steam))}
+
+      true ->
+        connect_steam(socket, steam_id, api_key)
     end
   end
 
@@ -258,6 +343,102 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
          |> assign(:modal_error, "Não foi possível salvar a conexão Steam")
          |> put_flash(:error, "Não foi possível salvar a conexão Steam")
          |> assign(:form, to_form(%{"user_id" => steam_id, "api_key" => api_key}, as: :steam))}
+    end
+  end
+
+  defp connect_psn(socket, psn_id, access_token) do
+    with :ok <- validate_psn_credentials(psn_id, access_token),
+         {:ok, _account} <-
+           Accounts.connect_platform_account(socket.assigns.profile_id, "playstation", %{
+             "external_user_id" => psn_id,
+             "profile_url" => "https://www.playstation.com/en-us/community/profile/#{psn_id}"
+           }) do
+      {:noreply,
+       socket
+       |> refresh_platforms()
+       |> assign(:modal_open, false)
+       |> assign(:modal_platform, nil)
+      |> assign(:modal_error, nil)
+       |> assign(:psn_form, to_form(%{"psn_id" => "", "access_token" => ""}, as: :psn))
+       |> put_flash(:info, "Conta PlayStation vinculada com sucesso")}
+    else
+      {:error, :platform_not_found} ->
+        {:noreply,
+         socket
+         |> assign(
+           :modal_error,
+           "Plataforma PlayStation não encontrada no banco. Rode o seed para cadastrar as plataformas."
+         )
+         |> put_flash(
+           :error,
+           "Plataforma PlayStation não encontrada no banco. Rode o seed para cadastrar as plataformas."
+         )}
+
+      {:error, :invalid_credentials} ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Falha na validação da PSN. Confira PSN ID e Token de Acesso")
+         |> put_flash(:error, "Falha na validação da PSN. Confira PSN ID e Token de Acesso")
+         |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "access_token" => access_token}, as: :psn))}
+
+      {:error, {:psn_http_status, status}} ->
+        {:noreply,
+         socket
+         |> assign(
+           :modal_error,
+           "PlayStation respondeu com status #{status}. Verifique os dados e tente novamente"
+         )
+         |> put_flash(
+           :error,
+           "PlayStation respondeu com status #{status}. Verifique os dados e tente novamente"
+         )
+         |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "access_token" => access_token}, as: :psn))}
+
+      {:error, :psn_request_failed} ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Não foi possível validar com a API da PSN agora")
+         |> put_flash(:error, "Não foi possível validar com a API da PSN agora")
+         |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "access_token" => access_token}, as: :psn))}
+
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Não foi possível salvar a conexão PlayStation")
+         |> put_flash(:error, "Não foi possível salvar a conexão PlayStation")
+         |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "access_token" => access_token}, as: :psn))}
+    end
+  end
+
+  defp disconnect_psn(socket) do
+    case Accounts.disconnect_platform_account(socket.assigns.profile_id, "playstation") do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> refresh_platforms()
+         |> put_flash(:info, "Conta PlayStation desvinculada")}
+
+      {:error, :platform_not_found} ->
+        {:noreply, put_flash(socket, :error, "Plataforma PlayStation não cadastrada")}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Não foi possível desvincular a conta PlayStation")}
+    end
+  end
+
+  defp validate_psn_credentials(psn_id, access_token) do
+    case PsnClient.get_player_profile(psn_id, access_token) do
+      {:ok, %{status: 200, body: %{"profile" => _profile}}} ->
+        :ok
+
+      {:ok, %{status: 200}} ->
+        {:error, :invalid_credentials}
+
+      {:ok, %{status: status}} ->
+        {:error, {:psn_http_status, status}}
+
+      {:error, _reason} ->
+        {:error, :psn_request_failed}
     end
   end
 
@@ -416,9 +597,27 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
           </div>
         </div>
 
-        <%= if @modal_platform.slug == "steam" do %>
-          <.form for={@form} id="steam-connect-form" phx-submit="save_steam_connection">
-            <div class="connect-modal-body">
+        <.form
+          for={
+            cond do
+              @modal_platform.slug == "steam" -> @form
+              @modal_platform.slug == "retroachievements" -> @form
+              @modal_platform.slug == "playstation" -> @psn_form
+              true -> @form
+            end
+          }
+          id={"#{@modal_platform.slug}-connect-form"}
+          phx-submit={
+            cond do
+              @modal_platform.slug == "steam" -> "save_steam_connection"
+              @modal_platform.slug == "retroachievements" -> "save_retro_connection"
+              @modal_platform.slug == "playstation" -> "save_psn_connection"
+              true -> "save_steam_connection"
+            end
+          }
+        >
+          <div class="connect-modal-body">
+            <%= if @modal_platform.slug == "steam" do %>
               <p class="connect-modal-instruction">
                 Insira seu SteamID64 (17 dígitos) e sua chave de API para validar e vincular a conta.
               </p>
@@ -446,56 +645,75 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
                   placeholder="Sua chave da Steam"
                 />
               </div>
-            </div>
+            <% else %>
+              <%= if @modal_platform.slug == "playstation" do %>
+                <p class="connect-modal-instruction">
+                  Insira seu PSN ID (username) e seu Token de Acesso para validar e vincular a conta.
+                </p>
 
-            <div class="connect-modal-actions">
-              <button type="button" class="btn-cancel" phx-click="close_modal">Sair</button>
-              <button type="submit" class="btn-save" phx-disable-with="Validando...">
-                Vincular Conta
-              </button>
-            </div>
-          </.form>
-        <% else %>
-          <.form for={@form} id="retro-connect-form" phx-submit="save_retro_connection">
-            <div class="connect-modal-body">
-              <p class="connect-modal-instruction">
-                Insira seu nome de usuário e sua Web API Key para validar e vincular a conta.<br>
-                É possível obter a Web API Key no menu de configurações do site Retro Achievements.
-              </p>
+                <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
 
-              <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
+                <div class="connect-input-group">
+                  <label class="connect-input-label" for="psn-user-id">PSN ID</label>
+                  <.input
+                    field={@psn_form[:psn_id]}
+                    id="psn-user-id"
+                    type="text"
+                    class="connect-modal-input"
+                    placeholder="seu_username_psn"
+                  />
+                </div>
 
-              <div class="connect-input-group">
-                <label class="connect-input-label" for="retro-username">Username</label>
-                <.input
-                  field={@form[:username]}
-                  id="retro-username"
-                  type="text"
-                  class="connect-modal-input"
-                  placeholder="Seu usuário do RetroAchievements"
-                />
-              </div>
+                <div class="connect-input-group">
+                  <label class="connect-input-label" for="psn-access-token">Token de Acesso</label>
+                  <.input
+                    field={@psn_form[:access_token]}
+                    id="psn-access-token"
+                    type="password"
+                    class="connect-modal-input"
+                    placeholder="Seu token de acesso da PSN"
+                  />
+                </div>
+              <% else %>
+                <p class="connect-modal-instruction">
+                  Insira seu nome de usuário e sua Web API Key para validar e vincular a conta.<br>
+                  É possível obter a Web API Key no menu de configurações do site Retro Achievements.
+                </p>
 
-              <div class="connect-input-group">
-                <label class="connect-input-label" for="retro-api-key">API Key</label>
-                <.input
-                  field={@form[:api_key]}
-                  id="retro-api-key"
-                  type="password"
-                  class="connect-modal-input"
-                  placeholder="Sua chave de API"
-                />
-              </div>
-            </div>
+                <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
 
-            <div class="connect-modal-actions">
-              <button type="button" class="btn-cancel" phx-click="close_modal">Sair</button>
-              <button type="submit" class="btn-save" phx-disable-with="Validando...">
-                Vincular Conta
-              </button>
-            </div>
-          </.form>
-        <% end %>
+                <div class="connect-input-group">
+                  <label class="connect-input-label" for="retro-username">Username</label>
+                  <.input
+                    field={@form[:username]}
+                    id="retro-username"
+                    type="text"
+                    class="connect-modal-input"
+                    placeholder="Seu usuário do RetroAchievements"
+                  />
+                </div>
+
+                <div class="connect-input-group">
+                  <label class="connect-input-label" for="retro-api-key">API Key</label>
+                  <.input
+                    field={@form[:api_key]}
+                    id="retro-api-key"
+                    type="password"
+                    class="connect-modal-input"
+                    placeholder="Sua chave de API"
+                  />
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+
+          <div class="connect-modal-actions">
+            <button type="button" class="btn-cancel" phx-click="close_modal">Sair</button>
+            <button type="submit" class="btn-save" phx-disable-with="Validando...">
+              Vincular Conta
+            </button>
+          </div>
+        </.form>
       </div>
     </div>
 
@@ -516,8 +734,12 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
           phx-click="platform_action"
           phx-value-platform={platform.slug}
           data-confirm={
-            platform.connected && platform.slug in ["steam", "retroachievements", "xbox", "playstation"] &&
-              "Deseja desvincular sua conta #{platform.name}?"
+            cond do
+              platform.connected && platform.slug == "steam" -> "Deseja desvincular sua conta Steam?"
+              platform.connected && platform.slug == "playstation" -> "Deseja desvincular sua conta PlayStation?"
+              platform.connected && platform.slug == "retroachievements" -> "Deseja desvincular sua conta RetroAchievements?"
+              true -> nil
+            end
           }
           class={[
             "connect-btn",
