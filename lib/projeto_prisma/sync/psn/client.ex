@@ -19,7 +19,8 @@ defmodule ProjetoPrisma.Sync.Psn.Client do
   end
 
   def get_detail_achievement(npCommunicationId, access_token) do
-    Req.get("#{@base_url}/trophy/v1/npCommunicationIds/#{npCommunicationId}/trophyGroups/all/trophies",
+    Req.get(
+      "#{@base_url}/trophy/v1/npCommunicationIds/#{npCommunicationId}/trophyGroups/all/trophies",
       headers: [
         Authorization: "Bearer #{access_token}"
       ]
@@ -27,7 +28,8 @@ defmodule ProjetoPrisma.Sync.Psn.Client do
   end
 
   def get_player_achievement(psn_id, npCommunicationId, access_token) do
-    Req.get("#{@base_url}/trophy/v1/users/#{psn_id}/npCommunicationIds/#{npCommunicationId}/trophyGroups/all/trophies",
+    Req.get(
+      "#{@base_url}/trophy/v1/users/#{psn_id}/npCommunicationIds/#{npCommunicationId}/trophyGroups/all/trophies",
       headers: [
         Authorization: "Bearer #{access_token}"
       ]
@@ -41,5 +43,4 @@ defmodule ProjetoPrisma.Sync.Psn.Client do
       ]
     )
   end
-
 end

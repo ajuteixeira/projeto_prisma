@@ -621,6 +621,152 @@ body::before {
   color: #10b981;
 }
 
+.connect-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.connect-modal-overlay.active {
+  display: flex;
+}
+
+.connect-modal-container {
+  background: linear-gradient(135deg, #1f2937, #111827);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 450px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.connect-modal-header {
+  padding: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.connect-modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.connect-modal-subtitle {
+  font-size: 10px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.connect-modal-body {
+  padding: 24px;
+}
+
+.connect-modal-instruction {
+  font-size: 13px;
+  color: #9ca3af;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 12px;
+  border-radius: 10px;
+  border-left: 3px solid #3b82f6;
+}
+
+.connect-modal-error {
+  font-size: 13px;
+  color: #fecaca;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  background: rgba(239, 68, 68, 0.12);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border-left: 3px solid #ef4444;
+}
+
+.connect-input-group {
+  margin-bottom: 16px;
+}
+
+.connect-input-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3b82f6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.connect-modal-input {
+  width: 100%;
+  background: #0f1419;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.connect-modal-input:focus {
+  border-color: #3b82f6;
+}
+
+.connect-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 12px;
+  padding: 0 24px 24px;
+}
+
+.connect-page .btn-cancel {
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.connect-page .btn-save {
+  padding: 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
 .connect-page .info-section {
   background: rgba(30, 35, 45, 0.6);
   backdrop-filter: blur(10px);

@@ -1,5 +1,4 @@
 defmodule ProjetoPrisma.Sync.Psn.Adapter do
-
   @behaviour ProjetoPrisma.Sync.PlatformBehaviour
 
   alias ProjetoPrisma.Sync.Psn.Client
@@ -10,10 +9,12 @@ defmodule ProjetoPrisma.Sync.Psn.Adapter do
       games =
         body["titles"]
         |> Enum.map(&normalize_game/1)
+
       {:ok, games}
     else
       {:ok, %{status: status, body: body}} ->
         {:error, {:http_error, status, body}}
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -21,11 +22,13 @@ defmodule ProjetoPrisma.Sync.Psn.Adapter do
 
   @impl true
   def fetch_achievements(%{external_user_id: psn_id, api_key: access_token}, _game_external_id) do
-    with {:ok, %{status: 200, body: titles_body}} <- Client.get_player_trophy_titles(psn_id, access_token) do
+    with {:ok, %{status: 200, body: titles_body}} <-
+           Client.get_player_trophy_titles(psn_id, access_token) do
       achievements =
         titles_body["trophyTitles"]
         |> Enum.flat_map(fn title ->
           npCommunicationId = title["npCommunicationId"]
+
           with {:ok, %{status: 200, body: player_trophy}} <-
                  Client.get_player_achievement(psn_id, npCommunicationId, access_token),
                {:ok, %{status: 200, body: detail_body}} <-
@@ -36,10 +39,12 @@ defmodule ProjetoPrisma.Sync.Psn.Adapter do
             _ -> []
           end
         end)
+
       {:ok, achievements}
     else
       {:ok, %{status: status, body: body}} ->
         {:error, {:http_error, status, body}}
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -66,6 +71,7 @@ defmodule ProjetoPrisma.Sync.Psn.Adapter do
         nil -> %{}
         trophy -> trophy
       end
+
     %{
       external_achievement_id: to_string(npCommunicationId),
       name: detail_trophy["trophyName"] || "",
@@ -79,6 +85,7 @@ defmodule ProjetoPrisma.Sync.Psn.Adapter do
 
   defp parse_psn_datetime(nil), do: nil
   defp parse_psn_datetime(""), do: nil
+
   defp parse_psn_datetime(value) when is_binary(value) do
     value
     |> String.replace(" ", "T")

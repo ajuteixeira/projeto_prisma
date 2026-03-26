@@ -9,11 +9,11 @@
     <p>Conecte suas contas de jogos para sincronizar estatisticas e conquistas</p>
   </div>
 
-  <%= live_render(
+  {live_render(
     @conn,
     ProjetoPrismaWeb.ConnectPlatformsCardsLive,
     id: "connect-platforms-cards"
-  ) %>
+  )}
 
   <section class="info-section">
     <header class="info-header">

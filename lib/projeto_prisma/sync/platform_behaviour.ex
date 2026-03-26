@@ -6,29 +6,29 @@ defmodule ProjetoPrisma.Sync.PlatformBehaviour do
   """
 
   @type account :: %{
-    external_user_id: String.t(),
-    api_key: String.t(),
-    platform_id: integer()
-  }
+          external_user_id: String.t(),
+          api_key: String.t(),
+          platform_id: integer()
+        }
 
   @type game :: %{
-    external_game_id: String.t(),
-    name: String.t(),
-    cover_image: String.t() | nil,
-    icon_image: String.t() | nil,
-    logo_image: String.t() | nil,
-    playtime_minutes: integer() | nil
-  }
+          external_game_id: String.t(),
+          name: String.t(),
+          cover_image: String.t() | nil,
+          icon_image: String.t() | nil,
+          logo_image: String.t() | nil,
+          playtime_minutes: integer() | nil
+        }
 
   @type achievement :: %{
-    external_achievement_id: String.t(),
-    name: String.t(),
-    description: String.t() | nil,
-    icon_image: String.t() | nil,
-    icon_locked_image: String.t() | nil,
-    achieved: boolean(),
-    unlock_time: DateTime.t() | nil
-  }
+          external_achievement_id: String.t(),
+          name: String.t(),
+          description: String.t() | nil,
+          icon_image: String.t() | nil,
+          icon_locked_image: String.t() | nil,
+          achieved: boolean(),
+          unlock_time: DateTime.t() | nil
+        }
 
   @doc """
   Busca os jogos que o usuário possui na plataforma.

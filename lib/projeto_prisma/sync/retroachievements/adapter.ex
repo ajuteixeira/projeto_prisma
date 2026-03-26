@@ -6,7 +6,7 @@ defmodule ProjetoPrisma.Sync.RetroAchievements.Adapter do
   @impl true
   def fetch_games(%{external_user_id: retroach_id, api_key: api_key}) do
     with {:ok, %{status: 200, body: body}} <- Client.get_owned_games(retroach_id, api_key) do
-       games =
+      games =
         body
         |> Enum.reject(&hardcore_mode?/1)
         |> Enum.map(&normalize_game/1)
@@ -32,7 +32,7 @@ defmodule ProjetoPrisma.Sync.RetroAchievements.Adapter do
       cover_image: nil,
       icon_image: retroach_image_url(raw["ImageIcon"]),
       logo_image: nil,
-      playtime_minutes: nil,
+      playtime_minutes: nil
     }
   end
 
@@ -42,7 +42,8 @@ defmodule ProjetoPrisma.Sync.RetroAchievements.Adapter do
 
   @impl true
   def fetch_achievements(%{external_user_id: retroach_id, api_key: api_key}, external_game_id) do
-    with {:ok, %{status: 200, body: body}} <- Client.get_player_achievements(retroach_id, api_key, external_game_id) do
+    with {:ok, %{status: 200, body: body}} <-
+           Client.get_player_achievements(retroach_id, api_key, external_game_id) do
       achievements =
         (body["Achievements"] || %{})
         |> Map.values()
@@ -72,11 +73,15 @@ defmodule ProjetoPrisma.Sync.RetroAchievements.Adapter do
     }
   end
 
-  defp achievement_icon_url(badge_name), do: "https://retroachievements.org/Badge/#{badge_name}.png"
-  defp achievement_locked_icon_url(badge_name), do: "https://retroachievements.org/Badge/#{badge_name}_lock.png"
+  defp achievement_icon_url(badge_name),
+    do: "https://retroachievements.org/Badge/#{badge_name}.png"
+
+  defp achievement_locked_icon_url(badge_name),
+    do: "https://retroachievements.org/Badge/#{badge_name}_lock.png"
 
   defp parse_retroach_datetime(nil), do: nil
   defp parse_retroach_datetime(""), do: nil
+
   defp parse_retroach_datetime(value) when is_binary(value) do
     value
     |> String.replace(" ", "T")

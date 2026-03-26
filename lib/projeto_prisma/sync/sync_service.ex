@@ -29,7 +29,14 @@ defmodule ProjetoPrisma.Sync.SyncService do
          {:ok, platform} <- get_platform(platform_slug),
          {:ok, adapter} <- get_adapter(platform_slug),
          {:ok, _} <- create_profile_platform_account(profile_id, platform.id, external_user_id),
-         {:ok, stats} <- sync_games_and_achievements(profile_id, platform.id, adapter, external_user_id, api_key) do
+         {:ok, stats} <-
+           sync_games_and_achievements(
+             profile_id,
+             platform.id,
+             adapter,
+             external_user_id,
+             api_key
+           ) do
       {:ok, stats}
     else
       error -> error
@@ -119,19 +126,21 @@ defmodule ProjetoPrisma.Sync.SyncService do
   # Sincroniza um game específico e seus achievements
   defp sync_single_game(profile_id, platform_id, adapter, account, game_data) do
     with {:ok, game} <- Catalog.get_or_create_game(game_data),
-         {:ok, platform_game} <- Catalog.get_or_create_platform_game(
-           platform_id,
-           game.id,
-           %{"external_game_id" => game_data.external_game_id}
-         ),
-         {:ok, profile_game} <- Accounts.get_or_create_profile_game(
-           profile_id,
-           platform_game.id,
-           %{
-             "playtime_minutes" => game_data.playtime_minutes || 0,
-             "last_played" => DateTime.utc_now() |> DateTime.to_naive()
-           }
-         ),
+         {:ok, platform_game} <-
+           Catalog.get_or_create_platform_game(
+             platform_id,
+             game.id,
+             %{"external_game_id" => game_data.external_game_id}
+           ),
+         {:ok, profile_game} <-
+           Accounts.get_or_create_profile_game(
+             profile_id,
+             platform_game.id,
+             %{
+               "playtime_minutes" => game_data.playtime_minutes || 0,
+               "last_played" => DateTime.utc_now() |> DateTime.to_naive()
+             }
+           ),
          {:ok, achievements} <- adapter.fetch_achievements(account, game_data.external_game_id) do
       achievements_count = sync_achievements(profile_game.id, platform_game.id, achievements)
       {:ok, achievements_count}

@@ -5,7 +5,7 @@ defmodule ProjetoPrisma.Sync.RetroAchievements.Client do
     Req.get("#{@default_url}/API_GetUserCompletedGames.php",
       params: [
         y: api_key,
-        u: retroach_id,
+        u: retroach_id
       ]
     )
   end
@@ -16,7 +16,7 @@ defmodule ProjetoPrisma.Sync.RetroAchievements.Client do
         y: api_key,
         u: retroach_id,
         g: game_external_id,
-        a: 1,
+        a: 1
       ]
     )
   end
@@ -25,18 +25,17 @@ defmodule ProjetoPrisma.Sync.RetroAchievements.Client do
     Req.get("#{@default_url}/API_GetGameExtended.php",
       params: [
         y: api_key,
-        i: game_id,
+        i: game_id
       ]
     )
   end
 
   def get_player_profile(retroach_id, api_key) do
     Req.get("#{@default_url}/API_GetUserProfile.php",
-    params: [
-      y: api_key,
-      u: retroach_id,
-    ]
+      params: [
+        y: api_key,
+        u: retroach_id
+      ]
     )
   end
-
 end

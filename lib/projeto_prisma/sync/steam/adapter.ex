@@ -33,7 +33,6 @@ defmodule ProjetoPrisma.Sync.Steam.Adapter do
            Client.get_schema_for_game(game_external_id, key),
          {:ok, %{status: 200, body: body}} <-
            Client.get_player_achievements(steam_id, game_external_id, key) do
-
       meta =
         schema_body["game"]["availableGameStats"]["achievements"]
         |> Enum.map(fn m -> {m["name"], m} end)
@@ -78,9 +77,11 @@ defmodule ProjetoPrisma.Sync.Steam.Adapter do
     }
   end
 
-  defp steam_cover_url(appid), do: "https://cdn.akamai.steamstatic.com/steam/apps/#{appid}/header.jpg"
+  defp steam_cover_url(appid),
+    do: "https://cdn.akamai.steamstatic.com/steam/apps/#{appid}/header.jpg"
 
   defp parse_unix(0), do: nil
+
   defp parse_unix(ts) when is_integer(ts) do
     DateTime.from_unix!(ts) |> DateTime.to_naive()
   end

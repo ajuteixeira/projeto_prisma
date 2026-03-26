@@ -50,9 +50,9 @@ defmodule ProjetoPrisma.Catalog do
     external_game_id = attrs["external_game_id"] || attrs[:external_game_id]
 
     case Repo.get_by(PlatformGame,
-      platform_id: platform_id,
-      external_game_id: external_game_id
-    ) do
+           platform_id: platform_id,
+           external_game_id: external_game_id
+         ) do
       nil ->
         %PlatformGame{}
         |> PlatformGame.changeset(
@@ -97,9 +97,9 @@ defmodule ProjetoPrisma.Catalog do
     external_achievement_id = attrs["external_achievement_id"] || attrs[:external_achievement_id]
 
     case Repo.get_by(Achievement,
-      platform_game_id: platform_game_id,
-      external_achievement_id: external_achievement_id
-    ) do
+           platform_game_id: platform_game_id,
+           external_achievement_id: external_achievement_id
+         ) do
       nil ->
         %Achievement{}
         |> Achievement.changeset(

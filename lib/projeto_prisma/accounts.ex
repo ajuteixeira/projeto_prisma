@@ -47,6 +47,22 @@ defmodule ProjetoPrisma.Accounts do
   end
 
   @doc """
+  Busca um profile pelo username.
+
+  ## Exemplos
+      iex> get_profile_by_username("fulano")
+      %Profile{} | nil
+  """
+  def get_profile_by_username(username) when is_binary(username) do
+    normalized = String.downcase(String.trim(username))
+
+    Profile
+    |> where([p], fragment("lower(?)", p.username) == ^normalized)
+    |> limit(1)
+    |> Repo.one()
+  end
+
+  @doc """
   Busca ou cria uma conta de usuário em uma plataforma.
 
   ## Parâmetros
@@ -60,9 +76,9 @@ defmodule ProjetoPrisma.Accounts do
   """
   def get_or_create_platform_account(profile_id, platform_id, attrs) do
     case Repo.get_by(ProfilePlatformAccount,
-      profile_id: profile_id,
-      platform_id: platform_id
-    ) do
+           profile_id: profile_id,
+           platform_id: platform_id
+         ) do
       nil ->
         %ProfilePlatformAccount{}
         |> ProfilePlatformAccount.changeset(
@@ -109,6 +125,37 @@ defmodule ProjetoPrisma.Accounts do
   end
 
   @doc """
+  Conecta uma conta de plataforma por slug para um profile.
+
+  Retorna `{:ok, %ProfilePlatformAccount{}}` quando já existe ou quando cria.
+  """
+  def connect_platform_account(profile_id, platform_slug, attrs) do
+    case Repo.get_by(Platform, slug: platform_slug) do
+      nil ->
+        {:error, :platform_not_found}
+
+      platform ->
+        get_or_create_platform_account(profile_id, platform.id, attrs)
+    end
+  end
+
+  @doc """
+  Desconecta uma conta de plataforma por slug de um profile.
+
+  Retorna `{:ok, :not_connected}` caso não exista vínculo.
+  """
+  def disconnect_platform_account(profile_id, platform_slug) do
+    with %Platform{} = platform <- Repo.get_by(Platform, slug: platform_slug) do
+      case Repo.get_by(ProfilePlatformAccount, profile_id: profile_id, platform_id: platform.id) do
+        nil -> {:ok, :not_connected}
+        account -> Repo.delete(account)
+      end
+    else
+      nil -> {:error, :platform_not_found}
+    end
+  end
+
+  @doc """
   Busca ou cria um game na biblioteca do usuário.
 
   ## Parâmetros
@@ -122,9 +169,9 @@ defmodule ProjetoPrisma.Accounts do
   """
   def get_or_create_profile_game(profile_id, platform_game_id, attrs) do
     case Repo.get_by(ProfileGame,
-      profile_id: profile_id,
-      platform_game_id: platform_game_id
-    ) do
+           profile_id: profile_id,
+           platform_game_id: platform_game_id
+         ) do
       nil ->
         %ProfileGame{}
         |> ProfileGame.changeset(
@@ -157,9 +204,9 @@ defmodule ProjetoPrisma.Accounts do
   """
   def get_or_create_profile_achievement(profile_game_id, achievement_id, attrs) do
     case Repo.get_by(ProfileAchievement,
-      profile_game_id: profile_game_id,
-      achievement_id: achievement_id
-    ) do
+           profile_game_id: profile_game_id,
+           achievement_id: achievement_id
+         ) do
       nil ->
         %ProfileAchievement{}
         |> ProfileAchievement.changeset(
