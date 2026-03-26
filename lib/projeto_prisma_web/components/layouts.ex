@@ -84,11 +84,11 @@ defmodule ProjetoPrismaWeb.Layouts do
 
   def flash_group(assigns) do
     ~H"""
-    <div id={@id} aria-live="polite">
-      <.flash kind={:info} flash={@flash} />
-      <.flash kind={:error} flash={@flash} />
+    <div id={@id} aria-live="polite" class="prisma-alert-stack">
+      <.prisma_flash kind={:info} flash={@flash} title={gettext("Sucesso")} />
+      <.prisma_flash kind={:error} flash={@flash} title={gettext("Erro")} />
 
-      <.flash
+      <.prisma_flash
         id="client-error"
         kind={:error}
         title={gettext("We can't find the internet")}
@@ -97,10 +97,10 @@ defmodule ProjetoPrismaWeb.Layouts do
         hidden
       >
         {gettext("Attempting to reconnect")}
-        <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
-      </.flash>
+        <.icon name="hero-arrow-path" class="ml-1 size-4 motion-safe:animate-spin" />
+      </.prisma_flash>
 
-      <.flash
+      <.prisma_flash
         id="server-error"
         kind={:error}
         title={gettext("Something went wrong!")}
@@ -109,8 +109,53 @@ defmodule ProjetoPrismaWeb.Layouts do
         hidden
       >
         {gettext("Attempting to reconnect")}
-        <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
-      </.flash>
+        <.icon name="hero-arrow-path" class="ml-1 size-4 motion-safe:animate-spin" />
+      </.prisma_flash>
+    </div>
+    """
+  end
+
+  attr :id, :string, doc: "the optional id of flash container"
+  attr :flash, :map, default: %{}, doc: "the map of flash messages to display"
+  attr :title, :string, default: nil
+  attr :kind, :atom, values: [:info, :error], doc: "used for styling and flash lookup"
+  attr :rest, :global, doc: "the arbitrary HTML attributes to add to the flash container"
+
+  slot :inner_block, doc: "the optional inner block that renders the flash message"
+
+  defp prisma_flash(assigns) do
+    assigns = assign_new(assigns, :id, fn -> "flash-#{assigns.kind}" end)
+
+    ~H"""
+    <div
+      :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
+      id={@id}
+      role="alert"
+      class={[
+        "prisma-alert",
+        @kind == :info && "prisma-alert-info",
+        @kind == :error && "prisma-alert-error"
+      ]}
+      {@rest}
+    >
+      <div class="prisma-alert-icon">
+        <.icon :if={@kind == :info} name="hero-check-circle" class="size-5" />
+        <.icon :if={@kind == :error} name="hero-exclamation-triangle" class="size-5" />
+      </div>
+
+      <div class="prisma-alert-copy">
+        <p :if={@title} class="prisma-alert-title">{@title}</p>
+        <p class="prisma-alert-message">{msg}</p>
+      </div>
+
+      <button
+        type="button"
+        class="prisma-alert-close"
+        aria-label={gettext("close")}
+        phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+      >
+        <.icon name="hero-x-mark" class="size-4" />
+      </button>
     </div>
     """
   end

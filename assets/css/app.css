@@ -103,3 +103,348 @@
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
 /* This file is for your main application CSS */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+* {
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  background: #0a0e14;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Prisma background effect */
+.prisma-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.light-beam {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  opacity: 0;
+  animation: fadeIn 1s ease-out forwards;
+  mix-blend-mode: screen;
+  filter: blur(60px);
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(20px, -20px) rotate(2deg);
+  }
+  50% {
+    transform: translate(-15px, 15px) rotate(-1deg);
+  }
+  75% {
+    transform: translate(15px, 10px) rotate(1deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.beam-playstation {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 112, 204, 0.25) 0%,
+    rgba(0, 112, 204, 0.15) 30%,
+    rgba(0, 112, 204, 0.05) 50%,
+    transparent 70%
+  );
+  top: -50%;
+  left: -20%;
+  animation: float 20s ease-in-out infinite, pulse 8s ease-in-out infinite;
+}
+
+.beam-steam {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(102, 192, 244, 0.45) 0%,
+    rgba(102, 192, 244, 0.35) 25%,
+    rgba(102, 192, 244, 0.2) 45%,
+    rgba(102, 192, 244, 0.08) 60%,
+    transparent 75%
+  );
+  top: -60%;
+  right: -30%;
+  animation: float 25s ease-in-out infinite reverse, pulse 10s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.beam-xbox {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(16, 124, 16, 0.2) 0%,
+    rgba(16, 124, 16, 0.12) 35%,
+    rgba(16, 124, 16, 0.04) 55%,
+    transparent 70%
+  );
+  bottom: -40%;
+  left: 10%;
+  animation: float 18s ease-in-out infinite, pulse 9s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+.beam-retro {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(212, 160, 23, 0.2) 0%,
+    rgba(212, 160, 23, 0.12) 35%,
+    rgba(212, 160, 23, 0.04) 55%,
+    transparent 70%
+  );
+  bottom: -30%;
+  right: 5%;
+  animation: float 22s ease-in-out infinite reverse, pulse 11s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+.prisma-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle at center,
+    rgba(102, 192, 244, 0.15) 0%,
+    rgba(0, 112, 204, 0.1) 25%,
+    rgba(16, 124, 16, 0.05) 50%,
+    rgba(212, 160, 23, 0.05) 75%,
+    transparent 100%
+  );
+  filter: blur(80px);
+  animation: pulse 15s ease-in-out infinite;
+}
+
+.content-layer {
+  position: relative;
+  z-index: 1;
+}
+
+.prisma-alert-stack {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.prisma-alert {
+  width: min(420px, calc(100vw - 32px));
+  display: grid;
+  grid-template-columns: 36px 1fr 28px;
+  align-items: start;
+  gap: 12px;
+  padding: 12px 12px 12px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, rgba(16, 23, 37, 0.94), rgba(12, 17, 29, 0.9));
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+  animation: prismaAlertIn 220ms ease-out;
+}
+
+.prisma-alert-info {
+  border-color: rgba(96, 165, 250, 0.38);
+}
+
+.prisma-alert-error {
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.prisma-alert-icon {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: #dbeafe;
+  background: rgba(59, 130, 246, 0.22);
+}
+
+.prisma-alert-error .prisma-alert-icon {
+  color: #fee2e2;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.prisma-alert-title {
+  margin: 0;
+  color: #f9fafb;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.prisma-alert-message {
+  margin: 3px 0 0;
+  color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.prisma-alert-close {
+  border: 0;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.prisma-alert-close:hover {
+  color: #f3f4f6;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.prisma-alert-leaving {
+  animation: prismaAlertOut 220ms ease-in forwards;
+}
+
+.prisma-alert-copy {
+  min-width: 0;
+}
+
+@keyframes prismaAlertIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes prismaAlertOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 14, 20, 0.75);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.prisma-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  animation: floatParticle linear infinite;
+  opacity: 0;
+}
+
+@keyframes floatParticle {
+  0% {
+    transform: translateY(100vh) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(1);
+    opacity: 0;
+  }
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(30, 35, 45, 0.3);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(96, 165, 250, 0.3);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(96, 165, 250, 0.5);
+}
+
+@media (max-width: 768px) {
+  .prisma-alert-stack {
+    top: 14px;
+    right: 10px;
+    left: 10px;
+  }
+
+  .prisma-alert {
+    width: 100%;
+  }
+
+  .scrollbar-thin {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
