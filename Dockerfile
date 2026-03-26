@@ -11,4 +11,4 @@ RUN mix local.hex --force && \
 
 COPY . .
 
-CMD sh -c "mix ecto.migrate && mix phx.server"
+CMD sh -c "mix phx.server"

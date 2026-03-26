@@ -1,6 +1,8 @@
 defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
   use ProjetoPrismaWeb, :live_view
 
+  alias ProjetoPrisma.Accounts
+
   @platforms [
     %{
       slug: "steam",
@@ -27,7 +29,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
       connected: false
     },
     %{
-      slug: "retro",
+      slug: "retroachievements",
       name: "RetroAchievements",
       description: "Vincule RetroAchievements",
       brand_icon: "fas fa-trophy",
@@ -37,8 +39,44 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
   ]
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, assign(socket, :platforms, @platforms)}
+  def mount(_params, session, socket) do
+    profile_id = resolve_profile_id(session)
+    connected_slugs = list_connected_slugs(profile_id)
+
+    {:ok,
+     socket
+     |> assign(:profile_id, profile_id)
+     |> assign(:platforms, with_connection_status(@platforms, connected_slugs))}
+  end
+
+  defp resolve_profile_id(%{"profile_id" => profile_id}) when is_integer(profile_id), do: profile_id
+
+  defp resolve_profile_id(%{"profile_id" => profile_id}) when is_binary(profile_id) do
+    case Integer.parse(profile_id) do
+      {id, ""} -> id
+      _ -> fallback_profile_id()
+    end
+  end
+
+  defp resolve_profile_id(_session), do: fallback_profile_id()
+
+  defp fallback_profile_id do
+    case Accounts.get_or_create_profile(%{username: "demo"}) do
+      {:ok, profile} -> profile.id
+      {:error, _changeset} -> nil
+    end
+  end
+
+  defp list_connected_slugs(nil), do: []
+  defp list_connected_slugs(profile_id), do: Accounts.list_connected_platform_slugs(profile_id)
+
+  defp with_connection_status(platforms, connected_slugs) do
+    connected_set = MapSet.new(connected_slugs)
+
+    Enum.map(platforms, fn platform ->
+      connected = MapSet.member?(connected_set, platform.slug)
+      Map.put(platform, :connected, connected)
+    end)
   end
 
   @impl true

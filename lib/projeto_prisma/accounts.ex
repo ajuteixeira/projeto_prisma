@@ -9,6 +9,7 @@ defmodule ProjetoPrisma.Accounts do
   import Ecto.Query
   alias ProjetoPrisma.Repo
   alias ProjetoPrisma.Accounts.{Profile, ProfilePlatformAccount, ProfileGame, ProfileAchievement}
+  alias ProjetoPrisma.Catalog.Platform
 
   @doc """
   Busca ou cria um profile.
@@ -89,6 +90,22 @@ defmodule ProjetoPrisma.Accounts do
       profile_id: profile_id,
       platform_id: platform_id
     )
+  end
+
+  @doc """
+  Lista os slugs das plataformas conectadas para um profile.
+
+  ## Exemplos
+      iex> list_connected_platform_slugs(1)
+      ["steam", "xbox"]
+  """
+  def list_connected_platform_slugs(profile_id) do
+    ProfilePlatformAccount
+    |> join(:inner, [ppa], p in Platform, on: p.id == ppa.platform_id)
+    |> where([ppa, _p], ppa.profile_id == ^profile_id)
+    |> select([_ppa, p], p.slug)
+    |> distinct(true)
+    |> Repo.all()
   end
 
   @doc """
