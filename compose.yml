@@ -17,6 +17,7 @@
 
   app:
     build: .
+    command: sh -c "mix ecto.migrate && mix run priv/repo/seeds.exs && mix phx.server"
     ports:
       - "4000:4000"
     environment:
