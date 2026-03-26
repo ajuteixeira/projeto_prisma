@@ -1,0 +1,33 @@
+<Layouts.flash_group flash={@flash} />
+<div id="connect-platforms-static-marker" class="hidden">connect-platforms-static</div>
+<section class="connect-page content-wrapper">
+  <div class="header">
+    <div class="header-icon">
+      <.icon name="hero-link" class="size-6 text-white" />
+    </div>
+    <h1>Vincular Conta</h1>
+    <p>Conecte suas contas de jogos para sincronizar estatisticas e conquistas</p>
+  </div>
+
+  <%= live_render(
+    @conn,
+    ProjetoPrismaWeb.ConnectPlatformsCardsLive,
+    id: "connect-platforms-cards"
+  ) %>
+
+  <section class="info-section">
+    <header class="info-header">
+      <div class="info-icon">
+        <.icon name="hero-information-circle" class="size-5 text-white" />
+      </div>
+      <h3>Por que vincular suas contas?</h3>
+    </header>
+
+    <ul class="info-list">
+      <li>Sincronize automaticamente suas estatisticas de jogo</li>
+      <li>Acompanhe seu progresso em multiplas plataformas</li>
+      <li>Conecte-se com amigos de diferentes redes</li>
+      <li>Receba notificacoes personalizadas sobre seus jogos</li>
+    </ul>
+  </section>
+</section>

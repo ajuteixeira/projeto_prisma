@@ -17,7 +17,8 @@ defmodule ProjetoPrismaWeb.Router do
   scope "/", ProjetoPrismaWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    get "/", PageController, :connect_platforms
+    get "/connect-platforms", PageController, :connect_platforms
   end
 
   # Other scopes may use custom stacks.

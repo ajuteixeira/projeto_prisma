@@ -4,6 +4,7 @@ defmodule ProjetoPrismaWeb.PageHTML do
 
   See the `page_html` directory for all templates available.
   """
+
   use ProjetoPrismaWeb, :html
 
   embed_templates "page_html/*"
