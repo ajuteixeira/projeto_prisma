@@ -3,6 +3,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
 
   alias ProjetoPrisma.Accounts
   alias ProjetoPrisma.Sync.Steam.Client, as: SteamClient
+  alias ProjetoPrisma.Sync.RetroAchievements.Client, as: RetroClient
 
   @platforms [
     %{
@@ -53,6 +54,10 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
      |> refresh_platforms()}
   end
 
+  defp retro_form do
+    to_form(%{"username" => "", "api_key" => ""}, as: :retro)
+  end
+
   @impl true
   def handle_event("platform_action", %{"platform" => "steam"}, socket) do
     platform = Enum.find(socket.assigns.platforms, &(&1.slug == "steam"))
@@ -74,13 +79,24 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
     end
   end
 
-  def handle_event("platform_action", %{"platform" => _platform_slug}, socket) do
-    {:noreply,
-     put_flash(
-       socket,
-       :info,
-       "A conexão desta plataforma será implementada por outro time. Por enquanto, somente Steam está ativa."
-     )}
+  def handle_event("platform_action", %{"platform" => "retroachievements"}, socket) do
+    platform = Enum.find(socket.assigns.platforms, &(&1.slug == "retroachievements"))
+
+    cond do
+      is_nil(platform) ->
+        {:noreply, put_flash(socket, :error, "Plataforma RetroAchievements não encontrada na tela")}
+
+      platform.connected ->
+        disconnect_retro(socket)
+
+      true ->
+        {:noreply,
+         socket
+         |> assign(:modal_open, true)
+         |> assign(:modal_platform, platform)
+         |> assign(:modal_error, nil)
+         |> assign(:form, retro_form())}
+    end
   end
 
   def handle_event("close_modal", _params, socket) do
@@ -119,6 +135,29 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
 
       true ->
         connect_steam(socket, steam_id, api_key)
+    end
+  end
+
+  def handle_event("save_retro_connection", %{"retro" => retro_params}, socket) do
+    username = String.trim(retro_params["username"] || "")
+    api_key = String.trim(retro_params["api_key"] || "")
+
+    cond do
+      is_nil(socket.assigns.profile_id) ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Não foi possível identificar o perfil atual")
+         |> put_flash(:error, "Não foi possível identificar o perfil atual")}
+
+      username == "" or api_key == "" ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Preencha Username e API Key para continuar")
+         |> put_flash(:error, "Preencha Username e API Key para continuar")
+         |> assign(:form, to_form(%{"username" => username, "api_key" => api_key}, as: :retro))}
+
+      true ->
+        connect_retro(socket, username, api_key)
     end
   end
 
@@ -238,6 +277,89 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
     end
   end
 
+  defp connect_retro(socket, username, api_key) do
+    with :ok <- validate_retro_credentials(username, api_key),
+         {:ok, _account} <-
+           Accounts.connect_platform_account(socket.assigns.profile_id, "retroachievements", %{
+             "external_user_id" => username,
+             "profile_url" => "https://retroachievements.org/user/#{username}"
+           }) do
+      {:noreply,
+       socket
+       |> refresh_platforms()
+       |> assign(:modal_open, false)
+       |> assign(:modal_platform, nil)
+       |> assign(:modal_error, nil)
+       |> assign(:form, retro_form())
+       |> put_flash(:info, "Conta RetroAchievements vinculada com sucesso")}
+    else
+      {:error, :platform_not_found} ->
+        {:noreply,
+         socket
+         |> assign(
+           :modal_error,
+           "Plataforma RetroAchievements não encontrada no banco. Rode o seed para cadastrar as plataformas."
+         )
+         |> put_flash(
+           :error,
+           "Plataforma RetroAchievements não encontrada no banco. Rode o seed para cadastrar as plataformas."
+         )
+         |> assign(:form, to_form(%{"username" => username, "api_key" => api_key}, as: :retro))}
+
+      {:error, :invalid_credentials} ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Falha na validação. Confira Username e API Key")
+         |> put_flash(:error, "Falha na validação. Confira Username e API Key")
+         |> assign(:form, to_form(%{"username" => username, "api_key" => api_key}, as: :retro))}
+
+      {:error, {:retro_http_status, status}} ->
+        {:noreply,
+         socket
+         |> assign(
+           :modal_error,
+           "RetroAchievements respondeu com status #{status}. Verifique os dados e tente novamente"
+         )
+         |> put_flash(
+           :error,
+           "RetroAchievements respondeu com status #{status}. Verifique os dados e tente novamente"
+         )
+         |> assign(:form, to_form(%{"username" => username, "api_key" => api_key}, as: :retro))}
+
+      {:error, :retro_request_failed} ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Não foi possível validar com a API do RetroAchievements agora")
+         |> put_flash(:error, "Não foi possível validar com a API do RetroAchievements agora")
+         |> assign(:form, to_form(%{"username" => username, "api_key" => api_key}, as: :retro))}
+
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> assign(:modal_error, "Não foi possível salvar a conexão RetroAchievements")
+         |> put_flash(:error, "Não foi possível salvar a conexão RetroAchievements")
+         |> assign(:form, to_form(%{"username" => username, "api_key" => api_key}, as: :retro))}
+    end
+  end
+
+  defp disconnect_retro(socket) do
+    # Todo:
+    # request para apagar a conta ou marcar como deleted at pro back
+    case Accounts.disconnect_platform_account(socket.assigns.profile_id, "retroachievements") do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> refresh_platforms()
+         |> put_flash(:info, "Conta RetroAchievements desvinculada")}
+
+      {:error, :platform_not_found} ->
+        {:noreply, put_flash(socket, :error, "Plataforma RetroAchievements não cadastrada")}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Não foi possível desvincular a conta RetroAchievements")}
+    end
+  end
+
   defp validate_steam_credentials(steam_id, api_key) do
     case SteamClient.get_player_summary(steam_id, api_key) do
       {:ok, %{status: 200, body: %{"response" => %{"players" => players}}}}
@@ -256,6 +378,22 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
   end
 
   defp valid_steam_id?(steam_id), do: String.match?(steam_id, ~r/^\d{17}$/)
+
+  defp validate_retro_credentials(username, api_key) do
+    case RetroClient.get_player_profile(username, api_key) do
+      {:ok, %{status: 200, body: body}} when is_map(body) and body != %{} ->
+        :ok
+
+      {:ok, %{status: 200}} ->
+        {:error, :invalid_credentials}
+
+      {:ok, %{status: status}} ->
+        {:error, {:retro_http_status, status}}
+
+      {:error, _reason} ->
+        {:error, :retro_request_failed}
+    end
+  end
 
   @impl true
   def render(assigns) do
@@ -278,44 +416,86 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
           </div>
         </div>
 
-        <.form for={@form} id="steam-connect-form" phx-submit="save_steam_connection">
-          <div class="connect-modal-body">
-            <p class="connect-modal-instruction">
-              Insira seu SteamID64 (17 dígitos) e sua chave de API para validar e vincular a conta.
-            </p>
+        <%= if @modal_platform.slug == "steam" do %>
+          <.form for={@form} id="steam-connect-form" phx-submit="save_steam_connection">
+            <div class="connect-modal-body">
+              <p class="connect-modal-instruction">
+                Insira seu SteamID64 (17 dígitos) e sua chave de API para validar e vincular a conta.
+              </p>
 
-            <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
+              <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
 
-            <div class="connect-input-group">
-              <label class="connect-input-label" for="steam-user-id">Steam ID</label>
-              <.input
-                field={@form[:user_id]}
-                id="steam-user-id"
-                type="text"
-                class="connect-modal-input"
-                placeholder="7656119..."
-              />
+              <div class="connect-input-group">
+                <label class="connect-input-label" for="steam-user-id">Steam ID</label>
+                <.input
+                  field={@form[:user_id]}
+                  id="steam-user-id"
+                  type="text"
+                  class="connect-modal-input"
+                  placeholder="7656119..."
+                />
+              </div>
+
+              <div class="connect-input-group">
+                <label class="connect-input-label" for="steam-api-key">Steam API Key</label>
+                <.input
+                  field={@form[:api_key]}
+                  id="steam-api-key"
+                  type="password"
+                  class="connect-modal-input"
+                  placeholder="Sua chave da Steam"
+                />
+              </div>
             </div>
 
-            <div class="connect-input-group">
-              <label class="connect-input-label" for="steam-api-key">Steam API Key</label>
-              <.input
-                field={@form[:api_key]}
-                id="steam-api-key"
-                type="password"
-                class="connect-modal-input"
-                placeholder="Sua chave da Steam"
-              />
+            <div class="connect-modal-actions">
+              <button type="button" class="btn-cancel" phx-click="close_modal">Sair</button>
+              <button type="submit" class="btn-save" phx-disable-with="Validando...">
+                Vincular Conta
+              </button>
             </div>
-          </div>
+          </.form>
+        <% else %>
+          <.form for={@form} id="retro-connect-form" phx-submit="save_retro_connection">
+            <div class="connect-modal-body">
+              <p class="connect-modal-instruction">
+                Insira seu nome de usuário e sua Web API Key para validar e vincular a conta.<br>
+                É possível obter a Web API Key no menu de configurações do site Retro Achievements.
+              </p>
 
-          <div class="connect-modal-actions">
-            <button type="button" class="btn-cancel" phx-click="close_modal">Sair</button>
-            <button type="submit" class="btn-save" phx-disable-with="Validando...">
-              Vincular Conta
-            </button>
-          </div>
-        </.form>
+              <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
+
+              <div class="connect-input-group">
+                <label class="connect-input-label" for="retro-username">Username</label>
+                <.input
+                  field={@form[:username]}
+                  id="retro-username"
+                  type="text"
+                  class="connect-modal-input"
+                  placeholder="Seu usuário do RetroAchievements"
+                />
+              </div>
+
+              <div class="connect-input-group">
+                <label class="connect-input-label" for="retro-api-key">API Key</label>
+                <.input
+                  field={@form[:api_key]}
+                  id="retro-api-key"
+                  type="password"
+                  class="connect-modal-input"
+                  placeholder="Sua chave de API"
+                />
+              </div>
+            </div>
+
+            <div class="connect-modal-actions">
+              <button type="button" class="btn-cancel" phx-click="close_modal">Sair</button>
+              <button type="submit" class="btn-save" phx-disable-with="Validando...">
+                Vincular Conta
+              </button>
+            </div>
+          </.form>
+        <% end %>
       </div>
     </div>
 
@@ -336,7 +516,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
           phx-click="platform_action"
           phx-value-platform={platform.slug}
           data-confirm={
-            platform.connected && platform.slug == "steam" && "Deseja desvincular sua conta Steam?"
+            platform.connected && platform.slug in ["steam", "retroachievements", "xbox", "playstation"] &&
+              "Deseja desvincular sua conta #{platform.name}?"
           }
           class={[
             "connect-btn",
