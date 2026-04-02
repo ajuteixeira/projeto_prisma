@@ -17,7 +17,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
     },
     %{
       slug: "playstation",
-      name: "PlayStation Network",
+      name: "PlayStation",
       description: "Conecte sua conta PSN",
       brand_icon: "fab fa-playstation",
       icon_class: "icon-playstation",
@@ -52,7 +52,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
      |> assign(:modal_platform, nil)
     |> assign(:modal_error, nil)
      |> assign(:form, to_form(%{"user_id" => "", "api_key" => ""}, as: :steam))
-     |> assign(:psn_form, to_form(%{"psn_id" => "", "access_token" => ""}, as: :psn))
+     |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))
      |> refresh_platforms()}
   end
 
@@ -117,7 +117,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
          |> assign(:modal_open, true)
          |> assign(:modal_platform, platform)
          |> assign(:modal_error, nil)
-         |> assign(:psn_form, to_form(%{"psn_id" => "", "access_token" => ""}, as: :psn))}
+         |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))}
     end
   end
 
@@ -137,7 +137,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
      |> assign(:modal_platform, nil)
       |> assign(:modal_error, nil)
      |> assign(:form, to_form(%{"user_id" => "", "api_key" => ""}, as: :steam))
-     |> assign(:psn_form, to_form(%{"psn_id" => "", "access_token" => ""}, as: :psn))}
+     |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))}
   end
 
   def handle_event("save_steam_connection", %{"steam" => steam_params}, socket) do
@@ -195,7 +195,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
 
   def handle_event("save_psn_connection", %{"psn" => psn_params}, socket) do
     psn_id = String.trim(psn_params["psn_id"] || "")
-    access_token = String.trim(psn_params["access_token"] || "")
+    npsso = String.trim(psn_params["api_key"] || "")
 
     cond do
       is_nil(socket.assigns.profile_id) ->
@@ -204,15 +204,15 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
          |> assign(:modal_error, "Não foi possível identificar o perfil atual")
          |> put_flash(:error, "Não foi possível identificar o perfil atual")}
 
-      psn_id == "" or access_token == "" ->
+      psn_id == "" or npsso == "" ->
         {:noreply,
          socket
          |> assign(:modal_error, "Preencha PSN ID e Token de Acesso para continuar")
          |> put_flash(:error, "Preencha PSN ID e Token de Acesso para continuar")
-         |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "access_token" => access_token}, as: :psn))}
+         |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "api_key" => npsso}, as: :psn))}
 
       true ->
-        connect_psn(socket, psn_id, access_token)
+        connect_psn(socket, psn_id, npsso)
     end
   end
 
@@ -287,7 +287,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
          {:ok, _account} <-
            Accounts.connect_platform_account(socket.assigns.profile_id, "steam", %{
              "external_user_id" => steam_id,
-             "profile_url" => "https://steamcommunity.com/profiles/#{steam_id}"
+             "profile_url" => "https://steamcommunity.com/profiles/#{steam_id}",
+             "api_key" => api_key
            }) do
       {:noreply,
        socket
@@ -346,12 +347,13 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
     end
   end
 
-  defp connect_psn(socket, psn_id, access_token) do
-    with :ok <- validate_psn_credentials(psn_id, access_token),
+  defp connect_psn(socket, psn_id, npsso) do
+    with :ok <- validate_psn_credentials(psn_id, npsso),
          {:ok, _account} <-
            Accounts.connect_platform_account(socket.assigns.profile_id, "playstation", %{
              "external_user_id" => psn_id,
-             "profile_url" => "https://www.playstation.com/en-us/community/profile/#{psn_id}"
+             "profile_url" => "",
+             "api_key" => npsso
            }) do
       {:noreply,
        socket
@@ -359,7 +361,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
        |> assign(:modal_open, false)
        |> assign(:modal_platform, nil)
       |> assign(:modal_error, nil)
-       |> assign(:psn_form, to_form(%{"psn_id" => "", "access_token" => ""}, as: :psn))
+       |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "api_key" => npsso}, as: :psn))
        |> put_flash(:info, "Conta PlayStation vinculada com sucesso")}
     else
       {:error, :platform_not_found} ->
@@ -379,7 +381,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
          socket
          |> assign(:modal_error, "Falha na validação da PSN. Confira PSN ID e Token de Acesso")
          |> put_flash(:error, "Falha na validação da PSN. Confira PSN ID e Token de Acesso")
-         |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "access_token" => access_token}, as: :psn))}
+         |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))}
 
       {:error, {:psn_http_status, status}} ->
         {:noreply,
@@ -392,21 +394,21 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
            :error,
            "PlayStation respondeu com status #{status}. Verifique os dados e tente novamente"
          )
-         |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "access_token" => access_token}, as: :psn))}
+         |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))}
 
       {:error, :psn_request_failed} ->
         {:noreply,
          socket
          |> assign(:modal_error, "Não foi possível validar com a API da PSN agora")
          |> put_flash(:error, "Não foi possível validar com a API da PSN agora")
-         |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "access_token" => access_token}, as: :psn))}
+         |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))}
 
       {:error, _changeset} ->
         {:noreply,
          socket
          |> assign(:modal_error, "Não foi possível salvar a conexão PlayStation")
          |> put_flash(:error, "Não foi possível salvar a conexão PlayStation")
-         |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "access_token" => access_token}, as: :psn))}
+         |> assign(:psn_form, to_form(%{"psn_id" => psn_id, "api_key" => npsso}, as: :psn))}
     end
   end
 
@@ -426,8 +428,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
     end
   end
 
-  defp validate_psn_credentials(psn_id, access_token) do
-    case PsnClient.get_player_profile(psn_id, access_token) do
+  defp validate_psn_credentials(psn_id, npsso) do
+    case PsnClient.get_player_profile(psn_id, npsso) do
       {:ok, %{status: 200, body: %{"profile" => _profile}}} ->
         :ok
 
@@ -648,7 +650,10 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
             <% else %>
               <%= if @modal_platform.slug == "playstation" do %>
                 <p class="connect-modal-instruction">
-                  Insira seu PSN ID (username) e seu Token de Acesso para validar e vincular a conta.
+                  Insira seu PSN ID e seu Token de Acesso para validar e vincular a conta.
+                  <br><br>
+                  <strong>Como obter o Token de Acesso (NPSSO):</strong><br>
+                  Acesse <a href="https://ca.account.sony.com/api/v1/ssocookie" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">https://ca.account.sony.com/api/v1/ssocookie</a> enquanto conectado na sua conta PlayStation.
                 </p>
 
                 <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
@@ -665,10 +670,10 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
                 </div>
 
                 <div class="connect-input-group">
-                  <label class="connect-input-label" for="psn-access-token">Token de Acesso</label>
+                  <label class="connect-input-label" for="psn-api-key">Token de Acesso</label>
                   <.input
-                    field={@psn_form[:access_token]}
-                    id="psn-access-token"
+                    field={@psn_form[:api_key]}
+                    id="psn-api-key"
                     type="password"
                     class="connect-modal-input"
                     placeholder="Seu token de acesso da PSN"
