@@ -525,8 +525,6 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
   end
 
   defp disconnect_retro(socket) do
-    # Todo:
-    # request para apagar a conta ou marcar como deleted at pro back
     case Accounts.disconnect_platform_account(socket.assigns.profile_id, "retroachievements") do
       {:ok, _} ->
         {:noreply,
