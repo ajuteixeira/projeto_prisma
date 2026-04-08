@@ -20,7 +20,7 @@ defmodule ProjetoPrismaWeb.Router do
     get "/", PageController, :connect_platforms
     get "/connect-platforms", PageController, :connect_platforms
     get "/register", PageController, :register
-    post "/register", PageController, :create_profile
+    post "/complete-registration", PageController, :complete_registration
   end
 
   # Other scopes may use custom stacks.
