@@ -20,6 +20,7 @@
     command: sh -c "mix deps.get && mix ecto.migrate && mix run priv/repo/seeds.exs && mix phx.server"
     ports:
       - "4000:4000"
+    env_file: .env
     environment:
       DB_HOST: db
     volumes:
