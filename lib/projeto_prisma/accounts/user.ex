@@ -157,6 +157,15 @@ defmodule ProjetoPrisma.Accounts.User do
   end
 
   defp put_password_hash(changeset) do
+  def password_reset_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:password])
+    |> validate_required([:password])
+    |> validate_length(:password, min: 6, message: "deve ter no minimo 6 caracteres")
+    |> hash_password()
+  end
+
+  defp hash_password(changeset) do
     case get_change(changeset, :password) do
       nil ->
         changeset

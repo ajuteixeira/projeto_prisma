@@ -29,6 +29,11 @@ defmodule ProjetoPrismaWeb.Router do
 
     get "/register", PageController, :register
     post "/complete-registration", PageController, :complete_registration
+    post "/register", PageController, :create_profile
+    get "/forgot-password", PageController, :forgot_password
+    post "/forgot-password", PageController, :submit_forgot_password
+    get "/reset-password", PageController, :reset_password
+    post "/reset-password", PageController, :submit_reset_password
   end
 
   # Other scopes may use custom stacks.

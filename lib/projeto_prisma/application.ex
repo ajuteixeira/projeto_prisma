@@ -10,6 +10,7 @@ defmodule ProjetoPrisma.Application do
     children = [
       ProjetoPrismaWeb.Telemetry,
       ProjetoPrisma.Repo,
+      ProjetoPrisma.RateLimiter,
       {DNSCluster, query: Application.get_env(:projeto_prisma, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: ProjetoPrisma.PubSub},
       # Start a worker by calling: ProjetoPrisma.Worker.start_link(arg)

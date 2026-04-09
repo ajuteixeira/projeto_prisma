@@ -72,6 +72,32 @@ defmodule ProjetoPrisma.Accounts do
   end
 
   @doc """
+  Busca um usuário pelo email.
+
+  ## Exemplos
+      iex> get_user_by_email("user@example.com")
+      %User{} | nil
+  """
+  def get_user_by_email(email) do
+    Repo.get_by(User, email: String.downcase(String.trim(email)))
+  end
+
+  @doc """
+  Redefine a senha de um usuário pelo email.
+  """
+  def reset_user_password_by_email(email, new_password) do
+    case get_user_by_email(email) do
+      nil ->
+        {:error, :not_found}
+
+      user ->
+        user
+        |> User.password_reset_changeset(%{password: new_password})
+        |> Repo.update()
+    end
+  end
+
+  @doc """
   Busca um usuário pelo ID e precarrega o profile.
 
   ## Exemplos
