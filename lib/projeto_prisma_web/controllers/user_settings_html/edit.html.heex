@@ -1,49 +1,41 @@
-<Layouts.app flash={@flash} current_scope={@current_scope}>
-  <div class="text-center">
-    <.header>
-      Configuracoes da Conta
-      <:subtitle>Gerencie seu e-mail e sua senha</:subtitle>
-    </.header>
+<Layouts.app flash={@flash} current_scope={@current_scope} variant="bare">
+  <div class="prisma-background" aria-hidden="true">
+    <div class="light-beam beam-steam"></div>
+    <div class="light-beam beam-playstation"></div>
+    <div class="light-beam beam-xbox"></div>
+    <div class="light-beam beam-retro"></div>
+    <div class="prisma-core"></div>
   </div>
 
-  <.form :let={f} for={@email_changeset} action={~p"/users/settings"} id="update_email">
-    <input type="hidden" name="action" value="update_email" />
+  <div class="content-layer min-h-screen">
+    <div class="overflow-y-auto p-6 scrollbar-thin">
+      <div class="mx-auto max-w-5xl">
+        <section class="space-y-6">
+          <header class="flex items-center gap-3">
+            <i class="fas fa-cog text-2xl text-blue-300"></i>
+            <h1 class="text-3xl font-bold text-white">Configuracoes</h1>
+          </header>
 
-    <.input
-      field={f[:email]}
-      type="email"
-      label="E-mail"
-      autocomplete="username"
-      spellcheck="false"
-      required
-    />
-
-    <.button variant="primary" phx-disable-with="Alterando...">Alterar E-mail</.button>
-  </.form>
-
-  <div class="divider" />
-
-  <.form :let={f} for={@password_changeset} action={~p"/users/settings"} id="update_password">
-    <input type="hidden" name="action" value="update_password" />
-
-    <.input
-      field={f[:password]}
-      type="password"
-      label="Nova senha"
-      autocomplete="new-password"
-      spellcheck="false"
-      required
-    />
-    <.input
-      field={f[:password_confirmation]}
-      type="password"
-      label="Confirmar nova senha"
-      autocomplete="new-password"
-      spellcheck="false"
-      required
-    />
-    <.button variant="primary" phx-disable-with="Alterando...">
-      Salvar Senha
-    </.button>
-  </.form>
+          <article class="rounded-2xl border border-red-500/20 bg-slate-900/70 p-6 shadow-xl">
+            <div class="mb-3 flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/20 text-red-300">
+                <i class="fas fa-sign-out-alt"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-white">Deslogar conta</h3>
+            </div>
+            <p class="mb-4 text-sm text-slate-300">
+              Encerre sua sessao em todos os dispositivos conectados. Voce precisara fazer login novamente.
+            </p>
+            <.link
+              href={~p"/users/log-out"}
+              method="delete"
+              class="inline-flex items-center rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+            >
+              Sair
+            </.link>
+          </article>
+        </section>
+      </div>
+    </div>
+  </div>
 </Layouts.app>
