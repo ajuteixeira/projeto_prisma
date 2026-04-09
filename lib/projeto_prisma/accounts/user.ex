@@ -156,7 +156,8 @@ defmodule ProjetoPrisma.Accounts.User do
     false
   end
 
-  defp put_password_hash(changeset) do
+  defp put_password_hash(changeset), do: hash_password(changeset)
+
   def password_reset_changeset(user, attrs) do
     user
     |> cast(attrs, [:password])
