@@ -82,11 +82,13 @@ defmodule ProjetoPrismaWeb.Router do
     get "/log-in", UserSessionController, :new
     get "/log-in/:token", UserSessionController, :confirm
     post "/log-in", UserSessionController, :create
+    get "/log-out", UserSessionController, :delete
     delete "/log-out", UserSessionController, :delete
 
     get "/users/log-in", UserSessionController, :new
     get "/users/log-in/:token", UserSessionController, :confirm
     post "/users/log-in", UserSessionController, :create
+    get "/users/log-out", UserSessionController, :delete
     delete "/users/log-out", UserSessionController, :delete
   end
 end
