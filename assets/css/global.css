@@ -1,0 +1,141 @@
+/* assets/css/global.css */
+
+/* 1. Configurações Base e Plugins */
+@import "tailwindcss" source(none);
+@source "../css";
+@source "../js";
+@source "../../lib/projeto_prisma_web";
+
+@plugin "../vendor/heroicons";
+
+@plugin "../vendor/daisyui" {
+  themes: false;
+}
+
+/* 2. Variantes Customizadas (LiveView e Dark Mode) */
+@custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
+@custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
+@custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* 3. Estilos Globais de Layout */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+* {
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  background: #0a0e14;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 14, 20, 0.75);
+  z-index: 0;
+  pointer-events: none;
+}
+
+[data-phx-session], [data-phx-teleported-src] { display: contents }
+
+/* 4. Efeito Prisma (Background) */
+.prisma-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.light-beam {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  opacity: 0;
+  animation: fadeIn 1s ease-out forwards;
+  mix-blend-mode: screen;
+  filter: blur(60px);
+}
+
+.beam-playstation {
+  background: radial-gradient(circle at center, rgba(0, 112, 204, 0.25) 0%, transparent 70%);
+  top: -50%; left: -20%;
+  animation: float 20s ease-in-out infinite, pulse 8s ease-in-out infinite;
+}
+
+.beam-steam {
+  background: radial-gradient(circle at center, rgba(102, 192, 244, 0.45) 0%, transparent 75%);
+  top: -60%; right: -30%;
+  animation: float 25s ease-in-out infinite reverse, pulse 10s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.beam-xbox {
+  background: radial-gradient(circle at center, rgba(16, 124, 16, 0.2) 0%, transparent 70%);
+  bottom: -40%; left: 10%;
+  animation: float 18s ease-in-out infinite, pulse 9s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+.beam-retro {
+  background: radial-gradient(circle at center, rgba(212, 160, 23, 0.2) 0%, transparent 70%);
+  bottom: -30%; right: 5%;
+  animation: float 22s ease-in-out infinite reverse, pulse 11s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+.prisma-core {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle at center, rgba(102, 192, 244, 0.15) 0%, transparent 100%);
+  filter: blur(80px);
+  animation: pulse 15s ease-in-out infinite;
+}
+
+/* 5. Partículas e Animações */
+.prisma-particle {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  animation: floatParticle linear infinite;
+  opacity: 0;
+}
+
+@keyframes fadeIn { to { opacity: 1; } }
+@keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-15px, 15px) rotate(-1deg); }
+}
+@keyframes floatParticle {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10%, 90% { opacity: 1; }
+  100% { transform: translateY(-100px) scale(1); opacity: 0; }
+}
+
+/* 6. Utilitários */
+.gradient-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.scrollbar-thin::-webkit-scrollbar { width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(96, 165, 250, 0.3);
+  border-radius: 3px;
+}
