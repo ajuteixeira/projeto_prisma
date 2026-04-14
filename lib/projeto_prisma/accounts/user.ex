@@ -141,6 +141,30 @@ defmodule ProjetoPrisma.Accounts.User do
   end
 
   @doc """
+  A user changeset for updating the full name.
+  """
+  def full_name_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:full_name])
+    |> validate_length(:full_name, max: 100, message: "deve ter no maximo 100 caracteres")
+  end
+
+  @doc """
+  A user changeset for updating the username.
+  """
+  def username_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:username])
+    |> validate_required([:username], message: "nao pode ficar em branco")
+    |> validate_length(:username, min: 3, max: 50, message: "deve ter entre 3 e 50 caracteres")
+    |> validate_format(:username, ~r/^[a-zA-Z0-9_]+$/,
+      message: "deve conter apenas letras, numeros e underscores"
+    )
+    |> unsafe_validate_unique(:username, ProjetoPrisma.Repo)
+    |> unique_constraint(:username)
+  end
+
+  @doc """
   Verifies the password.
 
   If there is no user or the user doesn't have a password, we call

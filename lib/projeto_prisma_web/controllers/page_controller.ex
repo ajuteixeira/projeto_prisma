@@ -14,6 +14,10 @@ defmodule ProjetoPrismaWeb.PageController do
     render(conn, :connect_platforms)
   end
 
+  def dashboard(conn, _params) do
+    render(conn, :dashboard)
+  end
+
   def register(conn, _params) do
     redirect(conn, to: ~p"/users/register")
   end

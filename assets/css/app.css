@@ -108,6 +108,7 @@
 @import "./login.css";
 @import "./forgot-password.css";
 @import "./reset-password.css";
+@import "./profile.css";
 
 * {
   font-family: "Inter", sans-serif;
