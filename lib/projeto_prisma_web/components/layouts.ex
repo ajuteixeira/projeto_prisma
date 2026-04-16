@@ -5,10 +5,10 @@ defmodule ProjetoPrismaWeb.Layouts do
   """
   use ProjetoPrismaWeb, :html
 
+  # 1. Importa o novo componente modular da Navbar
+  import ProjetoPrismaWeb.Layouts.Navbar
+
   # Embed all files in layouts/* within this module.
-  # The default root.html.heex file contains the HTML
-  # skeleton of your application, namely HTML headers
-  # and other static content.
   embed_templates "layouts/*"
 
   @doc """
@@ -31,51 +31,28 @@ defmodule ProjetoPrismaWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
+  attr :current_path, :string,
+    default: "/",
+    doc: "path atual da requisição, usado para destacar o item ativo na sidebar"
+
   attr :variant, :string,
     default: "default",
     values: ["default", "bare"],
-    doc: "layout variant"
+    doc: "layout variant — 'bare' omite a sidebar (usado em telas de auth)"
 
   slot :inner_block, required: true
 
   def app(assigns) do
     ~H"""
-    <%= if @variant == "bare" do %>
-      {render_slot(@inner_block)}
-    <% else %>
-      <header class="navbar px-4 sm:px-6 lg:px-8">
-        <div class="flex-1">
-          <a href="/" class="flex-1 flex w-fit items-center gap-2">
-            <img src={~p"/images/logo.svg"} width="36" />
-            <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
-          </a>
-        </div>
-        <div class="flex-none">
-          <ul class="flex flex-column px-1 space-x-4 items-center">
-            <li>
-              <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
-            </li>
-            <li>
-              <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
-            </li>
-            <li>
-              <.theme_toggle />
-            </li>
-            <li>
-              <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-                Get Started <span aria-hidden="true">&rarr;</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </header>
+      <.render_navbar current_scope={@current_scope} current_path={@current_path} />
 
-      <main class="px-4 py-20 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-2xl space-y-4">
-          {render_slot(@inner_block)}
+      <main class="content-layer min-h-screen">
+        <div class="p-6 md:ml-14 overflow-y-auto scrollbar-thin">
+          <div class="max-w-7xl mx-auto">
+            {render_slot(@inner_block)}
+          </div>
         </div>
       </main>
-    <% end %>
 
     <.flash_group flash={@flash} />
     """

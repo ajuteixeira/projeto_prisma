@@ -1,0 +1,122 @@
+/* Sidebar — Navegação lateral do Prisma */
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 56px;
+  background: rgba(15, 20, 25, 0.95);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s;
+}
+
+/* Ícone individual da sidebar */
+.sidebar-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  margin-bottom: 12px;
+  position: relative;
+  font-size: 20px;
+  text-decoration: none;
+}
+
+.sidebar-icon:hover {
+  background: rgba(96, 165, 250, 0.1);
+  color: #60a5fa;
+}
+
+/* Estado ativo — ícone selecionado */
+.sidebar-icon.active {
+  background: rgba(96, 165, 250, 0.2);
+  color: #60a5fa;
+  box-shadow: 0 0 15px rgba(96, 165, 250, 0.3);
+}
+
+/* Indicador lateral do item ativo (barra azul à esquerda) */
+.sidebar-icon.active::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  width: 3px;
+  height: 20px;
+  background: #60a5fa;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Espaço flexível — empurra cog/login para o rodapé no desktop */
+.sidebar .flex-1 {
+  flex: 1;
+}
+
+/* =========================================================
+   Content layer — compensa a largura da sidebar no desktop
+   ========================================================= */
+.content-layer {
+  margin-left: 56px;
+  width: calc(100vw - 56px);
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+}
+
+/* =========================================================
+   Mobile: sidebar vira barra de navegação inferior
+   ========================================================= */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    height: 56px;
+    width: 100vw;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 0 16px;
+    border-right: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* No mobile não há espaço flexível entre os ícones */
+  .sidebar .flex-1 {
+    display: none !important;
+  }
+
+  .sidebar-icon {
+    margin-bottom: 0;
+    margin-right: 0;
+  }
+
+  /* No mobile, o indicador ativo vira uma linha horizontal abaixo do ícone */
+  .sidebar-icon.active::before {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 20px !important;
+    height: 3px !important;
+    bottom: -6px !important;
+    top: auto !important;
+    border-radius: 2px !important;
+  }
+
+  /* O content-layer volta a ocupar toda a largura no mobile */
+  .content-layer {
+    margin-left: 0;
+    width: 100vw;
+    /* Padding inferior para não sobrepor a bottom-nav */
+    padding-bottom: 56px;
+  }
+}
