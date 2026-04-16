@@ -162,6 +162,160 @@ defmodule ProjetoPrisma.Accounts do
   end
 
   @doc """
+  Busca um profile com o user precarregado usando o Scope.
+
+  ## Exemplos
+      iex> get_profile_with_user(%Scope{user: %User{id: 1}})
+      %Profile{user: %User{}} | nil
+  """
+  def get_profile_with_user(%ProjetoPrisma.Accounts.Scope{user: %User{id: user_id}}) do
+    Profile
+    |> where([p], p.user_id == ^user_id)
+    |> preload([:user, :avatar])
+    |> Repo.one()
+  end
+
+  def get_profile_with_user(_scope), do: nil
+
+  @doc """
+  Retorna um changeset para alterar o profile.
+
+  ## Exemplos
+      iex> change_profile(%Scope{user: %User{}})
+      %Ecto.Changeset{}
+
+      iex> change_profile(%Scope{user: %User{}}, %{username: "novo"})
+      %Ecto.Changeset{}
+  """
+  def change_profile(scope, attrs \\ %{})
+
+  def change_profile(%ProjetoPrisma.Accounts.Scope{user: %User{id: user_id}}, attrs) do
+    profile = Repo.get_by(Profile, user_id: user_id) || %Profile{user_id: user_id}
+    Profile.changeset(profile, attrs)
+  end
+
+  def change_profile(_scope, _attrs), do: Profile.changeset(%Profile{}, %{})
+
+  @doc """
+  Atualiza um profile com os novos atributos.
+
+  ## Exemplos
+      iex> update_profile(%Scope{user: %User{}}, %{username: "novo"})
+      {:ok, %Profile{}}
+
+      iex> update_profile(%Scope{user: %User{}}, %{username: ""})
+      {:error, %Ecto.Changeset{}}
+  """
+  def update_profile(%ProjetoPrisma.Accounts.Scope{user: %User{id: user_id}}, attrs) do
+    case Repo.get_by(Profile, user_id: user_id) do
+      nil ->
+        {:error, :profile_not_found}
+
+      profile ->
+        profile
+        |> Profile.changeset(attrs)
+        |> Repo.update()
+        |> case do
+          {:ok, updated_profile} ->
+            {:ok, Repo.preload(updated_profile, [:user, :avatar])}
+
+          error ->
+            error
+        end
+    end
+  end
+
+  def update_profile(_scope, _attrs), do: {:error, :profile_not_found}
+
+  @doc """
+  Atualiza o full_name do usuario.
+  """
+  def update_user_full_name(%ProjetoPrisma.Accounts.Scope{user: %User{id: user_id}}, full_name) do
+    case Repo.get(User, user_id) do
+      nil ->
+        {:error, :user_not_found}
+
+      user ->
+        user
+        |> User.full_name_changeset(%{full_name: full_name})
+        |> Repo.update()
+    end
+  end
+
+  def update_user_full_name(_scope, _full_name), do: {:error, :user_not_found}
+
+  @doc """
+  Atualiza o username do usuario (tabela users).
+  Tambem atualiza o username do profile em cascata.
+  """
+  def update_user_username(%ProjetoPrisma.Accounts.Scope{user: %User{id: user_id}}, username) do
+    Repo.transact(fn ->
+      with %User{} = user <- Repo.get(User, user_id),
+           {:ok, updated_user} <- user |> User.username_changeset(%{username: username}) |> Repo.update(),
+           %Profile{} = profile <- Repo.get_by(Profile, user_id: user_id),
+           {:ok, _updated_profile} <- profile |> Profile.changeset(%{username: username}) |> Repo.update() do
+        {:ok, updated_user}
+      else
+        nil -> {:error, :not_found}
+        {:error, changeset} -> {:error, changeset}
+      end
+    end)
+  end
+
+  def update_user_username(_scope, _username), do: {:error, :user_not_found}
+
+  @doc """
+  Cria ou atualiza o avatar do perfil.
+  """
+  def upsert_profile_avatar(%ProjetoPrisma.Accounts.Scope{user: %User{id: user_id}}, data, content_type) do
+    alias ProjetoPrisma.Accounts.ProfileAvatar
+
+    case Repo.get_by(Profile, user_id: user_id) do
+      nil ->
+        {:error, :profile_not_found}
+
+      profile ->
+        case Repo.get_by(ProfileAvatar, profile_id: profile.id) do
+          nil ->
+            %ProfileAvatar{}
+            |> ProfileAvatar.changeset(%{
+              profile_id: profile.id,
+              data: data,
+              content_type: content_type
+            })
+            |> Repo.insert()
+
+          avatar ->
+            avatar
+            |> ProfileAvatar.changeset(%{data: data, content_type: content_type})
+            |> Repo.update()
+        end
+    end
+  end
+
+  def upsert_profile_avatar(_scope, _data, _content_type), do: {:error, :profile_not_found}
+
+  @doc """
+  Verifica se um username já está em uso por outro usuario.
+
+  ## Exemplos
+      iex> username_taken?(%Scope{user: %User{id: 1}}, "fulano")
+      true | false
+  """
+  def username_taken?(%ProjetoPrisma.Accounts.Scope{user: %User{id: user_id}}, username)
+      when is_binary(username) do
+    normalized = String.downcase(String.trim(username))
+
+    # Check users table (primary source of truth)
+    User
+    |> where([u], fragment("lower(?)", u.username) == ^normalized)
+    |> where([u], u.id != ^user_id)
+    |> Repo.exists?()
+  end
+
+  def username_taken?(_scope, _username), do: false
+
+  @doc """
   Busca ou cria uma conta de usuário em uma plataforma.
 
   ## Parâmetros
