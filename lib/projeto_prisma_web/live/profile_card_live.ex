@@ -488,63 +488,19 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
     "Adicione uma bio curta para destacar seus jogos favoritos."
   end
 
-  # Check avatar relationship first (profile_avatars table), then avatar_data, then avatar_url, then fallback to DiceBear
-  defp profile_avatar(%{avatar: %{data: data}} = _profile) when is_binary(data) do
+  defp profile_avatar(%{avatar: %{data: data}} = profile) when is_binary(data) do
     data = String.trim(data)
 
     if data != "" and String.starts_with?(data, "data:image") do
       data
     else
-      nil
+      fallback_avatar(profile)
     end
   end
 
   defp profile_avatar(profile) do
-    # Try avatar relationship first
-    avatar_data_from_relation = get_avatar_from_relation(profile)
-
-    cond do
-      avatar_data_from_relation != nil ->
-        avatar_data_from_relation
-
-      # Then check legacy avatar_data field
-      is_map(profile) and is_binary(Map.get(profile, :avatar_data)) ->
-        avatar_data = profile.avatar_data |> String.trim()
-
-        if avatar_data != "" and String.starts_with?(avatar_data, "data:image") do
-          avatar_data
-        else
-          check_avatar_url(profile)
-        end
-
-      true ->
-        check_avatar_url(profile)
-    end
+    fallback_avatar(profile)
   end
-
-  defp get_avatar_from_relation(%{avatar: %{data: data}}) when is_binary(data) do
-    data = String.trim(data)
-
-    if data != "" and String.starts_with?(data, "data:image") do
-      data
-    else
-      nil
-    end
-  end
-
-  defp get_avatar_from_relation(_), do: nil
-
-  defp check_avatar_url(%{avatar_url: avatar_url} = profile) do
-    avatar_url = avatar_url |> to_string() |> String.trim()
-
-    if avatar_url == "" do
-      fallback_avatar(profile)
-    else
-      avatar_url
-    end
-  end
-
-  defp check_avatar_url(profile), do: fallback_avatar(profile)
 
   defp fallback_avatar(profile) do
     seed = profile_display_name(profile)
