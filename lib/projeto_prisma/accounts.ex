@@ -526,6 +526,7 @@ defmodule ProjetoPrisma.Accounts do
   end
 
   alias ProjetoPrisma.Accounts.{UserToken, UserNotifier}
+  alias ProjetoPrisma.Services.EmailResend
 
   ## Database getters
 
@@ -664,6 +665,39 @@ defmodule ProjetoPrisma.Accounts do
   """
   def change_user_password(user, attrs \\ %{}, opts \\ []) do
     User.password_changeset(user, attrs, opts)
+  end
+
+  @doc """
+  Delivers the reset password instructions to the given user.
+  """
+  def deliver_user_reset_password_instructions(%User{} = user, reset_password_url_fun)
+      when is_function(reset_password_url_fun, 1) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "reset_password")
+    Repo.insert!(user_token)
+    EmailResend.send_password_reset_email(user.email, reset_password_url_fun.(encoded_token))
+  end
+
+  @doc """
+  Gets the user by reset password token.
+  """
+  def get_user_by_reset_password_token(token) do
+    with {:ok, query} <- UserToken.verify_reset_password_token_query(token),
+         %User{} = user <- Repo.one(query) do
+      user
+    else
+      _ -> nil
+    end
+  end
+
+  @doc """
+  Resets the user password.
+
+  Returns a tuple with the updated user, as well as a list of expired tokens.
+  """
+  def reset_user_password(user, attrs) do
+    user
+    |> User.password_changeset(attrs)
+    |> update_user_and_delete_all_tokens()
   end
 
   @doc """

@@ -1,0 +1,54 @@
+<Layouts.app flash={@flash} current_scope={@current_scope} variant="bare">
+  <div class="forgot-password-page">
+    <div class="prisma-bg">
+      <div class="beam beam-1"></div>
+      <div class="beam beam-2"></div>
+      <div class="beam beam-3"></div>
+
+      <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+      <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+      <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+      <div class="particle" style="left: 40%; animation-delay: 1s;"></div>
+      <div class="particle" style="left: 50%; animation-delay: 3s;"></div>
+      <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
+      <div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
+      <div class="particle" style="left: 80%; animation-delay: 4.5s;"></div>
+      <div class="particle" style="left: 90%; animation-delay: 1.5s;"></div>
+    </div>
+
+    <div class="forgot-container">
+      <div class="forgot-card">
+        <div class="header">
+          <h1>Redefinir Senha</h1>
+          <p>Insira o e-mail associado a sua conta para receber um link de recuperacao.</p>
+        </div>
+
+        <.form for={@form} id="forgot-form" action={~p"/reset-password"}>
+          <div class="form-group">
+            <label class="form-label" for={@form[:email].id}>E-mail</label>
+            <div class="input-wrapper">
+              <i class="fas fa-envelope input-icon" aria-hidden="true"></i>
+              <.input
+                field={@form[:email]}
+                type="email"
+                id={@form[:email].id}
+                class="form-input"
+                placeholder="seu@email.com"
+                required
+              />
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn" id="submitBtn">
+            Enviar Link de Recuperacao
+          </button>
+        </.form>
+
+        <.link navigate={~p"/users/log-in"} class="back-link">
+          <i class="fas fa-arrow-left" aria-hidden="true"></i>
+          <span>Voltar para Login</span>
+        </.link>
+      </div>
+    </div>
+  </div>
+</Layouts.app>

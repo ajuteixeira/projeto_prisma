@@ -1,0 +1,65 @@
+<Layouts.app flash={@flash} current_scope={@current_scope} variant="bare">
+  <div class="forgot-password-page reset-password-page">
+    <div class="forgot-container">
+      <div class="forgot-card">
+        <div class="header">
+          <h1>Criar nova senha</h1>
+          <p>
+            Digite sua nova senha para concluir a recuperacao da conta.
+          </p>
+        </div>
+
+        <div class="info-box">
+          <p>A nova senha deve ter entre 6 e 72 caracteres.</p>
+        </div>
+
+        <.form
+          for={@form}
+          id="reset-password-form"
+          method="put"
+          action={~p"/reset-password/#{@token}"}
+        >
+          <div class="form-group">
+            <label for={@form[:password].id} class="form-label">Nova senha</label>
+            <div class="input-wrapper">
+              <.input
+                field={@form[:password]}
+                type="password"
+                id={@form[:password].id}
+                class="form-input"
+                required
+                minlength="6"
+                maxlength="72"
+                placeholder="Minimo de 6 caracteres"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for={@form[:password_confirmation].id} class="form-label">Confirmar nova senha</label>
+            <div class="input-wrapper">
+              <.input
+                field={@form[:password_confirmation]}
+                type="password"
+                id={@form[:password_confirmation].id}
+                class="form-input"
+                required
+                minlength="6"
+                maxlength="72"
+                placeholder="Repita a nova senha"
+              />
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn">
+            Salvar nova senha
+          </button>
+        </.form>
+
+        <.link navigate={~p"/reset-password"} class="back-link">
+          <span>Voltar para recuperacao</span>
+        </.link>
+      </div>
+    </div>
+  </div>
+</Layouts.app>

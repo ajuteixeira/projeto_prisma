@@ -104,9 +104,9 @@ defmodule ProjetoPrisma.Accounts.User do
     changeset
     |> validate_required([:password], message: "nao pode ficar em branco")
     |> validate_length(:password,
-      min: 12,
+      min: 6,
       max: 72,
-      message: "deve ter entre 12 e 72 caracteres"
+      message: "deve ter entre 6 e 72 caracteres"
     )
     # Examples of additional password validation:
     # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")

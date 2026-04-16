@@ -39,6 +39,26 @@ defmodule ProjetoPrisma.Accounts.UserNotifier do
   end
 
   @doc """
+  Deliver instructions to reset a user password.
+  """
+  def deliver_reset_password_instructions(user, url) do
+    deliver(user.email, "Instrucoes para redefinir senha", """
+
+    ==============================
+
+    Ola #{user.email},
+
+    Voce pode redefinir sua senha acessando o link abaixo:
+
+    #{url}
+
+    Se voce nao solicitou esta alteracao, ignore este e-mail.
+
+    ==============================
+    """)
+  end
+
+  @doc """
   Deliver instructions to log in with a magic link.
   """
   def deliver_login_instructions(user, url) do

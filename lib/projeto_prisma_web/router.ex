@@ -11,6 +11,12 @@ defmodule ProjetoPrismaWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_scope_for_user
+    plug :assign_current_path
+  end
+
+  # Injeta o path atual nos assigns para que a sidebar possa destacar o item ativo
+  defp assign_current_path(conn, _opts) do
+    Plug.Conn.assign(conn, :current_path, conn.request_path)
   end
 
   pipeline :api do
@@ -31,24 +37,14 @@ defmodule ProjetoPrismaWeb.Router do
     get "/register", PageController, :register
     post "/complete-registration", PageController, :complete_registration
     post "/register", PageController, :create_profile
-    get "/forgot-password", PageController, :forgot_password
-    post "/forgot-password", PageController, :submit_forgot_password
-    get "/reset-password", PageController, :reset_password
-    post "/reset-password", PageController, :submit_reset_password
+    get "/reset-password", UserResetPasswordController, :new
+    post "/reset-password", UserResetPasswordController, :create
+    get "/reset-password/:token", UserResetPasswordController, :edit
+    put "/reset-password/:token", UserResetPasswordController, :update
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", ProjetoPrismaWeb do
-  #   pipe_through :api
-  # end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:projeto_prisma, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do
@@ -79,7 +75,6 @@ defmodule ProjetoPrismaWeb.Router do
   scope "/", ProjetoPrismaWeb do
     pipe_through [:browser]
 
-    # Legacy auth paths kept for compatibility with old links/bookmarks.
     get "/log-in", UserSessionController, :new
     get "/log-in/:token", UserSessionController, :confirm
     post "/log-in", UserSessionController, :create

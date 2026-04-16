@@ -1,0 +1,131 @@
+/* assets/css/alerts.css */
+
+.prisma-alert-stack {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.prisma-alert {
+  width: min(420px, calc(100vw - 32px));
+  display: grid;
+  grid-template-columns: 36px 1fr 28px;
+  align-items: start;
+  gap: 12px;
+  padding: 12px 12px 12px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, rgba(16, 23, 37, 0.94), rgba(12, 17, 29, 0.9));
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+  animation: prismaAlertIn 220ms ease-out;
+}
+
+.prisma-alert-info {
+  border-color: rgba(96, 165, 250, 0.38);
+}
+
+.prisma-alert-error {
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.prisma-alert-icon {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: #dbeafe;
+  background: rgba(59, 130, 246, 0.22);
+}
+
+.prisma-alert-error .prisma-alert-icon {
+  color: #fee2e2;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.prisma-alert-title {
+  margin: 0;
+  color: #f9fafb;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.prisma-alert-message {
+  margin: 3px 0 0;
+  color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.prisma-alert-close {
+  border: 0;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.prisma-alert-close:hover {
+  color: #f3f4f6;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.prisma-alert-leaving {
+  animation: prismaAlertOut 220ms ease-in forwards;
+}
+
+.prisma-alert-copy {
+  min-width: 0;
+}
+
+@keyframes prismaAlertIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes prismaAlertOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+@media (max-width: 768px) {
+  .prisma-alert-stack {
+    top: 14px;
+    left: 10px;
+    right: 10px;
+    transform: none;
+  }
+
+  .prisma-alert {
+    width: 100%;
+  }
+}
