@@ -193,7 +193,7 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="profile-card card p-6" id="profile-card">
+    <div class="profile-card card p-6 rounded-2xl" id="profile-card">
       <div class="flex items-start space-x-4">
         <div
           class="relative profile-avatar-container"

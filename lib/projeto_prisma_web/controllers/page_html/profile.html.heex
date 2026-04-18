@@ -1,0 +1,37 @@
+<Layouts.flash_group flash={@flash} />
+
+<div class="content-layer min-h-screen">
+  <div class="p-6 overflow-y-auto scrollbar-thin">
+    <div class="max-w-7xl mx-auto">
+      <%!-- Top: Profile card + Recently played --%>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+        <%!-- Profile Card --%>
+        <div class="lg:col-span-1">
+          {live_render(@conn, ProjetoPrismaWeb.ProfileCardLive, id: "profile-card-live")}
+        </div>
+
+        <%!-- Recently Played --%>
+        <div class="card p-0 lg:col-span-2 overflow-hidden recently-played-card">
+          {live_render(@conn, ProjetoPrismaWeb.ProfileRecentlyPlayedLive, id: "profile-recently-played-live")}
+        </div>
+
+      </div>
+
+      <%!-- Platform Distribution --%>
+      <div class="card mb-6">
+        {live_render(@conn, ProjetoPrismaWeb.ProfilePlatformDistributionLive, id: "profile-platform-distribution-live")}
+      </div>
+
+      <%!-- Stats --%>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {live_render(@conn, ProjetoPrismaWeb.ProfileStatsLive, id: "profile-stats-live")}
+      </div>
+
+      <%!-- Recent Games --%>
+      <div class="card">
+        {live_render(@conn, ProjetoPrismaWeb.ProfileRecentGamesLive, id: "profile-recent-games-live")}
+      </div>
+    </div>
+  </div>
+</div>
