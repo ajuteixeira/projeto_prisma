@@ -40,11 +40,24 @@ defmodule ProjetoPrismaWeb.Layouts do
     values: ["default", "bare"],
     doc: "layout variant — 'bare' omite a sidebar (usado em telas de auth)"
 
+  attr :show_navbar, :boolean,
+    default: nil,
+    doc: "controla se a navbar deve ser exibida (nil = automático baseado no path)"
+
   slot :inner_block, required: true
 
   def app(assigns) do
+    show_navbar =
+      if assigns[:show_navbar] == nil do
+        show_navbar?(assigns[:current_path] || "/")
+      else
+        assigns[:show_navbar]
+      end
+
+    assigns = assign(assigns, :show_navbar, show_navbar)
+
     ~H"""
-      <.render_navbar current_scope={@current_scope} current_path={@current_path} />
+      <.render_navbar :if={@show_navbar} current_scope={@current_scope} current_path={@current_path} />
 
       <main class="content-layer min-h-screen">
         <div class="p-6 md:ml-14 overflow-y-auto scrollbar-thin">
@@ -144,6 +157,30 @@ defmodule ProjetoPrismaWeb.Layouts do
       </button>
     </div>
     """
+  end
+
+  @doc """
+  Determina se a navbar deve ser exibida com base no path atual.
+
+  A navbar é exibida por padrão em todas as telas, exceto nas listadas
+  na lista de exceções `@navbar_hidden_paths`.
+
+  """
+  @navbar_hidden_paths [
+    "/",
+    "/log-in",
+    "/users/log-in",
+    "/users/register",
+    "/register",
+    "/reset-password",
+    "/connect-platforms"
+  ]
+
+  def show_navbar?(path) do
+    not Enum.any?(@navbar_hidden_paths, fn hidden_path ->
+      path == hidden_path or String.starts_with?(path, hidden_path <> "/") or
+        String.starts_with?(path, hidden_path <> "?")
+    end)
   end
 
   @doc """
