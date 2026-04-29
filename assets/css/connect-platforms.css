@@ -13,6 +13,14 @@
 .connect-page .header {
   margin-bottom: 32px;
   animation: fadeIn 0.6s ease;
+  text-align: left;
+  display: block;
+}
+
+.connect-page .header h1,
+.connect-page .header p {
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .connect-page .header-icon {
@@ -24,6 +32,8 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 12px;
+  font-size: 24px;
+  color: #fff;
 }
 
 .connect-page .header h1 {
@@ -267,12 +277,58 @@
   animation: fadeIn 0.8s ease 0.5s both;
 }
 
+.connect-page .info-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.connect-page .info-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.connect-page .info-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  flex: 1;
+}
+
+.connect-page .info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
 .connect-page .info-list li {
   font-size: 13px;
   color: #9ca3af;
   padding: 10px 0 10px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   position: relative;
+}
+
+.connect-page .info-list li:last-child {
+  border-bottom: none;
+}
+
+.connect-page .info-list li::before {
+  content: "•";
+  position: absolute;
+  left: 8px;
+  color: #60a5fa;
+  font-size: 18px;
+  line-height: 1;
 }
 
 /* Animations & Responsiveness */

@@ -1,41 +1,136 @@
-<Layouts.app flash={@flash} current_scope={@current_scope} variant="bare">
-  <div class="prisma-background" aria-hidden="true">
-    <div class="light-beam beam-steam"></div>
-    <div class="light-beam beam-playstation"></div>
-    <div class="light-beam beam-xbox"></div>
-    <div class="light-beam beam-retro"></div>
-    <div class="prisma-core"></div>
+<Layouts.app flash={@flash} current_scope={@current_scope} current_path={@current_path}>
+  <div class="settings-page">
+    <div class="settings-header">
+      <i class="fas fa-cog" aria-hidden="true"></i>
+      <h1>Configurações</h1>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-card-header">
+        <div class="settings-card-icon connect">
+          <i class="fas fa-link" aria-hidden="true"></i>
+        </div>
+        <h3>Conectar plataformas</h3>
+      </div>
+      <p>
+        Vincule suas contas Steam, PlayStation, Xbox e outras para sincronizar estatísticas e conquistas.
+      </p>
+      <.link navigate={~p"/connect-platforms"} class="btn-connect">
+        Conectar
+      </.link>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-card-header">
+        <div class="settings-card-icon logout">
+          <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+        </div>
+        <h3>Deslogar conta</h3>
+      </div>
+      <p>
+        Encerre sua sessão em todos os dispositivos conectados. Você precisará fazer login novamente.
+      </p>
+      <.link href={~p"/users/log-out"} method="delete" class="btn-logout">
+        Sair
+      </.link>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-card-header">
+        <div class="settings-card-icon delete">
+          <i class="fas fa-trash-alt" aria-hidden="true"></i>
+        </div>
+        <h3>Excluir conta permanentemente</h3>
+      </div>
+      <p>
+        Esta ação é irreversível. Todos os seus dados, conquistas e progresso serão apagados desta plataforma.
+      </p>
+      <button type="button" class="btn-delete" onclick="openDeleteConfirm()">
+        Excluir
+      </button>
+    </div>
   </div>
 
-  <div class="content-layer min-h-screen">
-    <div class="overflow-y-auto p-6 scrollbar-thin">
-      <div class="mx-auto max-w-5xl">
-        <section class="space-y-6">
-          <header class="flex items-center gap-3">
-            <i class="fas fa-cog text-2xl text-blue-300"></i>
-            <h1 class="text-3xl font-bold text-white">Configuracoes</h1>
-          </header>
-
-          <article class="rounded-2xl border border-red-500/20 bg-slate-900/70 p-6 shadow-xl">
-            <div class="mb-3 flex items-center gap-3">
-              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/20 text-red-300">
-                <i class="fas fa-sign-out-alt"></i>
-              </div>
-              <h3 class="text-lg font-semibold text-white">Deslogar conta</h3>
-            </div>
-            <p class="mb-4 text-sm text-slate-300">
-              Encerre sua sessao em todos os dispositivos conectados. Voce precisara fazer login novamente.
-            </p>
-            <.link
-              href={~p"/users/log-out"}
-              method="delete"
-              class="inline-flex items-center rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
-            >
-              Sair
-            </.link>
-          </article>
-        </section>
+  <div id="deleteConfirmModal" class="delete-modal" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle" hidden>
+    <div class="delete-modal-card">
+      <div class="delete-modal-body">
+        <div class="delete-modal-head">
+          <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+          <h2 id="deleteConfirmTitle">ATENÇÃO: Esta ação é irreversível!</h2>
+        </div>
+        <p>
+          Todos os seus dados, conquistas e progresso serão permanentemente apagados.
+        </p>
+        <.form for={%{}} action={~p"/users/settings"} method="delete" id="deleteAccountForm">
+          <label for="deleteConfirmInput" class="delete-modal-label">
+            Digite "EXCLUIR" para confirmar:
+          </label>
+          <input
+            type="text"
+            id="deleteConfirmInput"
+            name="confirm"
+            class="delete-modal-input"
+            placeholder="EXCLUIR"
+            autocomplete="off"
+            oninput="updateDeleteConfirmState()"
+          />
+        </.form>
+      </div>
+      <div class="delete-modal-actions">
+        <button type="button" class="delete-modal-cancel" onclick="closeDeleteConfirm()">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          id="deleteConfirmSubmit"
+          class="delete-modal-submit"
+          onclick="processDeleteConfirm()"
+          disabled
+        >
+          Excluir Permanentemente
+        </button>
       </div>
     </div>
   </div>
+
+  <script>
+    (function () {
+      const modal = document.getElementById('deleteConfirmModal');
+      const input = document.getElementById('deleteConfirmInput');
+      const submit = document.getElementById('deleteConfirmSubmit');
+      const form = document.getElementById('deleteAccountForm');
+
+      window.openDeleteConfirm = function () {
+        modal.hidden = false;
+        modal.classList.add('open');
+        input.value = '';
+        submit.disabled = true;
+        setTimeout(() => input.focus({ preventScroll: true }), 50);
+      };
+
+      window.closeDeleteConfirm = function () {
+        modal.hidden = true;
+        modal.classList.remove('open');
+        input.value = '';
+        submit.disabled = true;
+      };
+
+      window.updateDeleteConfirmState = function () {
+        submit.disabled = input.value.trim() !== 'EXCLUIR';
+      };
+
+      window.processDeleteConfirm = function () {
+        if (input.value.trim() !== 'EXCLUIR') return;
+        form.submit();
+      };
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeDeleteConfirm();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.hidden) closeDeleteConfirm();
+      });
+    })();
+  </script>
 </Layouts.app>

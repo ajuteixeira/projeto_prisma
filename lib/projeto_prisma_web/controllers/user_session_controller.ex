@@ -50,7 +50,9 @@ defmodule ProjetoPrismaWeb.UserSessionController do
 
   # magic link request
   def create(conn, %{"user" => %{"email" => email}}) do
-    if user = Accounts.get_user_by_email(email) do
+    user = Accounts.get_user_by_email(email)
+
+    if user && !ProjetoPrisma.Accounts.User.deleted?(user) do
       Accounts.deliver_login_instructions(
         user,
         &url(~p"/users/log-in/#{&1}")

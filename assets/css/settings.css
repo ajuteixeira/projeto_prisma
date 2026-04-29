@@ -1,0 +1,273 @@
+/* Settings Page */
+
+.settings-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+    color: #60a5fa;
+    background-color: rgb(30, 35, 45);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+.settings-header i {
+    font-size: 32px;
+}
+
+.settings-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.settings-card {
+    background-color: rgb(30, 35, 45);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.settings-card:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.settings-card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.settings-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.settings-card-icon.logout {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+}
+
+.settings-card-icon.delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.settings-card-icon.connect {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.settings-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #f3f4f6;
+}
+
+.settings-card p {
+    color: #9ca3af;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.btn-logout {
+    background: linear-gradient(to right, #3b82f6, #2563eb);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.btn-logout:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.btn-delete {
+    background: linear-gradient(to right, #dc2626, #b91c1c);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
+}
+
+.btn-connect {
+    background: linear-gradient(to right, #10b981, #059669);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.btn-connect:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+/* Delete Account Confirmation Modal */
+.delete-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 16px;
+}
+
+.delete-modal[hidden] {
+    display: none;
+}
+
+.delete-modal-card {
+    background: linear-gradient(to bottom right, #1f2937, #111827);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 460px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: deleteModalIn 0.2s ease-out;
+}
+
+@keyframes deleteModalIn {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.delete-modal-body {
+    padding: 32px 32px 16px;
+}
+
+.delete-modal-head {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.delete-modal-head i {
+    font-size: 48px;
+    color: #ef4444;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.delete-modal-head h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.delete-modal-body p {
+    color: #d1d5db;
+    text-align: center;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.delete-modal-label {
+    display: block;
+    color: #9ca3af;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.delete-modal-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: #374151;
+    color: #ffffff;
+    border: 1px solid #4b5563;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.delete-modal-input:focus {
+    border-color: #ef4444;
+}
+
+.delete-modal-actions {
+    display: flex;
+    gap: 12px;
+    padding: 16px 32px 28px;
+    background: linear-gradient(to bottom, transparent, rgba(17, 24, 39, 0.6));
+}
+
+.delete-modal-cancel,
+.delete-modal-submit {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-modal-cancel {
+    background: #374151;
+    color: #ffffff;
+}
+
+.delete-modal-cancel:hover {
+    background: #4b5563;
+}
+
+.delete-modal-submit {
+    background: linear-gradient(to right, #dc2626, #b91c1c);
+    color: #ffffff;
+}
+
+.delete-modal-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.35);
+}
+
+.delete-modal-submit:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}

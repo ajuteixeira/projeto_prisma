@@ -9,6 +9,7 @@ defmodule ProjetoPrisma.Accounts.User do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
+    field :deleted_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
 
     has_one :profile, ProjetoPrisma.Accounts.Profile
@@ -139,6 +140,26 @@ defmodule ProjetoPrisma.Accounts.User do
     now = DateTime.utc_now(:second)
     change(user, confirmed_at: now)
   end
+
+  @doc """
+  Soft-deletes the account by setting `deleted_at` to the current time.
+  """
+  def soft_delete_changeset(user) do
+    change(user, deleted_at: DateTime.utc_now(:second))
+  end
+
+  @doc """
+  Restores a soft-deleted account by clearing `deleted_at`.
+  """
+  def restore_changeset(user) do
+    change(user, deleted_at: nil)
+  end
+
+  @doc """
+  Returns true when the user has been soft-deleted.
+  """
+  def deleted?(%__MODULE__{deleted_at: %DateTime{}}), do: true
+  def deleted?(_), do: false
 
   @doc """
   A user changeset for updating the full name.

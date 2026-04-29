@@ -561,7 +561,7 @@ defmodule ProjetoPrisma.Accounts do
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
     user = Repo.get_by(User, email: email)
-    if User.valid_password?(user, password), do: user
+    if User.valid_password?(user, password) and not User.deleted?(user), do: user
   end
 
   @doc """
@@ -701,6 +701,15 @@ defmodule ProjetoPrisma.Accounts do
   end
 
   @doc """
+  Soft-deletes a user by setting `deleted_at` and expiring all of their tokens.
+  """
+  def soft_delete_user(%User{} = user) do
+    user
+    |> User.soft_delete_changeset()
+    |> update_user_and_delete_all_tokens()
+  end
+
+  @doc """
   Updates the user password.
 
   Returns a tuple with the updated user, as well as a list of expired tokens.
@@ -784,6 +793,9 @@ defmodule ProjetoPrisma.Accounts do
         might have adapted the code to a different use case. Please make sure to read the
         "Mixing magic link and password registration" section of `mix help phx.gen.auth`.
         """
+
+      {%User{deleted_at: %DateTime{}}, _token} ->
+        {:error, :not_found}
 
       {%User{confirmed_at: nil} = user, _token} ->
         user

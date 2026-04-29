@@ -7,10 +7,26 @@ defmodule ProjetoPrismaWeb.UserSettingsController do
   import ProjetoPrismaWeb.UserAuth, only: [require_sudo_mode: 2]
 
   plug :require_sudo_mode
-  plug :assign_email_and_password_changesets
+  plug :assign_email_and_password_changesets when action in [:edit, :update]
 
   def edit(conn, _params) do
     render(conn, :edit)
+  end
+
+  def delete(conn, _params) do
+    user = conn.assigns.current_scope.user
+
+    case Accounts.soft_delete_user(user) do
+      {:ok, _} ->
+        conn
+        |> put_flash(:info, "Sua conta foi excluída.")
+        |> UserAuth.log_out_user()
+
+      {:error, _} ->
+        conn
+        |> put_flash(:error, "Não foi possível excluir a conta. Tente novamente.")
+        |> redirect(to: ~p"/users/settings")
+    end
   end
 
   def update(conn, %{"action" => "update_email"} = params) do

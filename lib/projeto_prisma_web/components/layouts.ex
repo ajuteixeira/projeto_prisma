@@ -59,13 +59,17 @@ defmodule ProjetoPrismaWeb.Layouts do
     ~H"""
       <.render_navbar :if={@show_navbar} current_scope={@current_scope} current_path={@current_path} />
 
-      <main class="content-layer min-h-screen">
-        <div class="p-6 md:ml-14 overflow-y-auto scrollbar-thin">
-          <div class="max-w-7xl mx-auto">
-            {render_slot(@inner_block)}
+      <%= if @variant == "bare" do %>
+        {render_slot(@inner_block)}
+      <% else %>
+        <main class="content-layer min-h-screen">
+          <div class={["p-6 overflow-y-auto scrollbar-thin", @show_navbar && "md:ml-14"]}>
+            <div class="max-w-7xl mx-auto">
+              {render_slot(@inner_block)}
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      <% end %>
 
     <.flash_group flash={@flash} />
     """

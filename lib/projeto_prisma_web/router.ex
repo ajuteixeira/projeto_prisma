@@ -69,6 +69,7 @@ defmodule ProjetoPrismaWeb.Router do
 
     get "/users/settings", UserSettingsController, :edit
     put "/users/settings", UserSettingsController, :update
+    delete "/users/settings", UserSettingsController, :delete
     get "/users/settings/confirm-email/:token", UserSettingsController, :confirm_email
   end
 

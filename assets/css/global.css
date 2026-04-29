@@ -1,5 +1,7 @@
 /* assets/css/global.css */
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
 /* 1. Configurações Base e Plugins */
 @import "tailwindcss" source(none);
 @source "../css";
@@ -19,8 +21,6 @@
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 /* 3. Estilos Globais de Layout */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-
 * {
   font-family: "Inter", sans-serif;
 }
