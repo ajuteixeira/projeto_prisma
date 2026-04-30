@@ -6,6 +6,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
   alias ProjetoPrisma.Sync.Steam.Client, as: SteamClient
   alias ProjetoPrisma.Sync.RetroAchievements.Client, as: RetroClient
   alias ProjetoPrisma.Sync.Psn.Client, as: PsnClient
+  alias ProjetoPrisma.Utils.Psn.Psn_Auth
+  alias ProjetoPrisma.Utils.Psn.Psn_Profile
 
   @platforms [
     %{
@@ -313,10 +315,11 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
   end
 
   defp connect_psn(socket, psn_id, npsso) do
-    with :ok <- validate_psn_credentials(psn_id, npsso),
+    with {:ok, auth} <- Psn_Auth.authenticate(npsso),
+         {:ok, profile} <- Psn_Profile.get_profile_from_username(auth.access_token, psn_id),
          {:ok, _account} <-
            Accounts.connect_platform_account(socket.assigns.profile_id, "playstation", %{
-             "external_user_id" => psn_id,
+             "external_user_id" => profile.account_id,
              "profile_url" => "",
              "api_key" => npsso
            }) do
@@ -348,6 +351,24 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
          |> put_flash(:error, "Falha na validação da PSN. Confira PSN ID e Token de Acesso")
          |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))}
 
+      {:error, {:psn_http_status, 401}} ->
+        {:noreply,
+        socket
+        |> assign(
+          :modal_error,
+          "Token de Acesso expirado ou inválido. Gere um novo Token em " <>
+          "ca.account.sony.com/api/v1/ssocookie"
+        )
+        |> put_flash(:error, "Token PSN expirado")
+        |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))}
+
+      {:error, {:psn_http_status, 404}} ->
+        {:noreply,
+        socket
+        |> assign(:modal_error, "PSN ID não encontrado. Verifique se o nome de usuário está correto.")
+        |> put_flash(:error, "PSN ID não encontrado")
+        |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))}
+
       {:error, {:psn_http_status, status}} ->
         {:noreply,
          socket
@@ -367,6 +388,17 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
          |> assign(:modal_error, "Não foi possível validar com a API da PSN agora")
          |> put_flash(:error, "Não foi possível validar com a API da PSN agora")
          |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))}
+
+      {:error, :tosua_required} ->
+        {:noreply,
+        socket
+        |> assign(
+          :modal_error,
+          "Sua conta Sony requer que você reaceite os Termos de Uso. " <>
+          "Acesse playstation.com, faça login, aceite os termos e gere um novo Token em " <>
+          "ca.account.sony.com/api/v1/ssocookie"
+        )
+        |> put_flash(:error, "Reaceite os Termos de Uso da Sony e gere um novo Token de Acesso")}
 
       {:error, _changeset} ->
         {:noreply,
@@ -393,21 +425,21 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
     end
   end
 
-  defp validate_psn_credentials(psn_id, npsso) do
-    case PsnClient.get_player_profile(psn_id, npsso) do
-      {:ok, %{status: 200, body: %{"profile" => _profile}}} ->
-        :ok
+  # defp validate_psn_credentials(psn_id, npsso) do
+  #   case PsnClient.get_player_profile(psn_id, npsso) do
+  #     {:ok, %{status: 200, body: %{"profile" => _profile}}} ->
+  #       :ok
 
-      {:ok, %{status: 200}} ->
-        {:error, :invalid_credentials}
+  #     {:ok, %{status: 200}} ->
+  #       {:error, :invalid_credentials}
 
-      {:ok, %{status: status}} ->
-        {:error, {:psn_http_status, status}}
+  #     {:ok, %{status: status}} ->
+  #       {:error, {:psn_http_status, status}}
 
-      {:error, _reason} ->
-        {:error, :psn_request_failed}
-    end
-  end
+  #     {:error, _reason} ->
+  #       {:error, :psn_request_failed}
+  #   end
+  # end
 
   defp disconnect_steam(socket) do
     case Accounts.disconnect_platform_account(socket.assigns.profile_id, "steam") do

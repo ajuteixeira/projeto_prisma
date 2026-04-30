@@ -27,6 +27,7 @@
 
 body {
   background: #0a0e14;
+  color: #fff;
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;

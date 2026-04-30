@@ -1,4 +1,4 @@
-defmodule ProjetoPrisma.Utils.Psn_Auth do
+defmodule ProjetoPrisma.Utils.Psn.Psn_Auth do
   @auth_base_url "https://ca.account.sony.com/api/authz/v3/oauth"
 
   @client_id "09515159-7237-4370-9b40-3806e67c0891"

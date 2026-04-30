@@ -2,7 +2,7 @@ defmodule ProjetoPrisma.Sync.Psn.Client do
   @base_url "https://m.np.playstation.com/api/"
   @other_url "https://us-prof.np.community.playstation.net/"
 
-  alias ProjetoPrisma.Utils.Psn_Auth
+  alias ProjetoPrisma.Utils.Psn.Psn_Auth
 
   def get_owned_games(psn_id, access_token) do
     Req.get("#{@base_url}/gamelist/v2/users/#{psn_id}/titles",

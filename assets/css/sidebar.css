@@ -67,7 +67,8 @@
    ========================================================= */
 .content-layer {
   margin-left: 56px;
-  width: calc(100vw - 56px);
+  width: auto;
+  max-width: calc(100% - 56px);
   min-height: 100vh;
   transition: margin-left 0.3s ease;
 }
@@ -115,7 +116,8 @@
   /* O content-layer volta a ocupar toda a largura no mobile */
   .content-layer {
     margin-left: 0;
-    width: 100vw;
+    width: 100%;
+    max-width: 100%;
     /* Padding inferior para não sobrepor a bottom-nav */
     padding-bottom: 56px;
   }

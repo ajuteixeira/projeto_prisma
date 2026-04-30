@@ -8,7 +8,7 @@ defmodule ProjetoPrisma.Accounts do
 
   import Ecto.Query
   alias ProjetoPrisma.Repo
-  alias ProjetoPrisma.Accounts.{User, Profile, ProfilePlatformAccount, ProfileGame, ProfileAchievement}
+  alias ProjetoPrisma.Accounts.{User, Profile, ProfilePlatformAccount, ProfileGame, ProfileAchievement, Scope}
   alias ProjetoPrisma.Catalog.Platform
 
   @doc """
@@ -808,6 +808,20 @@ defmodule ProjetoPrisma.Accounts do
     {:ok, query} = UserToken.verify_session_token_query(token)
     Repo.one(query)
   end
+
+  @doc """
+  Resolve o `Scope` a partir da sessão Phoenix.
+
+  Retorna `nil` quando o token não existe ou é inválido.
+  """
+  def resolve_scope_from_session(%{"user_token" => token}) when is_binary(token) do
+    case get_user_by_session_token(token) do
+      {user, _inserted_at} -> Scope.for_user(user)
+      _ -> nil
+    end
+  end
+
+  def resolve_scope_from_session(_), do: nil
 
   @doc """
   Gets the user with the given magic link token.
