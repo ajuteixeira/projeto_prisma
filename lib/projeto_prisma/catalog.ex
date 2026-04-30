@@ -23,14 +23,20 @@ defmodule ProjetoPrisma.Catalog do
   def get_or_create_game(attrs) do
     igdb_id = attrs["igdb_id"] || attrs[:igdb_id]
 
-    case igdb_id && Repo.get_by(Game, igdb_id: igdb_id) do
-      nil ->
-        %Game{}
-        |> Game.changeset(attrs)
-        |> Repo.insert()
+    if is_nil(igdb_id) do
+      {:error, :igdb_id_required}
+    else
+      case Repo.get_by(Game, igdb_id: igdb_id) do
+        nil ->
+          %Game{}
+          |> Game.changeset(attrs)
+          |> Repo.insert()
 
-      game ->
-        {:ok, game}
+        game ->
+          game
+          |> Game.changeset(attrs)
+          |> Repo.update()
+      end
     end
   end
 

@@ -46,6 +46,33 @@ defmodule ProjetoPrisma.Sync.Igdb.Adapter do
   end
 
   @doc """
+  Busca os dados do game na IGDB a partir do id interno da IGDB.
+  """
+  def get_game_by_id(igdb_id) when is_integer(igdb_id) do
+    query =
+      [
+        "fields id,name,cover.url,first_release_date;",
+        "where id = #{igdb_id};",
+        "limit 1;"
+      ]
+      |> Enum.join(" ")
+
+    case Client.request(:games, query) do
+      {:ok, %{status: 200, body: body}} ->
+        case List.wrap(body) do
+          [first | _] -> {:ok, normalize_game(first)}
+          [] -> {:error, :not_found}
+        end
+
+      {:ok, %{status: status, body: body}} ->
+        {:error, {:http_error, status, body}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  @doc """
   Busca jogos na IGDB por nome.
 
   Retorna {:ok, [games]} onde cada game está normalizado.

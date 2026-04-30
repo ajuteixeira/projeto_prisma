@@ -378,6 +378,16 @@ defmodule ProjetoPrisma.Accounts do
   end
 
   @doc """
+  Lista as contas de plataforma conectadas de um profile com a plataforma precarregada.
+  """
+  def list_connected_platform_accounts(profile_id) do
+    ProfilePlatformAccount
+    |> where([ppa], ppa.profile_id == ^profile_id)
+    |> preload(:platform)
+    |> Repo.all()
+  end
+
+  @doc """
   Conecta uma conta de plataforma por slug para um profile.
 
   Retorna `{:ok, %ProfilePlatformAccount{}}` quando já existe ou quando cria.
@@ -406,6 +416,52 @@ defmodule ProjetoPrisma.Accounts do
     else
       nil -> {:error, :platform_not_found}
     end
+  end
+
+  @doc """
+  Marca o início de uma sincronização de uma conta de plataforma.
+  """
+  def mark_platform_sync_started(%ProfilePlatformAccount{} = account, step) do
+    account
+    |> ProfilePlatformAccount.changeset(%{
+      sync_status: "running",
+      sync_step: step,
+      sync_last_error: nil,
+      sync_started_at: DateTime.utc_now() |> DateTime.to_naive(),
+      sync_finished_at: nil,
+      sync_attempts: (account.sync_attempts || 0) + 1
+    })
+    |> Repo.update()
+  end
+
+  @doc """
+  Marca a sincronização como concluída.
+  """
+  def mark_platform_sync_finished(%ProfilePlatformAccount{} = account, step, attrs \\ %{}) do
+    account
+    |> ProfilePlatformAccount.changeset(
+      Map.merge(attrs, %{
+        sync_status: "completed",
+        sync_step: step,
+        sync_last_error: nil,
+        sync_finished_at: DateTime.utc_now() |> DateTime.to_naive()
+      })
+    )
+    |> Repo.update()
+  end
+
+  @doc """
+  Marca a sincronização como falha para permitir retomada posterior.
+  """
+  def mark_platform_sync_failed(%ProfilePlatformAccount{} = account, step, reason) do
+    account
+    |> ProfilePlatformAccount.changeset(%{
+      sync_status: "failed",
+      sync_step: step,
+      sync_last_error: format_sync_error(reason),
+      sync_finished_at: DateTime.utc_now() |> DateTime.to_naive()
+    })
+    |> Repo.update()
   end
 
   @doc """
@@ -524,6 +580,9 @@ defmodule ProjetoPrisma.Accounts do
       games: games
     }
   end
+
+  defp format_sync_error(reason) when is_binary(reason), do: reason
+  defp format_sync_error(reason), do: inspect(reason)
 
   alias ProjetoPrisma.Accounts.{UserToken, UserNotifier}
   alias ProjetoPrisma.Services.EmailResend

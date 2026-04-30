@@ -10,6 +10,7 @@ defmodule ProjetoPrisma.Sync.SyncService do
 
   alias ProjetoPrisma.{Catalog, Accounts, Repo}
   alias ProjetoPrisma.Sync.Adapters
+  alias ProjetoPrisma.Sync.Igdb.Adapter, as: IgdbAdapter
 
   @doc """
   Sincroniza games e achievements de um usuário em uma plataforma.
@@ -40,6 +41,42 @@ defmodule ProjetoPrisma.Sync.SyncService do
       {:ok, stats}
     else
       error -> error
+    end
+  end
+
+  @doc """
+  Sincroniza todas as contas de plataforma conectadas de um profile.
+  """
+  def sync_connected_platforms(profile_id) do
+    with :ok <- validate_profile(profile_id) do
+      profile_platform_accounts = Accounts.list_connected_platform_accounts(profile_id)
+
+      summary =
+        Enum.reduce(profile_platform_accounts, %{synced: 0, failed: 0, games_synced: 0, achievements_synced: 0}, fn account, acc ->
+          case Accounts.mark_platform_sync_started(account, "sync_profile") do
+            {:ok, running_account} ->
+              case sync_profile(profile_id, running_account.platform.slug, running_account.external_user_id, running_account.api_key) do
+                {:ok, %{games_synced: games_synced, achievements_synced: achievements_synced}} ->
+                  _ = Accounts.mark_platform_sync_finished(running_account, "sync_profile")
+
+                  %{
+                    acc
+                    | synced: acc.synced + 1,
+                      games_synced: acc.games_synced + games_synced,
+                      achievements_synced: acc.achievements_synced + achievements_synced
+                  }
+
+                {:error, reason} ->
+                  _ = Accounts.mark_platform_sync_failed(running_account, "sync_profile", reason)
+                  %{acc | failed: acc.failed + 1}
+              end
+
+            {:error, _reason} ->
+              %{acc | failed: acc.failed + 1}
+          end
+        end)
+
+      {:ok, summary}
     end
   end
 
@@ -125,7 +162,9 @@ defmodule ProjetoPrisma.Sync.SyncService do
 
   # Sincroniza um game específico e seus achievements
   defp sync_single_game(profile_id, platform_id, adapter, account, game_data) do
-    with {:ok, game} <- Catalog.get_or_create_game(game_data),
+    with {:ok, igdb_id} <- IgdbAdapter.resolve_game_id(game_data.external_game_id, platform_id),
+         {:ok, igdb_game} <- IgdbAdapter.get_game_by_id(igdb_id),
+         {:ok, game} <- Catalog.get_or_create_game(igdb_game),
          {:ok, platform_game} <-
            Catalog.get_or_create_platform_game(
              platform_id,

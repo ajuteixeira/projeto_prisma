@@ -2,6 +2,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
   use ProjetoPrismaWeb, :live_view
 
   alias ProjetoPrisma.Accounts
+  alias ProjetoPrisma.Accounts.Scope
   alias ProjetoPrisma.Sync.Steam.Client, as: SteamClient
   alias ProjetoPrisma.Sync.RetroAchievements.Client, as: RetroClient
   alias ProjetoPrisma.Sync.Psn.Client, as: PsnClient
@@ -43,10 +44,14 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
 
   @impl true
   def mount(_params, session, socket) do
-    profile_id = resolve_profile_id(session)
+    current_scope = resolve_current_scope(session)
+    profile = Accounts.get_profile_with_user(current_scope)
+    profile_id = profile && profile.id
 
     {:ok,
      socket
+     |> assign(:current_scope, current_scope)
+     |> assign(:profile, profile)
      |> assign(:profile_id, profile_id)
      |> assign(:modal_open, false)
      |> assign(:modal_platform, nil)
@@ -216,24 +221,14 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
     end
   end
 
-  defp resolve_profile_id(%{"profile_id" => profile_id}) when is_integer(profile_id),
-    do: profile_id
-
-  defp resolve_profile_id(%{"profile_id" => profile_id}) when is_binary(profile_id) do
-    case Integer.parse(profile_id) do
-      {id, ""} -> id
-      _ -> fallback_profile_id()
+  defp resolve_current_scope(%{"user_token" => token}) when is_binary(token) do
+    case Accounts.get_user_by_session_token(token) do
+      {user, _inserted_at} -> Scope.for_user(user)
+      _ -> nil
     end
   end
 
-  defp resolve_profile_id(_session), do: fallback_profile_id()
-
-  defp fallback_profile_id do
-    case Accounts.get_profile_by_username("fulano") do
-      nil -> nil
-      profile -> profile.id
-    end
-  end
+  defp resolve_current_scope(_session), do: nil
 
   defp list_connected_slugs(nil), do: []
   defp list_connected_slugs(profile_id), do: Accounts.list_connected_platform_slugs(profile_id)
@@ -689,6 +684,20 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
           </div>
         </.form>
       </div>
+    </div>
+
+    <div
+      :if={Enum.any?(@platforms, & &1.connected)}
+      class="connect-continue-wrap"
+      id="connect-platforms-home-cta"
+    >
+      <.link
+        navigate={~p"/"}
+        class="connect-continue-btn"
+      >
+        <.icon name="hero-arrow-right" class="size-4" />
+        Continuar depois
+      </.link>
     </div>
 
     <div class="platforms-grid" id="platforms-grid" phx-update="replace">
