@@ -26,7 +26,7 @@ defmodule ProjetoPrisma.Accounts.ProfileDashboard do
   """
   def recently_played(profile_id) when is_integer(profile_id) do
     profile_id
-    |> games_with_metrics()
+    |> list_games(1, sort_order: :desc)
     |> List.first()
     |> maybe_put_recent_achievements()
   end
@@ -40,7 +40,12 @@ defmodule ProjetoPrisma.Accounts.ProfileDashboard do
 
   def list_games(profile_id, limit, opts)
       when is_integer(profile_id) and is_integer(limit) and is_list(opts) do
-    games_with_metrics(profile_id, limit: limit, offset: Keyword.get(opts, :offset, 0))
+    games_with_metrics(
+      profile_id,
+      limit: limit,
+      offset: Keyword.get(opts, :offset, 0),
+      sort_order: Keyword.get(opts, :sort_order, :desc)
+    )
   end
 
   def list_games(_, _, _), do: []
@@ -149,6 +154,7 @@ defmodule ProjetoPrisma.Accounts.ProfileDashboard do
   defp games_with_metrics(profile_id, opts \\ []) do
     limit = Keyword.get(opts, :limit)
     offset = Keyword.get(opts, :offset, 0)
+    sort_order = Keyword.get(opts, :sort_order, :desc)
 
     base_query =
       ProfileGame
@@ -156,7 +162,7 @@ defmodule ProjetoPrisma.Accounts.ProfileDashboard do
       |> join(:inner, [pg], pgame in assoc(pg, :platform_game))
       |> join(:inner, [_pg, pgame], g in assoc(pgame, :game))
       |> join(:inner, [_pg, pgame, _g], p in assoc(pgame, :platform))
-      |> order_by([pg, _pgame, _g, _p], desc_nulls_last: pg.last_played, desc: pg.id)
+      |> sort_by_last_played(sort_order)
       |> select([pg, pgame, g, p], %{
         profile_game_id: pg.id,
         platform_game_id: pgame.id,
@@ -208,6 +214,14 @@ defmodule ProjetoPrisma.Accounts.ProfileDashboard do
   end
 
   defp maybe_offset(query, _offset), do: query
+
+  defp sort_by_last_played(query, :asc) do
+    order_by(query, [pg, _pgame, _g, _p], asc_nulls_last: pg.last_played, asc: pg.id)
+  end
+
+  defp sort_by_last_played(query, _sort_order) do
+    order_by(query, [pg, _pgame, _g, _p], desc_nulls_last: pg.last_played, desc: pg.id)
+  end
 
   defp unlocked_counts_by_profile_game([]), do: %{}
 

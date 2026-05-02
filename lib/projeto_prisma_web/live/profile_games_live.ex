@@ -16,6 +16,7 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
       socket
       |> assign(:profile_id, profile && profile.id)
       |> assign(:current_page, 1)
+      |> assign(:sort_order, :desc)
       |> assign(:games_empty?, true)
       |> assign(:has_next_page?, false)
       |> assign(:has_previous_page?, false)
@@ -51,6 +52,16 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
   end
 
   @impl true
+  def handle_event("toggle_last_played_order", _params, socket) do
+    socket =
+      socket
+      |> assign(:sort_order, toggle_sort_order(socket.assigns.sort_order))
+      |> load_page(1)
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="bg-gray-800/80 border border-gray-700 p-6 rounded-2xl w-full">
@@ -65,7 +76,17 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
         <div class="col-span-1 table-header">Conquistas</div>
         <div class="col-span-2 table-header">Tempo de Jogo</div>
         <div class="col-span-2 table-header">Último Desbloqueio</div>
-        <div class="col-span-1 table-header">Última Vez Jogado</div>
+        <div class="col-span-1 table-header">
+          <button
+            id="profile-games-sort-last-played"
+            type="button"
+            phx-click="toggle_last_played_order"
+            class="inline-flex items-center gap-1 text-left transition hover:text-white"
+          >
+            <span>Última Vez Jogado</span>
+            <.icon name={sort_icon_name(@sort_order)} class="size-4" />
+          </button>
+        </div>
         <div class="col-span-1 table-header">Plataforma</div>
       </div>
 
@@ -259,10 +280,14 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
   defp load_page(socket, page) when page > 0 do
     profile_id = socket.assigns.profile_id
     offset = (page - 1) * @page_size
+    sort_order = socket.assigns.sort_order
 
     games =
       if is_integer(profile_id) do
-        ProfileDashboard.list_games(profile_id, @page_size + 1, offset: offset)
+        ProfileDashboard.list_games(profile_id, @page_size + 1,
+          offset: offset,
+          sort_order: sort_order
+        )
       else
         []
       end
@@ -287,6 +312,12 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
       {page_games, _rest} -> {page_games, true}
     end
   end
+
+  defp toggle_sort_order(:asc), do: :desc
+  defp toggle_sort_order(_sort_order), do: :asc
+
+  defp sort_icon_name(:asc), do: "hero-chevron-up"
+  defp sort_icon_name(_sort_order), do: "hero-chevron-down"
 
   defp scope_user_id(%Scope{user: %{id: id}}) when is_integer(id), do: id
   defp scope_user_id(_), do: nil
