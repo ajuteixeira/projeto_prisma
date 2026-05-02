@@ -36,13 +36,14 @@ defmodule ProjetoPrisma.Accounts.ProfileDashboard do
   @doc """
   Lista jogos recentes com metricas para tabela.
   """
-  def recent_games(profile_id, limit \\ 10)
+  def list_games(profile_id, limit \\ 10, opts \\ [])
 
-  def recent_games(profile_id, limit) when is_integer(profile_id) do
-    games_with_metrics(profile_id, limit: limit)
+  def list_games(profile_id, limit, opts)
+      when is_integer(profile_id) and is_integer(limit) and is_list(opts) do
+    games_with_metrics(profile_id, limit: limit, offset: Keyword.get(opts, :offset, 0))
   end
 
-  def recent_games(_, _), do: []
+  def list_games(_, _, _), do: []
 
   @doc """
   Retorna cards de estatisticas gerais do perfil.
@@ -147,6 +148,7 @@ defmodule ProjetoPrisma.Accounts.ProfileDashboard do
 
   defp games_with_metrics(profile_id, opts \\ []) do
     limit = Keyword.get(opts, :limit)
+    offset = Keyword.get(opts, :offset, 0)
 
     base_query =
       ProfileGame
@@ -166,6 +168,7 @@ defmodule ProjetoPrisma.Accounts.ProfileDashboard do
         platform_name: p.name,
         platform_slug: p.slug
       })
+      |> maybe_offset(offset)
 
     base_games =
       if is_integer(limit) and limit > 0 do
@@ -199,6 +202,12 @@ defmodule ProjetoPrisma.Accounts.ProfileDashboard do
       |> Map.put(:last_unlock_time, Map.get(last_unlock_map, game.profile_game_id))
     end)
   end
+
+  defp maybe_offset(query, offset) when is_integer(offset) and offset > 0 do
+    offset(query, ^offset)
+  end
+
+  defp maybe_offset(query, _offset), do: query
 
   defp unlocked_counts_by_profile_game([]), do: %{}
 
