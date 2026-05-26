@@ -3,7 +3,6 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
 
   alias ProjetoPrisma.Accounts
   alias ProjetoPrisma.Accounts.Scope
-  alias ProjetoPrisma.Sync.Steam.Client, as: SteamClient
   alias ProjetoPrisma.Sync.RetroAchievements.Client, as: RetroClient
   alias ProjetoPrisma.Utils.Psn.Psn_Auth
   alias ProjetoPrisma.Utils.Psn.Psn_Profile
@@ -61,7 +60,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
      |> assign(:sync_error_platform, nil)
      |> assign(:confirm_disconnect_modal, false)
      |> assign(:confirm_disconnect_platform, nil)
-     |> assign(:form, to_form(%{"user_id" => "", "api_key" => ""}, as: :steam))
+     |> assign(:form, retro_form())
      |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))
      |> assign(:psn_verification_code, generate_verification_code())
      |> assign(:retro_verification_code, generate_verification_code())
@@ -90,12 +89,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
         show_confirm_disconnect(socket, platform)
 
       true ->
-        {:noreply,
-         socket
-         |> assign(:modal_open, true)
-         |> assign(:modal_platform, platform)
-         |> assign(:modal_error, nil)
-         |> assign(:form, to_form(%{"user_id" => "", "api_key" => ""}, as: :steam))}
+        {:noreply, redirect(socket, to: ~p"/auth/steam/start")}
     end
   end
 
@@ -176,7 +170,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
          |> put_flash(:info, "Conta Xbox desvinculada")}
 
       {:error, :sync_in_progress} ->
-        {:noreply, socket |> assign(:sync_error_modal, true) |> assign(:sync_error_platform, "Xbox")}
+        {:noreply,
+         socket |> assign(:sync_error_modal, true) |> assign(:sync_error_platform, "Xbox")}
 
       {:error, :platform_not_found} ->
         {:noreply, put_flash(socket, :error, "Plataforma Xbox não cadastrada")}
@@ -192,38 +187,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
      |> assign(:modal_open, false)
      |> assign(:modal_platform, nil)
      |> assign(:modal_error, nil)
-     |> assign(:form, to_form(%{"user_id" => "", "api_key" => ""}, as: :steam))
+     |> assign(:form, retro_form())
      |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))}
-  end
-
-  def handle_event("save_steam_connection", %{"steam" => steam_params}, socket) do
-    steam_id = String.trim(steam_params["user_id"] || "")
-    api_key = String.trim(steam_params["api_key"] || "")
-
-    cond do
-      is_nil(socket.assigns.profile_id) ->
-        {:noreply,
-         socket
-         |> assign(:modal_error, "Não foi possível identificar o perfil atual")
-         |> put_flash(:error, "Não foi possível identificar o perfil atual")}
-
-      steam_id == "" or api_key == "" ->
-        {:noreply,
-         socket
-         |> assign(:modal_error, "Preencha Steam ID e API Key para continuar")
-         |> put_flash(:error, "Preencha Steam ID e API Key para continuar")
-         |> assign(:form, to_form(%{"user_id" => steam_id, "api_key" => api_key}, as: :steam))}
-
-      not valid_steam_id?(steam_id) ->
-        {:noreply,
-         socket
-         |> assign(:modal_error, "Steam ID inválido. Use o SteamID64 com 17 dígitos")
-         |> put_flash(:error, "Steam ID inválido. Use o SteamID64 com 17 dígitos")
-         |> assign(:form, to_form(%{"user_id" => steam_id, "api_key" => api_key}, as: :steam))}
-
-      true ->
-        connect_steam(socket, steam_id, api_key)
-    end
   end
 
   def handle_event("save_retro_connection", %{"retro" => retro_params}, socket) do
@@ -296,71 +261,6 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
       connected = MapSet.member?(connected_set, platform.slug)
       Map.put(platform, :connected, connected)
     end)
-  end
-
-  defp connect_steam(socket, steam_id, api_key) do
-    with :ok <- validate_steam_credentials(steam_id, api_key),
-         {:ok, _account} <-
-           Accounts.connect_platform_account(socket.assigns.profile_id, "steam", %{
-             "external_user_id" => steam_id,
-             "profile_url" => "https://steamcommunity.com/profiles/#{steam_id}",
-             "api_key" => api_key
-           }) do
-      {:noreply,
-       socket
-       |> refresh_platforms()
-       |> assign(:modal_open, false)
-       |> assign(:modal_platform, nil)
-       |> assign(:modal_error, nil)
-       |> assign(:form, to_form(%{"user_id" => "", "api_key" => ""}, as: :steam))
-       |> put_flash(:info, "Conta Steam vinculada com sucesso")}
-    else
-      {:error, :platform_not_found} ->
-        {:noreply,
-         socket
-         |> assign(
-           :modal_error,
-           "Plataforma Steam não encontrada no banco. Rode o seed para cadastrar as plataformas."
-         )
-         |> put_flash(
-           :error,
-           "Plataforma Steam não encontrada no banco. Rode o seed para cadastrar as plataformas."
-         )}
-
-      {:error, :invalid_credentials} ->
-        {:noreply,
-         socket
-         |> assign(:modal_error, "Falha na validação da Steam. Confira Steam ID e API Key")
-         |> put_flash(:error, "Falha na validação da Steam. Confira Steam ID e API Key")
-         |> assign(:form, to_form(%{"user_id" => steam_id, "api_key" => api_key}, as: :steam))}
-
-      {:error, {:steam_http_status, status}} ->
-        {:noreply,
-         socket
-         |> assign(
-           :modal_error,
-           "Steam respondeu com status #{status}. Verifique os dados e tente novamente"
-         )
-         |> put_flash(
-           :error,
-           "Steam respondeu com status #{status}. Verifique os dados e tente novamente"
-         )
-         |> assign(:form, to_form(%{"user_id" => steam_id, "api_key" => api_key}, as: :steam))}
-
-      {:error, :steam_request_failed} ->
-        {:noreply,
-         socket
-         |> assign(:modal_error, "Não foi possível validar com a API da Steam agora")
-         |> put_flash(:error, "Não foi possível validar com a API da Steam agora")
-         |> assign(:form, to_form(%{"user_id" => steam_id, "api_key" => api_key}, as: :steam))}
-
-      {:error, _changeset} ->
-        {:noreply,
-         socket
-         |> assign(:modal_error, "Não foi possível salvar a conexão Steam")
-         |> put_flash(:error, "Não foi possível salvar a conexão Steam")
-         |> assign(:form, to_form(%{"user_id" => steam_id, "api_key" => api_key}, as: :steam))}
-    end
   end
 
   defp connect_psn(socket, psn_id, npsso) do
@@ -484,7 +384,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
          |> put_flash(:info, "Conta PlayStation desvinculada")}
 
       {:error, :sync_in_progress} ->
-        {:noreply, socket |> assign(:sync_error_modal, true) |> assign(:sync_error_platform, "PlayStation")}
+        {:noreply,
+         socket |> assign(:sync_error_modal, true) |> assign(:sync_error_platform, "PlayStation")}
 
       {:error, :platform_not_found} ->
         {:noreply, put_flash(socket, :error, "Plataforma PlayStation não cadastrada")}
@@ -519,7 +420,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
          |> put_flash(:info, "Conta Steam desvinculada")}
 
       {:error, :sync_in_progress} ->
-        {:noreply, socket |> assign(:sync_error_modal, true) |> assign(:sync_error_platform, "Steam")}
+        {:noreply,
+         socket |> assign(:sync_error_modal, true) |> assign(:sync_error_platform, "Steam")}
 
       {:error, :platform_not_found} ->
         {:noreply, put_flash(socket, :error, "Plataforma Steam não cadastrada")}
@@ -644,7 +546,10 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
   end
 
   def handle_event("confirm_disconnect", %{"platform" => slug}, socket) do
-    socket = socket |> assign(:confirm_disconnect_modal, false) |> assign(:confirm_disconnect_platform, nil)
+    socket =
+      socket
+      |> assign(:confirm_disconnect_modal, false)
+      |> assign(:confirm_disconnect_platform, nil)
 
     case slug do
       "steam" -> disconnect_steam(socket)
@@ -679,25 +584,6 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
 
   defp check_motto_code(_body, _code), do: {:error, :verification_code_missing}
 
-  defp validate_steam_credentials(steam_id, api_key) do
-    case SteamClient.get_player_summary(steam_id, api_key) do
-      {:ok, %{status: 200, body: %{"response" => %{"players" => players}}}}
-      when is_list(players) and players != [] ->
-        :ok
-
-      {:ok, %{status: 200}} ->
-        {:error, :invalid_credentials}
-
-      {:ok, %{status: status}} ->
-        {:error, {:steam_http_status, status}}
-
-      {:error, _reason} ->
-        {:error, :steam_request_failed}
-    end
-  end
-
-  defp valid_steam_id?(steam_id), do: String.match?(steam_id, ~r/^\d{17}$/)
-
   defp validate_retro_credentials(username, api_key) do
     case RetroClient.get_player_profile(username, api_key) do
       {:ok, %{status: 200, body: body}} when is_map(body) and body != %{} ->
@@ -730,7 +616,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
         style="position:relative;width:100%;max-width:420px;background:linear-gradient(145deg,#0f172a,#1e293b);border:1px solid rgba(239,68,68,0.3);border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.05),inset 0 1px 0 rgba(255,255,255,0.07);overflow:hidden;"
       >
         <%!-- Top accent bar --%>
-        <div style="height:3px;background:linear-gradient(90deg,#ef4444,#dc2626,transparent);width:100%;"></div>
+        <div style="height:3px;background:linear-gradient(90deg,#ef4444,#dc2626,transparent);width:100%;">
+        </div>
 
         <div style="padding:1.75rem;">
           <%!-- Header --%>
@@ -751,7 +638,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
           <%!-- Body --%>
           <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:0.875rem 1rem;margin-bottom:1.5rem;">
             <p style="margin:0;font-size:0.85rem;color:#94a3b8;line-height:1.55;">
-              Todos os <strong style="color:#cbd5e1;">jogos e conquistas</strong> sincronizados desta plataforma serão removidos do seu perfil.
+              Todos os <strong style="color:#cbd5e1;">jogos e conquistas</strong>
+              sincronizados desta plataforma serão removidos do seu perfil.
             </p>
           </div>
 
@@ -790,7 +678,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
         style="position:relative;width:100%;max-width:420px;background:linear-gradient(145deg,#0f172a,#1e293b);border:1px solid rgba(234,179,8,0.3);border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.05),inset 0 1px 0 rgba(255,255,255,0.07);overflow:hidden;"
       >
         <%!-- Top accent bar --%>
-        <div style="height:3px;background:linear-gradient(90deg,#eab308,#ca8a04,transparent);width:100%;"></div>
+        <div style="height:3px;background:linear-gradient(90deg,#eab308,#ca8a04,transparent);width:100%;">
+        </div>
 
         <div style="padding:1.75rem;">
           <%!-- Header --%>
@@ -811,7 +700,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
           <%!-- Body --%>
           <div style="background:rgba(234,179,8,0.06);border:1px solid rgba(234,179,8,0.15);border-radius:10px;padding:0.875rem 1rem;margin-bottom:1.5rem;">
             <p style="margin:0;font-size:0.85rem;color:#94a3b8;line-height:1.55;">
-              A conta <strong style="color:#cbd5e1;">{@sync_error_platform}</strong> está sendo sincronizada no momento. Aguarde a conclusão e tente novamente.
+              A conta <strong style="color:#cbd5e1;">{@sync_error_platform}</strong>
+              está sendo sincronizada no momento. Aguarde a conclusão e tente novamente.
             </p>
           </div>
 
@@ -848,8 +738,6 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
         <.form
           for={
             cond do
-              @modal_platform.slug == "steam" -> @form
-              @modal_platform.slug == "retroachievements" -> @form
               @modal_platform.slug == "playstation" -> @psn_form
               true -> @form
             end
@@ -857,161 +745,126 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
           id={"#{@modal_platform.slug}-connect-form"}
           phx-submit={
             cond do
-              @modal_platform.slug == "steam" -> "save_steam_connection"
               @modal_platform.slug == "retroachievements" -> "save_retro_connection"
               @modal_platform.slug == "playstation" -> "save_psn_connection"
-              true -> "save_steam_connection"
+              true -> "save_retro_connection"
             end
           }
         >
           <div class="connect-modal-body">
-            <%= if @modal_platform.slug == "steam" do %>
+            <%= if @modal_platform.slug == "playstation" do %>
               <p class="connect-modal-instruction">
-                Insira seu SteamID64 (17 dígitos) e sua chave de API para validar e vincular a conta.
+                <strong>1) Confirme que esta conta é sua:</strong>
+                <br />
+                Adicione o código abaixo em qualquer ponto do seu campo "Sobre Mim" no perfil PlayStation antes de clicar em Vincular. Você não precisa apagar o texto existente — basta colar o código no início, no fim ou entre o que já está lá. O PlayStation pode levar alguns segundos para refletir a alteração.
+              </p>
+
+              <div style="margin:0.75rem 0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center;">
+                <div style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">
+                  Código de verificação
+                </div>
+                <div
+                  id="psn-verification-code"
+                  style="font-family:monospace;font-size:1.25rem;letter-spacing:0.1em;font-weight:bold;"
+                >
+                  {@psn_verification_code}
+                </div>
+              </div>
+
+              <p class="connect-modal-instruction">
+                <strong>2) Insira suas credenciais:</strong>
+                <br /> PSN ID e Token de Acesso (NPSSO). Obtenha o NPSSO em
+                <a
+                  href="https://ca.account.sony.com/api/v1/ssocookie"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="color: #3b82f6; text-decoration: underline;"
+                >
+                  https://ca.account.sony.com/api/v1/ssocookie
+                </a>
+                enquanto conectado na sua conta PlayStation.
               </p>
 
               <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
 
               <div class="connect-input-group">
-                <label class="connect-input-label" for="steam-user-id">Steam ID</label>
+                <label class="connect-input-label" for="psn-user-id">PSN ID</label>
                 <.input
-                  field={@form[:user_id]}
-                  id="steam-user-id"
+                  field={@psn_form[:psn_id]}
+                  id="psn-user-id"
                   type="text"
                   class="connect-modal-input"
-                  placeholder="7656119..."
+                  placeholder="seu_username_psn"
                 />
               </div>
 
               <div class="connect-input-group">
-                <label class="connect-input-label" for="steam-api-key">Steam API Key</label>
+                <label class="connect-input-label" for="psn-api-key">Token de Acesso</label>
                 <.input
-                  field={@form[:api_key]}
-                  id="steam-api-key"
+                  field={@psn_form[:api_key]}
+                  id="psn-api-key"
                   type="password"
                   class="connect-modal-input"
-                  placeholder="Sua chave da Steam"
+                  placeholder="Seu token de acesso da PSN"
                 />
               </div>
             <% else %>
-              <%= if @modal_platform.slug == "playstation" do %>
-                <p class="connect-modal-instruction">
-                  <strong>1) Confirme que esta conta é sua:</strong>
-                  <br />
-                  Adicione o código abaixo em qualquer ponto do seu campo "Sobre Mim" no perfil PlayStation antes de clicar em Vincular. Você não precisa apagar o texto existente — basta colar o código no início, no fim ou entre o que já está lá. O PlayStation pode levar alguns segundos para refletir a alteração.
-                </p>
-
-                <div
-                  style="margin:0.75rem 0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center;"
+              <p class="connect-modal-instruction">
+                <strong>1) Confirme que esta conta é sua:</strong>
+                <br />
+                Adicione o código abaixo em qualquer ponto do campo "Motto" do seu perfil RetroAchievements antes de clicar em Vincular. Você pode mantê-lo junto com seu texto atual.
+                <br />
+                <a
+                  href="https://retroachievements.org/controlpanel.php"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="color: #3b82f6; text-decoration: underline;"
                 >
-                  <div style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">
-                    Código de verificação
-                  </div>
-                  <div
-                    id="psn-verification-code"
-                    style="font-family:monospace;font-size:1.25rem;letter-spacing:0.1em;font-weight:bold;"
-                  >
-                    {@psn_verification_code}
-                  </div>
+                  Abrir configurações do RetroAchievements
+                </a>
+              </p>
+
+              <div style="margin:0.75rem 0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center;">
+                <div style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">
+                  Código de verificação
                 </div>
-
-                <p class="connect-modal-instruction">
-                  <strong>2) Insira suas credenciais:</strong>
-                  <br /> PSN ID e Token de Acesso (NPSSO). Obtenha o NPSSO em
-                  <a
-                    href="https://ca.account.sony.com/api/v1/ssocookie"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style="color: #3b82f6; text-decoration: underline;"
-                  >
-                    https://ca.account.sony.com/api/v1/ssocookie
-                  </a>
-                  enquanto conectado na sua conta PlayStation.
-                </p>
-
-                <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
-
-                <div class="connect-input-group">
-                  <label class="connect-input-label" for="psn-user-id">PSN ID</label>
-                  <.input
-                    field={@psn_form[:psn_id]}
-                    id="psn-user-id"
-                    type="text"
-                    class="connect-modal-input"
-                    placeholder="seu_username_psn"
-                  />
-                </div>
-
-                <div class="connect-input-group">
-                  <label class="connect-input-label" for="psn-api-key">Token de Acesso</label>
-                  <.input
-                    field={@psn_form[:api_key]}
-                    id="psn-api-key"
-                    type="password"
-                    class="connect-modal-input"
-                    placeholder="Seu token de acesso da PSN"
-                  />
-                </div>
-              <% else %>
-                <p class="connect-modal-instruction">
-                  <strong>1) Confirme que esta conta é sua:</strong>
-                  <br />
-                  Adicione o código abaixo em qualquer ponto do campo "Motto" do seu perfil RetroAchievements antes de clicar em Vincular. Você pode mantê-lo junto com seu texto atual.
-                  <br />
-                  <a
-                    href="https://retroachievements.org/controlpanel.php"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style="color: #3b82f6; text-decoration: underline;"
-                  >
-                    Abrir configurações do RetroAchievements
-                  </a>
-                </p>
-
                 <div
-                  style="margin:0.75rem 0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center;"
+                  id="retro-verification-code"
+                  style="font-family:monospace;font-size:1.25rem;letter-spacing:0.1em;font-weight:bold;"
                 >
-                  <div style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">
-                    Código de verificação
-                  </div>
-                  <div
-                    id="retro-verification-code"
-                    style="font-family:monospace;font-size:1.25rem;letter-spacing:0.1em;font-weight:bold;"
-                  >
-                    {@retro_verification_code}
-                  </div>
+                  {@retro_verification_code}
                 </div>
+              </div>
 
-                <p class="connect-modal-instruction">
-                  <strong>2) Insira suas credenciais:</strong>
-                  <br />
-                  Nome de usuário e Web API Key (disponível no menu de configurações do RetroAchievements).
-                </p>
+              <p class="connect-modal-instruction">
+                <strong>2) Insira suas credenciais:</strong>
+                <br />
+                Nome de usuário e Web API Key (disponível no menu de configurações do RetroAchievements).
+              </p>
 
-                <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
+              <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
 
-                <div class="connect-input-group">
-                  <label class="connect-input-label" for="retro-username">Username</label>
-                  <.input
-                    field={@form[:username]}
-                    id="retro-username"
-                    type="text"
-                    class="connect-modal-input"
-                    placeholder="Seu usuário do RetroAchievements"
-                  />
-                </div>
+              <div class="connect-input-group">
+                <label class="connect-input-label" for="retro-username">Username</label>
+                <.input
+                  field={@form[:username]}
+                  id="retro-username"
+                  type="text"
+                  class="connect-modal-input"
+                  placeholder="Seu usuário do RetroAchievements"
+                />
+              </div>
 
-                <div class="connect-input-group">
-                  <label class="connect-input-label" for="retro-api-key">API Key</label>
-                  <.input
-                    field={@form[:api_key]}
-                    id="retro-api-key"
-                    type="password"
-                    class="connect-modal-input"
-                    placeholder="Sua chave de API"
-                  />
-                </div>
-              <% end %>
+              <div class="connect-input-group">
+                <label class="connect-input-label" for="retro-api-key">API Key</label>
+                <.input
+                  field={@form[:api_key]}
+                  id="retro-api-key"
+                  type="password"
+                  class="connect-modal-input"
+                  placeholder="Sua chave de API"
+                />
+              </div>
             <% end %>
           </div>
 
