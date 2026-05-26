@@ -820,6 +820,37 @@ defmodule ProjetoPrisma.Accounts do
   def list_achieved_achievements(_scope, _opts), do: []
 
   @doc """
+  Conta o total de conquistas desbloqueadas do usuario logado, com suporte a `:search`.
+  """
+  def count_achieved_achievements(scope, opts \\ [])
+
+  def count_achieved_achievements(%Scope{user: %User{id: user_id}}, opts) do
+    search = opts |> option_value(:search, "") |> normalize_search()
+
+    ProfileAchievement
+    |> join(:inner, [pa], pg in assoc(pa, :profile_game))
+    |> join(:inner, [_pa, pg], profile in Profile, on: profile.id == pg.profile_id)
+    |> join(:inner, [pa, _pg, _profile], achievement in assoc(pa, :achievement))
+    |> join(:inner, [_pa, pg, _profile, _achievement], platform_game in assoc(pg, :platform_game))
+    |> join(
+      :inner,
+      [_pa, _pg, _profile, _achievement, platform_game],
+      game in assoc(platform_game, :game)
+    )
+    |> where(
+      [_pa, _pg, profile, _achievement, _platform_game, _game],
+      profile.user_id == ^user_id
+    )
+    |> where([pa, _pg, _profile, _achievement, _platform_game, _game], pa.achieved == true)
+    |> maybe_filter_achievement_search(search)
+    |> select([pa, _pg, _profile, _achievement, _platform_game, _game], count(pa.id))
+    |> Repo.one()
+    |> Kernel.||(0)
+  end
+
+  def count_achieved_achievements(_scope, _opts), do: 0
+
+  @doc """
   Lista as conquistas fixadas do usuario logado ordenadas pela posicao.
   """
   def list_pinned_achievements(%Scope{user: %User{id: user_id}}) do

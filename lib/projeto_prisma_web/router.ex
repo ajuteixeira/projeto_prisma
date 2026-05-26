@@ -61,6 +61,8 @@ defmodule ProjetoPrismaWeb.Router do
     get "/ranking", PageController, :ranking
     get "/auth/xbox/start", XboxOAuthController, :start
     get "/auth/xbox/callback", XboxOAuthController, :callback
+    get "/auth/steam/start", SteamOAuthController, :start
+    get "/auth/steam/callback", SteamOAuthController, :callback
     get "/connect-platforms", PageController, :connect_platforms
     get "/users/settings", UserSettingsController, :edit
     put "/users/settings", UserSettingsController, :update
