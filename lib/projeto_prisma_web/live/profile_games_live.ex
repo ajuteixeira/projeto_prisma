@@ -12,8 +12,6 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
     current_scope = Accounts.resolve_scope_from_session(session)
     profile_id = profile_id_from_session(session, current_scope)
 
-    profile_id = profile && profile.id
-
     platforms =
       if is_integer(profile_id) do
         ProfileDashboard.list_profile_platforms(profile_id)
