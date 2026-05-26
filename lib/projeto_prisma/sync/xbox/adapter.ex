@@ -76,7 +76,10 @@ defmodule ProjetoPrisma.Sync.Xbox.Adapter do
           {:error, {:http_error, status, body}}
 
         {:error, reason} ->
-          Logger.warning("[xbox] achievements request failed for title #{title_id}: #{inspect(reason)}")
+          Logger.warning(
+            "[xbox] achievements request failed for title #{title_id}: #{inspect(reason)}"
+          )
+
           {:error, reason}
       end
     end)
@@ -138,7 +141,13 @@ defmodule ProjetoPrisma.Sync.Xbox.Adapter do
   defp enrich_with_playtime(games, xuid, auth_header) do
     games
     |> Task.async_stream(
-      fn game -> Map.put(game, :playtime_minutes, fetch_minutes_played(xuid, game.external_game_id, auth_header)) end,
+      fn game ->
+        Map.put(
+          game,
+          :playtime_minutes,
+          fetch_minutes_played(xuid, game.external_game_id, auth_header)
+        )
+      end,
       max_concurrency: 8,
       timeout: 15_000,
       on_timeout: :kill_task

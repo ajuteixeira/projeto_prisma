@@ -167,25 +167,6 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
      )}
   end
 
-  defp disconnect_xbox(socket) do
-    case Accounts.disconnect_platform_account(socket.assigns.profile_id, "xbox") do
-      {:ok, _} ->
-        {:noreply,
-         socket
-         |> refresh_platforms()
-         |> put_flash(:info, "Conta Xbox desvinculada")}
-
-      {:error, :sync_in_progress} ->
-        {:noreply, socket |> assign(:sync_error_modal, true) |> assign(:sync_error_platform, "Xbox")}
-
-      {:error, :platform_not_found} ->
-        {:noreply, put_flash(socket, :error, "Plataforma Xbox não cadastrada")}
-
-      {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, "Não foi possível desvincular a conta Xbox")}
-    end
-  end
-
   def handle_event("close_modal", _params, socket) do
     {:noreply,
      socket
@@ -269,6 +250,32 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
 
       true ->
         connect_psn(socket, psn_id, npsso)
+    end
+  end
+
+  def handle_event("close_sync_error_modal", _params, socket) do
+    {:noreply, socket |> assign(:sync_error_modal, false) |> assign(:sync_error_platform, nil)}
+  end
+
+  def handle_event("close_confirm_disconnect_modal", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:confirm_disconnect_modal, false)
+     |> assign(:confirm_disconnect_platform, nil)}
+  end
+
+  def handle_event("confirm_disconnect", %{"platform" => slug}, socket) do
+    socket =
+      socket
+      |> assign(:confirm_disconnect_modal, false)
+      |> assign(:confirm_disconnect_platform, nil)
+
+    case slug do
+      "steam" -> disconnect_steam(socket)
+      "xbox" -> disconnect_xbox(socket)
+      "playstation" -> disconnect_psn(socket)
+      "retroachievements" -> disconnect_retro(socket)
+      _ -> {:noreply, socket}
     end
   end
 
@@ -484,7 +491,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
          |> put_flash(:info, "Conta PlayStation desvinculada")}
 
       {:error, :sync_in_progress} ->
-        {:noreply, socket |> assign(:sync_error_modal, true) |> assign(:sync_error_platform, "PlayStation")}
+        {:noreply,
+         socket |> assign(:sync_error_modal, true) |> assign(:sync_error_platform, "PlayStation")}
 
       {:error, :platform_not_found} ->
         {:noreply, put_flash(socket, :error, "Plataforma PlayStation não cadastrada")}
@@ -519,13 +527,34 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
          |> put_flash(:info, "Conta Steam desvinculada")}
 
       {:error, :sync_in_progress} ->
-        {:noreply, socket |> assign(:sync_error_modal, true) |> assign(:sync_error_platform, "Steam")}
+        {:noreply,
+         socket |> assign(:sync_error_modal, true) |> assign(:sync_error_platform, "Steam")}
 
       {:error, :platform_not_found} ->
         {:noreply, put_flash(socket, :error, "Plataforma Steam não cadastrada")}
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "Não foi possível desvincular a conta Steam")}
+    end
+  end
+
+  defp disconnect_xbox(socket) do
+    case Accounts.disconnect_platform_account(socket.assigns.profile_id, "xbox") do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> refresh_platforms()
+         |> put_flash(:info, "Conta Xbox desvinculada")}
+
+      {:error, :sync_in_progress} ->
+        {:noreply,
+         socket |> assign(:sync_error_modal, true) |> assign(:sync_error_platform, "Xbox")}
+
+      {:error, :platform_not_found} ->
+        {:noreply, put_flash(socket, :error, "Plataforma Xbox não cadastrada")}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Não foi possível desvincular a conta Xbox")}
     end
   end
 
@@ -632,29 +661,6 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
     end
   end
 
-  def handle_event("close_sync_error_modal", _params, socket) do
-    {:noreply, socket |> assign(:sync_error_modal, false) |> assign(:sync_error_platform, nil)}
-  end
-
-  def handle_event("close_confirm_disconnect_modal", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:confirm_disconnect_modal, false)
-     |> assign(:confirm_disconnect_platform, nil)}
-  end
-
-  def handle_event("confirm_disconnect", %{"platform" => slug}, socket) do
-    socket = socket |> assign(:confirm_disconnect_modal, false) |> assign(:confirm_disconnect_platform, nil)
-
-    case slug do
-      "steam" -> disconnect_steam(socket)
-      "xbox" -> disconnect_xbox(socket)
-      "playstation" -> disconnect_psn(socket)
-      "retroachievements" -> disconnect_retro(socket)
-      _ -> {:noreply, socket}
-    end
-  end
-
   defp show_confirm_disconnect(socket, platform) do
     {:noreply,
      socket
@@ -730,13 +736,14 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
         style="position:relative;width:100%;max-width:420px;background:linear-gradient(145deg,#0f172a,#1e293b);border:1px solid rgba(239,68,68,0.3);border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.05),inset 0 1px 0 rgba(255,255,255,0.07);overflow:hidden;"
       >
         <%!-- Top accent bar --%>
-        <div style="height:3px;background:linear-gradient(90deg,#ef4444,#dc2626,transparent);width:100%;"></div>
+        <div style="height:3px;background:linear-gradient(90deg,#ef4444,#dc2626,transparent);width:100%;">
+        </div>
 
         <div style="padding:1.75rem;">
           <%!-- Header --%>
           <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;">
             <div style="flex-shrink:0;width:44px;height:44px;border-radius:12px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);display:flex;align-items:center;justify-content:center;">
-              <.icon name="hero-exclamation-triangle" class="size-5" style="color:#ef4444;" />
+              <.icon name="hero-exclamation-triangle" class="size-5 text-red-500" />
             </div>
             <div>
               <h3 style="margin:0;font-size:1.05rem;font-weight:700;color:#f1f5f9;letter-spacing:-0.01em;">
@@ -751,7 +758,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
           <%!-- Body --%>
           <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:0.875rem 1rem;margin-bottom:1.5rem;">
             <p style="margin:0;font-size:0.85rem;color:#94a3b8;line-height:1.55;">
-              Todos os <strong style="color:#cbd5e1;">jogos e conquistas</strong> sincronizados desta plataforma serão removidos do seu perfil.
+              Todos os <strong style="color:#cbd5e1;">jogos e conquistas</strong>
+              sincronizados desta plataforma serão removidos do seu perfil.
             </p>
           </div>
 
@@ -790,13 +798,14 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
         style="position:relative;width:100%;max-width:420px;background:linear-gradient(145deg,#0f172a,#1e293b);border:1px solid rgba(234,179,8,0.3);border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.05),inset 0 1px 0 rgba(255,255,255,0.07);overflow:hidden;"
       >
         <%!-- Top accent bar --%>
-        <div style="height:3px;background:linear-gradient(90deg,#eab308,#ca8a04,transparent);width:100%;"></div>
+        <div style="height:3px;background:linear-gradient(90deg,#eab308,#ca8a04,transparent);width:100%;">
+        </div>
 
         <div style="padding:1.75rem;">
           <%!-- Header --%>
           <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;">
             <div style="flex-shrink:0;width:44px;height:44px;border-radius:12px;background:rgba(234,179,8,0.12);border:1px solid rgba(234,179,8,0.25);display:flex;align-items:center;justify-content:center;">
-              <.icon name="hero-arrow-path" class="size-5" style="color:#eab308;" />
+              <.icon name="hero-arrow-path" class="size-5 text-yellow-500" />
             </div>
             <div>
               <h3 style="margin:0;font-size:1.05rem;font-weight:700;color:#f1f5f9;letter-spacing:-0.01em;">
@@ -811,7 +820,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
           <%!-- Body --%>
           <div style="background:rgba(234,179,8,0.06);border:1px solid rgba(234,179,8,0.15);border-radius:10px;padding:0.875rem 1rem;margin-bottom:1.5rem;">
             <p style="margin:0;font-size:0.85rem;color:#94a3b8;line-height:1.55;">
-              A conta <strong style="color:#cbd5e1;">{@sync_error_platform}</strong> está sendo sincronizada no momento. Aguarde a conclusão e tente novamente.
+              A conta <strong style="color:#cbd5e1;">{@sync_error_platform}</strong>
+              está sendo sincronizada no momento. Aguarde a conclusão e tente novamente.
             </p>
           </div>
 
@@ -901,9 +911,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
                   Adicione o código abaixo em qualquer ponto do seu campo "Sobre Mim" no perfil PlayStation antes de clicar em Vincular. Você não precisa apagar o texto existente — basta colar o código no início, no fim ou entre o que já está lá. O PlayStation pode levar alguns segundos para refletir a alteração.
                 </p>
 
-                <div
-                  style="margin:0.75rem 0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center;"
-                >
+                <div style="margin:0.75rem 0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center;">
                   <div style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">
                     Código de verificação
                   </div>
@@ -968,9 +976,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
                   </a>
                 </p>
 
-                <div
-                  style="margin:0.75rem 0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center;"
-                >
+                <div style="margin:0.75rem 0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center;">
                   <div style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">
                     Código de verificação
                   </div>

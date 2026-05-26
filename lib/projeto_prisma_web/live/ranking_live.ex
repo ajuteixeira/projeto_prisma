@@ -38,7 +38,6 @@ defmodule ProjetoPrismaWeb.RankingLive do
     ~H"""
     <div class="p-6">
       <div class="max-w-7xl mx-auto">
-
         <div class="page-header">
           <h1 class="text-3xl font-bold text-white mb-2">Ranking Geral</h1>
           <p class="text-gray-400 text-sm">Competição entre você e as pessoas que você segue</p>
@@ -97,7 +96,8 @@ defmodule ProjetoPrismaWeb.RankingLive do
               </div>
             </div>
             <div class="relative search-container">
-              <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+              <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+              </i>
               <input
                 type="text"
                 class="search-input"
@@ -153,7 +153,10 @@ defmodule ProjetoPrismaWeb.RankingLive do
                           <% end %>
                         </span>
                         <div class="mobile-platforms">
-                          <span :for={slug <- entry.platform_slugs} class={["platform-tag", platform_class(slug)]}>
+                          <span
+                            :for={slug <- entry.platform_slugs}
+                            class={["platform-tag", platform_class(slug)]}
+                          >
                             <i class={platform_icon(slug)}></i>
                           </span>
                         </div>
@@ -161,7 +164,10 @@ defmodule ProjetoPrismaWeb.RankingLive do
                     </div>
                   </td>
                   <td>
-                    <span :for={slug <- entry.platform_slugs} class={["platform-tag", platform_class(slug)]}>
+                    <span
+                      :for={slug <- entry.platform_slugs}
+                      class={["platform-tag", platform_class(slug)]}
+                    >
                       <i class={platform_icon(slug)}></i>
                       {platform_label(slug)}
                     </span>
@@ -208,12 +214,10 @@ defmodule ProjetoPrismaWeb.RankingLive do
 
           <div class="mt-6 text-center">
             <p class="text-sm text-gray-500">
-              <i class="fas fa-info-circle mr-2"></i>
-              Ranking entre você e quem você segue
+              <i class="fas fa-info-circle mr-2"></i> Ranking entre você e quem você segue
             </p>
           </div>
         </div>
-
       </div>
     </div>
     """

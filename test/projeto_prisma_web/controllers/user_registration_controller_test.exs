@@ -7,7 +7,7 @@ defmodule ProjetoPrismaWeb.UserRegistrationControllerTest do
     test "renders registration page", %{conn: conn} do
       conn = get(conn, ~p"/users/register")
       response = html_response(conn, 200)
-      assert response =~ "Register"
+      assert response =~ "Crie Sua Conta"
       assert response =~ ~p"/users/log-in"
       assert response =~ ~p"/users/register"
     end
@@ -15,7 +15,7 @@ defmodule ProjetoPrismaWeb.UserRegistrationControllerTest do
     test "redirects if already logged in", %{conn: conn} do
       conn = conn |> log_in_user(user_fixture()) |> get(~p"/users/register")
 
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/connect-platforms"
     end
   end
 
@@ -33,7 +33,7 @@ defmodule ProjetoPrismaWeb.UserRegistrationControllerTest do
       assert redirected_to(conn) == ~p"/users/log-in"
 
       assert conn.assigns.flash["info"] =~
-               ~r/An email was sent to .*, please access it to confirm your account/
+               ~r/Enviamos um e-mail para .*\. Acesse-o para confirmar sua conta\./
     end
 
     test "render errors for invalid data", %{conn: conn} do
@@ -43,8 +43,8 @@ defmodule ProjetoPrismaWeb.UserRegistrationControllerTest do
         })
 
       response = html_response(conn, 200)
-      assert response =~ "Register"
-      assert response =~ "must have the @ sign and no spaces"
+      assert response =~ "Crie Sua Conta"
+      assert response =~ "deve conter @ e nao ter espacos"
     end
   end
 end

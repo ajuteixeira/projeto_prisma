@@ -10,11 +10,11 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
   @impl true
   def mount(_params, session, socket) do
     current_scope = Accounts.resolve_scope_from_session(session)
-    profile = ProfileDashboard.profile_for_user(scope_user_id(current_scope))
+    profile_id = profile_id_from_session(session, current_scope)
 
     socket =
       socket
-      |> assign(:profile_id, profile && profile.id)
+      |> assign(:profile_id, profile_id)
       |> assign(:current_page, 1)
       |> assign(:sort_order, :desc)
       |> assign(:search_query, "")
@@ -281,11 +281,11 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
               "inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition",
               @has_previous_page? &&
                 "border-gray-600 bg-gray-800/80 text-white hover:border-gray-500 hover:bg-gray-700/80",
-              !@has_previous_page? && "cursor-not-allowed border-gray-800 bg-gray-900/70 text-gray-500"
+              !@has_previous_page? &&
+                "cursor-not-allowed border-gray-800 bg-gray-900/70 text-gray-500"
             ]}
           >
-            <.icon name="hero-chevron-left" class="size-4" />
-            Anterior
+            <.icon name="hero-chevron-left" class="size-4" /> Anterior
           </button>
 
           <button
@@ -301,8 +301,7 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
                 "cursor-not-allowed border-gray-800 bg-gray-900/70 text-gray-500"
             ]}
           >
-            Próxima
-            <.icon name="hero-chevron-right" class="size-4" />
+            Próxima <.icon name="hero-chevron-right" class="size-4" />
           </button>
         </div>
       </div>
@@ -408,6 +407,24 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
   end
 
   defp normalize_search_query(_search_query), do: ""
+
+  defp profile_id_from_session(%{"profile_id" => profile_id}, _current_scope)
+       when is_integer(profile_id),
+       do: profile_id
+
+  defp profile_id_from_session(%{"profile_id" => profile_id}, _current_scope)
+       when is_binary(profile_id),
+       do: parse_integer(profile_id)
+
+  defp profile_id_from_session(_session, current_scope) do
+    current_scope
+    |> scope_user_id()
+    |> ProfileDashboard.profile_for_user()
+    |> case do
+      %{id: id} when is_integer(id) -> id
+      _ -> nil
+    end
+  end
 
   defp parse_integer(value) when is_binary(value) do
     case Integer.parse(value) do

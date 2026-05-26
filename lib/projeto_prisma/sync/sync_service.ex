@@ -342,7 +342,7 @@ defmodule ProjetoPrisma.Sync.SyncService do
                "playtime_minutes" => game_value(game_data, :playtime_minutes) || 0,
                "last_played" =>
                  game_value(game_data, :last_played) ||
-                   (DateTime.utc_now() |> DateTime.to_naive())
+                   DateTime.utc_now() |> DateTime.to_naive()
              }
            ) do
       achievements_count =

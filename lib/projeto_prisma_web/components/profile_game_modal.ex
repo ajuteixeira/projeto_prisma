@@ -36,8 +36,7 @@ defmodule ProjetoPrismaWeb.ProfileGameModal do
             phx-click={@close_event}
             class="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-white/15 bg-slate-900/80 px-4 py-2 text-sm text-white transition hover:border-white/30 hover:bg-slate-800/90"
           >
-            <.icon name="hero-x-mark" class="size-4" />
-            Fechar
+            <.icon name="hero-x-mark" class="size-4" /> Fechar
           </button>
 
           <div class="absolute bottom-0 left-0 right-0 z-10 p-6 sm:p-8">
@@ -70,7 +69,10 @@ defmodule ProjetoPrismaWeb.ProfileGameModal do
 
         <div class="max-h-[calc(90vh-14rem)] p-6 sm:p-8">
           <div class="mt-6 grid gap-4 lg:grid-cols-2">
-            <div class="rounded-2xl p-5" style="background: rgba(96, 165, 250, 0.06); border: 1px solid rgba(96, 165, 250, 0.18);">
+            <div
+              class="rounded-2xl p-5"
+              style="background: rgba(96, 165, 250, 0.06); border: 1px solid rgba(96, 165, 250, 0.18);"
+            >
               <h4 class="text-lg font-semibold text-white">Informações do Jogo</h4>
               <div class="mt-4 space-y-3 text-sm">
                 <div class="flex items-start justify-between gap-4 border-b border-[rgba(255,255,255,0.06)] pb-3">
@@ -101,11 +103,13 @@ defmodule ProjetoPrismaWeb.ProfileGameModal do
                     {format_datetime(@game.last_unlock_time)}
                   </span>
                 </div>
-
               </div>
             </div>
 
-            <div class="rounded-2xl p-5" style="background: rgba(96, 165, 250, 0.06); border: 1px solid rgba(96, 165, 250, 0.18);">
+            <div
+              class="rounded-2xl p-5"
+              style="background: rgba(96, 165, 250, 0.06); border: 1px solid rgba(96, 165, 250, 0.18);"
+            >
               <div class="flex items-center justify-between gap-4">
                 <div>
                   <h4 class="text-lg font-semibold text-white">Conquistas</h4>
@@ -158,13 +162,11 @@ defmodule ProjetoPrismaWeb.ProfileGameModal do
                         </div>
                       </div>
 
-                      <span
-                        class={[
-                          "rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]",
-                          achievement.achieved && "bg-emerald-400/15 text-emerald-200",
-                          !achievement.achieved && "bg-gray-800 text-gray-300"
-                        ]}
-                      >
+                      <span class={[
+                        "rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]",
+                        achievement.achieved && "bg-emerald-400/15 text-emerald-200",
+                        !achievement.achieved && "bg-gray-800 text-gray-300"
+                      ]}>
                         {achievement_status_label(achievement)}
                       </span>
                     </div>
@@ -218,10 +220,13 @@ defmodule ProjetoPrismaWeb.ProfileGameModal do
   defp completion_label(value) when is_integer(value), do: "#{value}%"
   defp completion_label(_), do: "0%"
 
-  defp achievement_items(%{achievements: achievements}) when is_list(achievements), do: achievements
+  defp achievement_items(%{achievements: achievements}) when is_list(achievements),
+    do: achievements
+
   defp achievement_items(_), do: []
 
-  defp achievement_icon(%{achieved: true, icon_image: img}) when is_binary(img) and img != "", do: img
+  defp achievement_icon(%{achieved: true, icon_image: img}) when is_binary(img) and img != "",
+    do: img
 
   defp achievement_icon(%{icon_locked_image: img}) when is_binary(img) and img != "",
     do: img

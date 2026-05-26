@@ -34,6 +34,94 @@
 }
 
 /* ===========================
+   PROFILE VIEW NAVBAR
+   =========================== */
+.profile-view-navbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  background: rgba(15, 20, 25, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.profile-view-navbar__inner {
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profile-view-navbar__label {
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.profile-view-navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-view-navbar__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  color: #e5e7eb;
+  transition: all 0.25s ease;
+}
+
+.profile-view-navbar__btn--ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #9ca3af;
+}
+
+.profile-view-navbar__btn--ghost:hover {
+  background: rgba(96, 165, 250, 0.12);
+  border-color: rgba(96, 165, 250, 0.4);
+  color: #60a5fa;
+}
+
+.profile-view-navbar__btn--primary {
+  background: rgba(96, 165, 250, 0.18);
+  border-color: rgba(96, 165, 250, 0.4);
+  color: #60a5fa;
+  box-shadow: 0 0 12px rgba(96, 165, 250, 0.2);
+}
+
+.profile-view-navbar__btn--primary:hover {
+  background: rgba(96, 165, 250, 0.3);
+  border-color: rgba(96, 165, 250, 0.6);
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .profile-view-navbar__inner {
+    padding: 8px 16px;
+  }
+
+  .profile-view-navbar__label {
+    font-size: 10px;
+  }
+}
+
+/* ===========================
    PROFILE CARD
    =========================== */
 .profile-card {

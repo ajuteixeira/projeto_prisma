@@ -42,7 +42,8 @@ defmodule ProjetoPrisma.Sync.Xbox.Session do
   end
 
   defp derive_and_cache(%{external_user_id: xuid, api_key: refresh_token} = account) do
-    with {:ok, %{access_token: access, refresh_token: new_refresh}} <- Auth.refresh(refresh_token),
+    with {:ok, %{access_token: access, refresh_token: new_refresh}} <-
+           Auth.refresh(refresh_token),
          :ok <- maybe_persist_refresh(account, refresh_token, new_refresh),
          {:ok, %{token: ut}} <- Auth.user_token(access),
          {:ok, %{token: xsts, uhs: uhs, not_after: not_after}} <- Auth.xsts_token(ut) do
@@ -51,7 +52,8 @@ defmodule ProjetoPrisma.Sync.Xbox.Session do
       :ets.insert(@cache_table, {xuid, header, expires_at})
       {:ok, %{auth_header: header, xuid: xuid}}
     else
-      {:error, {:oauth_http_status, status, %{"error" => "invalid_grant"}}} when status in 400..499 ->
+      {:error, {:oauth_http_status, status, %{"error" => "invalid_grant"}}}
+      when status in 400..499 ->
         {:error, :xbox_reconnect_required}
 
       {:error, reason} ->

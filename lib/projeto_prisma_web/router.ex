@@ -69,4 +69,10 @@ defmodule ProjetoPrismaWeb.Router do
     get "/users/log-out", UserSessionController, :delete
     delete "/users/log-out", UserSessionController, :delete
   end
+
+  scope "/", ProjetoPrismaWeb do
+    pipe_through [:browser]
+
+    get "/:username", PageController, :friend_profile
+  end
 end
