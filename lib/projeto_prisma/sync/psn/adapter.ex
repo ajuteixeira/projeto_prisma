@@ -20,6 +20,7 @@ defmodule ProjetoPrisma.Sync.Psn.Adapter do
 
       games =
         trophy_body["trophyTitles"]
+        |> dedupe_trophy_titles()
         |> Enum.map(&normalize_game(&1, playtime_map))
 
       {:ok, games}
@@ -57,6 +58,24 @@ defmodule ProjetoPrisma.Sync.Psn.Adapter do
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  # PSN returns one trophyTitle per console version (PS4/PS5), so the same
+  # game can appear multiple times with different npCommunicationId. Collapse
+  # by trophyTitleName, keeping the entry with the highest progress (tie-break
+  # by most recent lastUpdatedDateTime) so the user sees their best run.
+  defp dedupe_trophy_titles(titles) when is_list(titles) do
+    titles
+    |> Enum.group_by(& &1["trophyTitleName"])
+    |> Enum.map(fn {_name, group} -> Enum.max_by(group, &trophy_title_rank/1) end)
+  end
+
+  defp dedupe_trophy_titles(_), do: []
+
+  defp trophy_title_rank(title) do
+    progress = title["progress"] || 0
+    updated = title["lastUpdatedDateTime"] || ""
+    {progress, updated}
   end
 
   defp normalize_game(raw, playtime_map) do
