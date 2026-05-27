@@ -313,7 +313,6 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
       end
     {:noreply, socket}
   end
-  end
 
   def handle_event("toggle_pinned_achievement", %{"id" => raw_id}, socket) do
     id = parse_int(raw_id)
