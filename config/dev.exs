@@ -18,6 +18,11 @@ config :projeto_prisma, ProjetoPrisma.Repo,
 # to bundle .js and .css sources.
 config :projeto_prisma, ProjetoPrismaWeb.Endpoint,
   http: [ip: {0, 0, 0, 0}],
+  url: [
+    host: System.get_env("PHX_HOST", "localhost"),
+    port: String.to_integer(System.get_env("PHX_PORT", "4000")),
+    scheme: System.get_env("PHX_SCHEME", "http")
+  ],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
