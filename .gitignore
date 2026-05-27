@@ -74,6 +74,7 @@ yarn-error.log
 .env
 .env.*
 !.env.example
+!.env.ec2.example
 
 # ============================================================
 # Editores e SO
