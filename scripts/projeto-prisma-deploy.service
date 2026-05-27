@@ -1,0 +1,19 @@
+[Unit]
+Description=Projeto Prisma auto-deploy watcher
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ubuntu/projeto_prisma
+ExecStart=/home/ubuntu/projeto_prisma/scripts/auto-deploy.sh
+Restart=always
+RestartSec=10
+User=ubuntu
+Environment=BRANCH=main
+Environment=INTERVAL=60
+Environment=COMPOSE_FILE=compose.ec2.yml
+
+[Install]
+WantedBy=multi-user.target
