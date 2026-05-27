@@ -11,7 +11,9 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
   @impl true
   def mount(_params, session, socket) do
     current_scope = resolve_current_scope(session)
-    profile = Accounts.get_profile_with_user(current_scope)
+    profile_id = parse_int(Map.get(session, "profile_id"))
+    profile = resolve_profile(current_scope, profile_id)
+    read_only = read_only_flag(session)
 
     {followers_count, following_count} =
       if profile do
@@ -25,13 +27,14 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
 
     # Get full_name from the user associated with the profile
     full_name = get_user_full_name(profile)
-    pinned_achievements = safe_list_pinned(current_scope)
+    pinned_achievements = safe_list_pinned(current_scope, profile_id, read_only)
 
     {:ok,
      socket
      |> assign(:current_scope, current_scope)
      |> assign(:profile, profile)
      |> assign(:profile_missing, is_nil(profile))
+     |> assign(:read_only, read_only)
      |> assign(:followers_count, followers_count)
      |> assign(:following_count, following_count)
      |> assign(:modal_open, false)
@@ -67,6 +70,9 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
   defp get_user_full_name(_), do: ""
 
   @impl true
+  def handle_event("open_edit_modal", _params, %{assigns: %{read_only: true}} = socket),
+    do: deny_read_only(socket)
+
   def handle_event("open_edit_modal", _params, socket) do
     if socket.assigns.profile_missing do
       {:noreply, put_flash(socket, :error, "Nao foi possivel localizar seu perfil.")}
@@ -90,6 +96,9 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
      |> cancel_all_uploads()}
   end
 
+  def handle_event("validate_profile", _params, %{assigns: %{read_only: true}} = socket),
+    do: deny_read_only(socket)
+
   def handle_event("validate_profile", %{"profile" => params} = full_params, socket) do
     # Track full_name separately (it's a user field, not profile)
     full_name = full_params["full_name"] || socket.assigns.full_name
@@ -112,9 +121,15 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
      |> assign(:form, to_form(changeset))}
   end
 
+  def handle_event("cancel_upload", _params, %{assigns: %{read_only: true}} = socket),
+    do: deny_read_only(socket)
+
   def handle_event("cancel_upload", %{"ref" => ref}, socket) do
     {:noreply, cancel_upload(socket, :avatar, ref)}
   end
+
+  def handle_event("save_profile", _params, %{assigns: %{read_only: true}} = socket),
+    do: deny_read_only(socket)
 
   def handle_event("save_profile", %{"profile" => params} = full_params, socket) do
     username = String.trim(params["username"] || "")
@@ -214,9 +229,12 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
     end
   end
 
+  def handle_event("open_achievements_modal", _params, %{assigns: %{read_only: true}} = socket),
+    do: deny_read_only(socket)
+
   def handle_event("open_achievements_modal", _params, socket) do
     scope = socket.assigns.current_scope
-    pinned = safe_list_pinned(scope)
+    pinned = safe_list_pinned(scope, profile_id_from_assigns(socket), socket.assigns.read_only)
     selected_ids = Enum.map(pinned, & &1.id)
 
     {:noreply,
@@ -235,6 +253,9 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
      |> assign(:achievements_modal_error, nil)}
   end
 
+  def handle_event("search_achievements", _params, %{assigns: %{read_only: true}} = socket),
+    do: deny_read_only(socket)
+
   def handle_event("search_achievements", params, socket) do
     query =
       params
@@ -247,15 +268,28 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
      |> load_achievements_page(1, query)}
   end
 
+  def handle_event("next_page_achievements", _params, %{assigns: %{read_only: true}} = socket),
+    do: deny_read_only(socket)
+
   def handle_event("next_page_achievements", _params, socket) do
     page = socket.assigns.achievements_page + 1
     {:noreply, load_achievements_page(socket, page, socket.assigns.achievement_search)}
   end
 
+  def handle_event(
+        "previous_page_achievements",
+        _params,
+        %{assigns: %{read_only: true}} = socket
+      ),
+      do: deny_read_only(socket)
+
   def handle_event("previous_page_achievements", _params, socket) do
     page = max(1, socket.assigns.achievements_page - 1)
     {:noreply, load_achievements_page(socket, page, socket.assigns.achievement_search)}
   end
+
+  def handle_event("toggle_pinned_achievement", _params, %{assigns: %{read_only: true}} = socket),
+    do: deny_read_only(socket)
 
   def handle_event("go_to_achievements_page", %{"ach_page_jump" => %{"page" => raw}}, socket) do
     socket =
@@ -277,8 +311,8 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
 
           load_achievements_page(socket, target, socket.assigns.achievement_search)
       end
-
     {:noreply, socket}
+  end
   end
 
   def handle_event("toggle_pinned_achievement", %{"id" => raw_id}, socket) do
@@ -320,13 +354,17 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
      |> assign(:selected_trophy, nil)}
   end
 
+  def handle_event("save_pinned_achievements", _params, %{assigns: %{read_only: true}} = socket),
+    do: deny_read_only(socket)
+
   def handle_event("save_pinned_achievements", _params, socket) do
     scope = socket.assigns.current_scope
     ids = socket.assigns.selected_achievement_ids
 
     case Accounts.update_pinned_achievements(scope, ids) do
       {:ok, _} ->
-        pinned = safe_list_pinned(scope)
+        pinned =
+          safe_list_pinned(scope, profile_id_from_assigns(socket), socket.assigns.read_only)
 
         {:noreply,
          socket
@@ -385,9 +423,23 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
     end)
   end
 
-  defp safe_list_pinned(nil), do: []
+  defp safe_list_pinned(nil, _profile_id, _read_only), do: []
 
-  defp safe_list_pinned(scope) do
+  defp safe_list_pinned(_scope, profile_id, true) when is_integer(profile_id) do
+    if function_exported?(Accounts, :list_pinned_achievements_for_profile, 1) do
+      try do
+        Accounts.list_pinned_achievements_for_profile(profile_id) || []
+      rescue
+        _ -> []
+      end
+    else
+      []
+    end
+  end
+
+  defp safe_list_pinned(_scope, _profile_id, true), do: []
+
+  defp safe_list_pinned(scope, _profile_id, _read_only) do
     if function_exported?(Accounts, :list_pinned_achievements, 1) do
       try do
         Accounts.list_pinned_achievements(scope) || []
@@ -473,6 +525,25 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
 
   defp parse_int(_), do: nil
 
+  defp resolve_profile(_scope, profile_id) when is_integer(profile_id) do
+    Accounts.get_profile_with_user_by_id(profile_id)
+  end
+
+  defp resolve_profile(scope, _profile_id) do
+    Accounts.get_profile_with_user(scope)
+  end
+
+  defp read_only_flag(%{"read_only" => true}), do: true
+  defp read_only_flag(%{"read_only" => "true"}), do: true
+  defp read_only_flag(_session), do: false
+
+  defp profile_id_from_assigns(%{assigns: %{profile: %{id: id}}}) when is_integer(id), do: id
+  defp profile_id_from_assigns(_socket), do: nil
+
+  defp deny_read_only(socket) do
+    {:noreply, put_flash(socket, :error, "Perfil em modo visualizacao.")}
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -480,8 +551,8 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
       <div class="flex items-start space-x-4">
         <div
           class="relative profile-avatar-container"
-          phx-click="open_edit_modal"
-          style="cursor: pointer;"
+          phx-click={if @read_only, do: nil, else: "open_edit_modal"}
+          style={if @read_only, do: nil, else: "cursor: pointer;"}
         >
           <img
             src={profile_avatar(@profile)}
@@ -489,7 +560,7 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
             id="profile-avatar"
             class="w-20 h-20 rounded-full border-2 border-blue-400 object-cover"
           />
-          <div class="profile-edit-overlay">
+          <div :if={!@read_only} class="profile-edit-overlay">
             <i class="fas fa-camera text-white text-xl"></i>
           </div>
           <div class="online-indicator pulse"></div>
@@ -520,6 +591,7 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
             Conquistas Fixadas
           </h3>
           <button
+            :if={!@read_only}
             type="button"
             id="open-pin-modal"
             phx-click="open_achievements_modal"
@@ -572,7 +644,7 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
 
     <!-- Edit Profile Modal -->
     <div
-      :if={@modal_open}
+      :if={@modal_open and not @read_only}
       id="edit-profile-modal"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
       phx-window-keydown="close_modal"
@@ -734,7 +806,7 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
 
     <!-- Manage Achievements Modal -->
     <div
-      :if={@achievements_modal_open}
+      :if={@achievements_modal_open and not @read_only}
       id="manage-achievements-modal"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
       phx-window-keydown="close_achievements_modal"

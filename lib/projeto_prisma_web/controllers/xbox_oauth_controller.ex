@@ -102,7 +102,10 @@ defmodule ProjetoPrismaWeb.XboxOAuthController do
         finish_error(conn, "Não foi possível concluir a vinculação com Xbox Live agora.")
 
       {:ok, %{refresh_token: nil}} ->
-        finish_error(conn, "Microsoft não retornou refresh_token. Verifique a permissão offline_access.")
+        finish_error(
+          conn,
+          "Microsoft não retornou refresh_token. Verifique a permissão offline_access."
+        )
     end
   end
 

@@ -118,13 +118,19 @@ defmodule ProjetoPrismaWeb.FollowersLive do
             <div class="text-gray-400 text-sm">Nenhum seguidor ainda.</div>
           <% else %>
             <div :for={follower <- @followers} class="follower-card" id={"follower-#{follower.id}"}>
-              <img
-                src={profile_avatar(follower)}
-                alt={profile_display_name(follower)}
-                class="follower-avatar"
-              />
-              <div class="follower-name">{profile_display_name(follower)}</div>
-              <div class="follower-username">@{profile_username(follower)}</div>
+              <.link navigate={profile_path(follower)}>
+                <img
+                  src={profile_avatar(follower)}
+                  alt={profile_display_name(follower)}
+                  class="follower-avatar"
+                />
+              </.link>
+              <.link navigate={profile_path(follower)} class="follower-name">
+                {profile_display_name(follower)}
+              </.link>
+              <.link navigate={profile_path(follower)} class="follower-username">
+                @{profile_username(follower)}
+              </.link>
               <button
                 type="button"
                 class={follow_button_class(@following_ids, follower.id)}
@@ -145,13 +151,19 @@ defmodule ProjetoPrismaWeb.FollowersLive do
             <div class="text-gray-400 text-sm">Voce ainda nao segue ninguem.</div>
           <% else %>
             <div :for={profile <- @following} class="follower-card" id={"following-#{profile.id}"}>
-              <img
-                src={profile_avatar(profile)}
-                alt={profile_display_name(profile)}
-                class="follower-avatar"
-              />
-              <div class="follower-name">{profile_display_name(profile)}</div>
-              <div class="follower-username">@{profile_username(profile)}</div>
+              <.link navigate={profile_path(profile)}>
+                <img
+                  src={profile_avatar(profile)}
+                  alt={profile_display_name(profile)}
+                  class="follower-avatar"
+                />
+              </.link>
+              <.link navigate={profile_path(profile)} class="follower-name">
+                {profile_display_name(profile)}
+              </.link>
+              <.link navigate={profile_path(profile)} class="follower-username">
+                @{profile_username(profile)}
+              </.link>
               <button
                 type="button"
                 class={follow_button_class(@following_ids, profile.id)}
@@ -187,13 +199,19 @@ defmodule ProjetoPrismaWeb.FollowersLive do
           <% end %>
 
           <div :for={profile <- @search_results} class="follower-card" id={"search-#{profile.id}"}>
-            <img
-              src={profile_avatar(profile)}
-              alt={profile_display_name(profile)}
-              class="follower-avatar"
-            />
-            <div class="follower-name">{profile_display_name(profile)}</div>
-            <div class="follower-username">@{profile_username(profile)}</div>
+            <.link navigate={profile_path(profile)}>
+              <img
+                src={profile_avatar(profile)}
+                alt={profile_display_name(profile)}
+                class="follower-avatar"
+              />
+            </.link>
+            <.link navigate={profile_path(profile)} class="follower-name">
+              {profile_display_name(profile)}
+            </.link>
+            <.link navigate={profile_path(profile)} class="follower-username">
+              @{profile_username(profile)}
+            </.link>
             <button
               type="button"
               class={follow_button_class(@following_ids, profile.id)}
@@ -325,5 +343,10 @@ defmodule ProjetoPrismaWeb.FollowersLive do
   defp fallback_avatar(profile) do
     seed = profile_display_name(profile)
     "https://api.dicebear.com/7.x/avataaars/svg?seed=#{URI.encode(seed)}&backgroundColor=c0aede"
+  end
+
+  defp profile_path(profile) do
+    username = profile_username(profile)
+    ~p"/#{username}"
   end
 end

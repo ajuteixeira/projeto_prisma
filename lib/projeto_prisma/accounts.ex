@@ -19,7 +19,7 @@ defmodule ProjetoPrisma.Accounts do
     Scope
   }
 
-  alias ProjetoPrisma.Catalog.{Achievement, Platform, PlatformGame}
+  alias ProjetoPrisma.Catalog.{Platform, PlatformGame}
 
   @doc """
   Registra um novo usuário com senha hasheada.
@@ -163,6 +163,37 @@ defmodule ProjetoPrisma.Accounts do
   end
 
   @doc """
+  Busca um profile pelo ID com user/avatar preload.
+
+  ## Exemplos
+      iex> get_profile_with_user_by_id(1)
+      %Profile{user: %User{}, avatar: %ProfileAvatar{}}
+  """
+  def get_profile_with_user_by_id(profile_id) when is_integer(profile_id) do
+    Profile
+    |> where([p], p.id == ^profile_id)
+    |> Repo.one()
+    |> maybe_preload_profile()
+  end
+
+  def get_profile_with_user_by_id(_profile_id), do: nil
+
+  @doc """
+  Busca um profile pelo username com user/avatar preload.
+
+  ## Exemplos
+      iex> get_profile_with_user_by_username("fulano")
+      %Profile{user: %User{}, avatar: %ProfileAvatar{}}
+  """
+  def get_profile_with_user_by_username(username) when is_binary(username) do
+    username
+    |> get_profile_by_username()
+    |> maybe_preload_profile()
+  end
+
+  def get_profile_with_user_by_username(_username), do: nil
+
+  @doc """
   Busca um profile com o user precarregado usando o Scope.
 
   ## Exemplos
@@ -177,6 +208,9 @@ defmodule ProjetoPrisma.Accounts do
   end
 
   def get_profile_with_user(_scope), do: nil
+
+  defp maybe_preload_profile(nil), do: nil
+  defp maybe_preload_profile(profile), do: Repo.preload(profile, [:user, :avatar])
 
   @doc """
   Lista os seguidores de um profile.
@@ -833,6 +867,22 @@ defmodule ProjetoPrisma.Accounts do
   def list_pinned_achievements(_scope), do: []
 
   @doc """
+  Lista as conquistas fixadas de um profile especifico ordenadas pela posicao.
+  """
+  def list_pinned_achievements_for_profile(profile_id) when is_integer(profile_id) do
+    profile_id
+    |> profile_achievement_display_query_for_profile()
+    |> where(
+      [pa, _pg, _profile, _achievement, _platform_game, _game],
+      pa.achieved == true and not is_nil(pa.pinned_position)
+    )
+    |> order_by([pa, _pg, _profile, _achievement, _platform_game, _game], asc: pa.pinned_position)
+    |> Repo.all()
+  end
+
+  def list_pinned_achievements_for_profile(_profile_id), do: []
+
+  @doc """
   Atualiza as conquistas fixadas do usuario logado.
 
   Recebe uma lista ordenada com ate 4 IDs de `profile_achievements`.
@@ -1019,6 +1069,37 @@ defmodule ProjetoPrisma.Accounts do
     })
   end
 
+  defp profile_achievement_display_query_for_profile(profile_id) do
+    ProfileAchievement
+    |> join(:inner, [pa], pg in assoc(pa, :profile_game))
+    |> join(:inner, [_pa, pg], profile in Profile, on: profile.id == pg.profile_id)
+    |> join(:inner, [pa, _pg, _profile], achievement in assoc(pa, :achievement))
+    |> join(:inner, [_pa, pg, _profile, _achievement], platform_game in assoc(pg, :platform_game))
+    |> join(
+      :inner,
+      [_pa, _pg, _profile, _achievement, platform_game],
+      game in assoc(platform_game, :game)
+    )
+    |> where(
+      [_pa, _pg, profile, _achievement, _platform_game, _game],
+      profile.id == ^profile_id
+    )
+    |> select([pa, pg, _profile, achievement, _platform_game, game], %{
+      id: pa.id,
+      profile_achievement_id: pa.id,
+      profile_game_id: pg.id,
+      achievement_id: achievement.id,
+      name: achievement.name,
+      description: achievement.description,
+      icon: achievement.icon_image,
+      icon_image: achievement.icon_image,
+      game_name: game.name,
+      achieved: pa.achieved,
+      unlock_time: pa.unlock_time,
+      pinned_position: pa.pinned_position
+    })
+  end
+
   defp maybe_filter_achievement_search(query, ""), do: query
 
   defp maybe_filter_achievement_search(query, search) do
@@ -1185,6 +1266,7 @@ defmodule ProjetoPrisma.Accounts do
   """
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
+    email = String.downcase(String.trim(email))
     user = Repo.get_by(User, email: email)
     if User.valid_password?(user, password) and not User.deleted?(user), do: user
   end
@@ -1220,9 +1302,28 @@ defmodule ProjetoPrisma.Accounts do
 
   """
   def register_user(attrs) do
+    attrs = ensure_username(attrs)
+
     %User{}
     |> User.email_changeset(attrs)
+    |> User.username_changeset(attrs)
     |> Repo.insert()
+  end
+
+  defp ensure_username(attrs) when is_map(attrs) do
+    username = Map.get(attrs, :username) || Map.get(attrs, "username")
+
+    if is_binary(username) and String.trim(username) != "" do
+      attrs
+    else
+      generated = "user_#{System.unique_integer([:positive])}"
+
+      if Map.has_key?(attrs, "email") or Map.has_key?(attrs, "username") do
+        Map.put(attrs, "username", generated)
+      else
+        Map.put(attrs, :username, generated)
+      end
+    end
   end
 
   ## Settings

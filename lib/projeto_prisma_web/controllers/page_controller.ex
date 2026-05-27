@@ -16,7 +16,44 @@ defmodule ProjetoPrismaWeb.PageController do
 
   def profile(conn, _params) do
     conn = prepare_dashboard_sync(conn)
-    render(conn, :profile)
+    profile_session = profile_live_session(conn, conn.assigns[:profile_id], false)
+
+    conn
+    |> assign(:show_navbar, nil)
+    |> assign(:show_sync, true)
+    |> assign(:show_view_navbar, false)
+    |> assign(:profile_session, profile_session)
+    |> render(:profile)
+  end
+
+  def friend_profile(conn, %{"username" => username}) do
+    case Accounts.get_profile_with_user_by_username(username) do
+      %{} = profile ->
+        read_only = read_only_profile?(conn.assigns[:current_scope], profile)
+
+        conn =
+          if read_only do
+            conn
+            |> assign(:profile_id, profile.id)
+            |> assign(:sync_popup, nil)
+          else
+            prepare_dashboard_sync(conn)
+          end
+
+        profile_session = profile_live_session(conn, profile.id, read_only)
+
+        conn
+        |> assign(:show_navbar, not read_only)
+        |> assign(:show_sync, not read_only)
+        |> assign(:show_view_navbar, read_only)
+        |> assign(:profile_session, profile_session)
+        |> render(:profile)
+
+      _ ->
+        conn
+        |> put_flash(:error, "Perfil nao encontrado.")
+        |> redirect(to: ~p"/followers")
+    end
   end
 
   def followers(conn, _params) do
@@ -45,14 +82,14 @@ defmodule ProjetoPrismaWeb.PageController do
       {:error, _reason} ->
         conn
         |> put_flash(:error, "Link de registro expirado ou invalido")
-        |> redirect(to: ~p"/register")
+        |> redirect(to: ~p"/users/register")
     end
   end
 
   def complete_registration(conn, _params) do
     conn
     |> put_flash(:error, "Token de registro invalido")
-    |> redirect(to: ~p"/register")
+    |> redirect(to: ~p"/users/register")
   end
 
   defp prepare_dashboard_sync(conn) do
@@ -141,4 +178,23 @@ defmodule ProjetoPrismaWeb.PageController do
     end
   end
 
+  defp profile_live_session(conn, profile_id, read_only) do
+    base = %{
+      "user_token" => get_session(conn, :user_token),
+      "read_only" => read_only
+    }
+
+    if is_integer(profile_id) do
+      Map.put(base, "profile_id", profile_id)
+    else
+      base
+    end
+  end
+
+  defp read_only_profile?(%Scope{user: %{id: user_id}}, %{user_id: profile_user_id})
+       when is_integer(user_id) and is_integer(profile_user_id) do
+    user_id != profile_user_id
+  end
+
+  defp read_only_profile?(_scope, _profile), do: true
 end

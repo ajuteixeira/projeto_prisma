@@ -20,11 +20,11 @@ defmodule ProjetoPrismaWeb.ProfilePlatformDistributionLive do
   @impl true
   def mount(_params, session, socket) do
     current_scope = Accounts.resolve_scope_from_session(session)
-    profile = ProfileDashboard.profile_for_user(scope_user_id(current_scope))
+    profile_id = profile_id_from_session(session, current_scope)
 
     distribution =
-      if profile,
-        do: ProfileDashboard.platform_distribution(profile.id),
+      if is_integer(profile_id),
+        do: ProfileDashboard.platform_distribution(profile_id),
         else: []
 
     {:ok, assign(socket, :distribution, distribution)}
@@ -106,4 +106,26 @@ defmodule ProjetoPrismaWeb.ProfilePlatformDistributionLive do
 
   defp scope_user_id(%Scope{user: %{id: id}}) when is_integer(id), do: id
   defp scope_user_id(_), do: nil
+
+  defp profile_id_from_session(%{"profile_id" => profile_id}, _current_scope)
+       when is_integer(profile_id),
+       do: profile_id
+
+  defp profile_id_from_session(%{"profile_id" => profile_id}, _current_scope)
+       when is_binary(profile_id) do
+    case Integer.parse(profile_id) do
+      {id, ""} -> id
+      _ -> nil
+    end
+  end
+
+  defp profile_id_from_session(_session, current_scope) do
+    current_scope
+    |> scope_user_id()
+    |> ProfileDashboard.profile_for_user()
+    |> case do
+      %{id: id} when is_integer(id) -> id
+      _ -> nil
+    end
+  end
 end

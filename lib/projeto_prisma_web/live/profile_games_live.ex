@@ -10,9 +10,7 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
   @impl true
   def mount(_params, session, socket) do
     current_scope = Accounts.resolve_scope_from_session(session)
-    profile = ProfileDashboard.profile_for_user(scope_user_id(current_scope))
-
-    profile_id = profile && profile.id
+    profile_id = profile_id_from_session(session, current_scope)
 
     platforms =
       if is_integer(profile_id) do
@@ -569,6 +567,24 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
   end
 
   defp normalize_search_query(_search_query), do: ""
+
+  defp profile_id_from_session(%{"profile_id" => profile_id}, _current_scope)
+       when is_integer(profile_id),
+       do: profile_id
+
+  defp profile_id_from_session(%{"profile_id" => profile_id}, _current_scope)
+       when is_binary(profile_id),
+       do: parse_integer(profile_id)
+
+  defp profile_id_from_session(_session, current_scope) do
+    current_scope
+    |> scope_user_id()
+    |> ProfileDashboard.profile_for_user()
+    |> case do
+      %{id: id} when is_integer(id) -> id
+      _ -> nil
+    end
+  end
 
   defp parse_integer(value) when is_binary(value) do
     case Integer.parse(value) do

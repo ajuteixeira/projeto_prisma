@@ -23,6 +23,7 @@ defmodule ProjetoPrisma.Accounts.User do
   def registration_changeset(user, attrs) do
     user
     |> cast(attrs, [:email, :password, :full_name, :username])
+    |> normalize_email()
     |> validate_required([:email, :password, :username])
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "deve ter formato valido")
     |> validate_length(:password, min: 6, message: "deve ter no minimo 6 caracteres")
@@ -51,7 +52,15 @@ defmodule ProjetoPrisma.Accounts.User do
   def email_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:email])
+    |> normalize_email()
     |> validate_email(opts)
+  end
+
+  defp normalize_email(changeset) do
+    update_change(changeset, :email, fn
+      nil -> nil
+      email -> email |> String.trim() |> String.downcase()
+    end)
   end
 
   defp validate_email(changeset, opts) do

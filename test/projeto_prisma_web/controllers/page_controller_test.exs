@@ -3,6 +3,6 @@ defmodule ProjetoPrismaWeb.PageControllerTest do
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ "Vincular Conta"
+    assert redirected_to(conn) == ~p"/users/log-in"
   end
 end

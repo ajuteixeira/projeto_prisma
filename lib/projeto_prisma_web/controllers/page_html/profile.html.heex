@@ -1,40 +1,97 @@
-<Layouts.app flash={@flash} current_scope={@current_scope} current_path={@current_path}>
-  <div :if={@profile_id}>
-    {live_render(@conn, ProjetoPrismaWeb.DashboardSyncLive,
-      id: "profile-sync",
-      session: %{"profile_id" => @profile_id}
-    )}
-  </div>
-
-  <%!-- Top: Profile card + Recently played --%>
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    <%!-- Profile Card --%>
-    <div class="lg:col-span-1">
-      {live_render(@conn, ProjetoPrismaWeb.ProfileCardLive, id: "profile-card-live")}
+<Layouts.app
+  flash={@flash}
+  current_scope={@current_scope}
+  current_path={@current_path}
+  show_navbar={@show_navbar}
+>
+  <div class={[
+    @show_view_navbar && "pb-20"
+  ]}>
+    <div :if={@show_sync && @profile_id}>
+      {live_render(@conn, ProjetoPrismaWeb.DashboardSyncLive,
+        id: "profile-sync",
+        session: %{"profile_id" => @profile_id}
+      )}
     </div>
 
-    <%!-- Recently Played --%>
-    <div class="card p-0 lg:col-span-2 overflow-hidden recently-played-card">
-      {live_render(@conn, ProjetoPrismaWeb.ProfileRecentlyPlayedLive,
-        id: "profile-recently-played-live"
+    <%!-- Top: Profile card + Recently played --%>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <%!-- Profile Card --%>
+      <div class="lg:col-span-1">
+        {live_render(@conn, ProjetoPrismaWeb.ProfileCardLive,
+          id: "profile-card-live",
+          session: @profile_session
+        )}
+      </div>
+
+      <%!-- Recently Played --%>
+      <div class="card p-0 lg:col-span-2 overflow-hidden recently-played-card">
+        {live_render(@conn, ProjetoPrismaWeb.ProfileRecentlyPlayedLive,
+          id: "profile-recently-played-live",
+          session: @profile_session
+        )}
+      </div>
+    </div>
+
+    <%!-- Platform Distribution --%>
+    <div class="card mb-6">
+      {live_render(@conn, ProjetoPrismaWeb.ProfilePlatformDistributionLive,
+        id: "profile-platform-distribution-live",
+        session: @profile_session
+      )}
+    </div>
+
+    <%!-- Stats --%>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {live_render(@conn, ProjetoPrismaWeb.ProfileStatsLive,
+        id: "profile-stats-live",
+        session: @profile_session
+      )}
+    </div>
+
+    <%!-- List Games --%>
+    <div class="card">
+      {live_render(@conn, ProjetoPrismaWeb.ProfileGamesLive,
+        id: "profile-games-live",
+        session: @profile_session
       )}
     </div>
   </div>
 
-  <%!-- Platform Distribution --%>
-  <div class="card mb-6">
-    {live_render(@conn, ProjetoPrismaWeb.ProfilePlatformDistributionLive,
-      id: "profile-platform-distribution-live"
-    )}
-  </div>
+  <nav
+    :if={@show_view_navbar}
+    id="profile-view-navbar"
+    class="profile-view-navbar"
+    aria-label="Acoes do perfil em visualizacao"
+  >
+    <div class="profile-view-navbar__inner">
+      <div class="profile-view-navbar__label">
+        Visualizando perfil
+      </div>
 
-  <%!-- Stats --%>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    {live_render(@conn, ProjetoPrismaWeb.ProfileStatsLive, id: "profile-stats-live")}
-  </div>
-
-  <%!-- List Games --%>
-  <div class="card">
-    {live_render(@conn, ProjetoPrismaWeb.ProfileGamesLive, id: "profile-games-live")}
-  </div>
+      <%= if @current_scope do %>
+        <.link
+          navigate={~p"/"}
+          class="profile-view-navbar__btn profile-view-navbar__btn--primary"
+        >
+          <.icon name="hero-user-circle" class="size-4" /> Voltar ao meu perfil
+        </.link>
+      <% else %>
+        <div class="profile-view-navbar__actions">
+          <.link
+            navigate={~p"/users/log-in"}
+            class="profile-view-navbar__btn profile-view-navbar__btn--ghost"
+          >
+            <.icon name="hero-arrow-right-on-rectangle" class="size-4" /> Entrar
+          </.link>
+          <.link
+            navigate={~p"/users/register"}
+            class="profile-view-navbar__btn profile-view-navbar__btn--primary"
+          >
+            <.icon name="hero-user-plus" class="size-4" /> Cadastrar-se
+          </.link>
+        </div>
+      <% end %>
+    </div>
+  </nav>
 </Layouts.app>
