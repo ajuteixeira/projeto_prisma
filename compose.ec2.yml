@@ -5,8 +5,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: projeto_prisma_dev
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -18,9 +16,9 @@ services:
   app:
     build: .
     command: sh -c "mix deps.get && mix ecto.migrate && mix run priv/repo/seeds.exs && mix phx.server"
-    ports:
-      - "4000:4000"
-    env_file: .env
+    expose:
+      - "4000"
+    env_file: .env.ec2
     environment:
       DB_HOST: db
     volumes:
@@ -31,5 +29,21 @@ services:
       db:
         condition: service_healthy
 
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file: .env.ec2
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
 volumes:
   pgdata:
+  caddy_data:
+  caddy_config:
