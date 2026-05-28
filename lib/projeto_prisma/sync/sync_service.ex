@@ -354,6 +354,10 @@ defmodule ProjetoPrisma.Sync.SyncService do
           platform_game.id
         )
 
+      if is_nil(game_value(game_data, :last_played)) do
+        Accounts.update_last_played_from_achievements(profile_game.id)
+      end
+
       {:ok, achievements_count}
     else
       error -> error

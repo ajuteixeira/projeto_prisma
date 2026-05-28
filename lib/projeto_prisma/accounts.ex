@@ -760,6 +760,23 @@ defmodule ProjetoPrisma.Accounts do
     end
   end
 
+  def update_last_played_from_achievements(profile_game_id) do
+    max_unlock_time =
+      ProfileAchievement
+      |> where([pa], pa.profile_game_id == ^profile_game_id and pa.achieved == true)
+      |> select([pa], max(pa.unlock_time))
+      |> Repo.one()
+
+    if max_unlock_time do
+      ProfileGame
+      |> Repo.get!(profile_game_id)
+      |> ProfileGame.changeset(%{"last_played" => max_unlock_time})
+      |> Repo.update()
+    else
+      :no_achievements
+    end
+  end
+
   @doc """
   Busca ou cria um achievement desbloqueado pelo usuário.
 
