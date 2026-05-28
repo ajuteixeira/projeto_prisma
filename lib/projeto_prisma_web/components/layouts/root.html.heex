@@ -4,9 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="ProjetoPrisma" suffix=" · Phoenix Framework">
+    <.live_title default="Prisma" suffix="">
       {assigns[:page_title]}
     </.live_title>
+    <link rel="shortcut icon" type="image/x-icon" href={~p"/prisma.ico"} />
+    <link rel="icon" type="image/x-icon" href={~p"/prisma.ico"} />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
