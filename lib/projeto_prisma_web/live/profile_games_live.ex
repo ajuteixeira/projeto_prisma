@@ -285,7 +285,7 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
             <div class="mobile-game-card mb-2 rounded-lg bg-transparent p-3 transition hover:bg-gray-700/20 md:hidden">
               <div class="mobile-top-row flex items-center gap-3">
                 <img
-                  src={cover_image(game)}
+                  src={icon_image(game)}
                   alt={game.game_name}
                   class="h-12 w-12 rounded object-cover"
                 />
@@ -333,7 +333,7 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
             <%!-- Linha desktop --%>
             <div class="game-row hidden items-center gap-4 rounded-lg p-4 transition hover:bg-gray-700/20 md:grid md:grid-cols-12">
               <div class="col-span-12 flex items-center space-x-3 md:col-span-3">
-                <img src={cover_image(game)} alt={game.game_name} class="game-thumbnail" />
+                <img src={icon_image(game)} alt={game.game_name} class="game-thumbnail" />
                 <div>
                   <div class="font-semibold">{game.game_name}</div>
                   <div class="mt-1 flex items-center gap-1 text-xs text-gray-500">
@@ -459,6 +459,10 @@ defmodule ProjetoPrismaWeb.ProfileGamesLive do
   defp cover_image(%{game_cover_image: img}) when is_binary(img) and img != "", do: img
   defp cover_image(%{game_icon_image: img}) when is_binary(img) and img != "", do: img
   defp cover_image(_), do: "https://placehold.co/96x96/1e293b/e2e8f0?text=Game"
+
+  defp icon_image(%{game_icon_image: img}) when is_binary(img) and img != "", do: img
+  defp icon_image(%{game_cover_image: img}) when is_binary(img) and img != "", do: img
+  defp icon_image(_), do: "https://placehold.co/96x96/1e293b/e2e8f0?text=Game"
 
   defp format_playtime(minutes) when is_integer(minutes) and minutes >= 0 do
     hours = div(minutes, 60)
