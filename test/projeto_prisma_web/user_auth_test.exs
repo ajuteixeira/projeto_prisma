@@ -245,13 +245,28 @@ defmodule ProjetoPrismaWeb.UserAuthTest do
     end
 
     test "redirects if user is not authenticated", %{conn: conn} do
-      conn = conn |> fetch_flash() |> UserAuth.require_authenticated_user([])
+      conn =
+        %{conn | path_info: ["foo"], request_path: "/foo"}
+        |> fetch_flash()
+        |> UserAuth.require_authenticated_user([])
+
       assert conn.halted
 
       assert redirected_to(conn) == ~p"/users/log-in"
 
       assert Phoenix.Flash.get(conn.assigns.flash, :error) ==
                "Voce precisa fazer login para acessar esta pagina."
+    end
+
+    test "does not flash on redirect from root path", %{conn: conn} do
+      conn =
+        %{conn | path_info: [], request_path: "/"}
+        |> fetch_flash()
+        |> UserAuth.require_authenticated_user([])
+
+      assert conn.halted
+      assert redirected_to(conn) == ~p"/users/log-in"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) == nil
     end
 
     test "stores the path to redirect to on GET", %{conn: conn} do
