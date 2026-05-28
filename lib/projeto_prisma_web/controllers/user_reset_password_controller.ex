@@ -9,19 +9,22 @@ defmodule ProjetoPrismaWeb.UserResetPasswordController do
   end
 
   def create(conn, %{"user" => %{"email" => email}}) do
-    if user = Accounts.get_user_by_email(email) do
-      Accounts.deliver_user_reset_password_instructions(
-        user,
-        &url(~p"/reset-password/#{&1}")
-      )
+    case Accounts.get_user_by_email(email) do
+      nil ->
+        conn
+        |> put_flash(:error, "Nenhuma conta encontrada com este e-mail.")
+        |> redirect(to: ~p"/reset-password")
+
+      user ->
+        Accounts.deliver_user_reset_password_instructions(
+          user,
+          &url(~p"/reset-password/#{&1}")
+        )
+
+        conn
+        |> put_flash(:info, "Enviamos as instruções de redefinição de senha para o seu e-mail.")
+        |> redirect(to: ~p"/reset-password")
     end
-
-    info =
-      "Se o seu e-mail estiver em nosso sistema, voce recebera instrucoes para redefinir a senha em instantes."
-
-    conn
-    |> put_flash(:info, info)
-    |> redirect(to: ~p"/reset-password")
   end
 
   # Backward compatibility with old form payload: %{"email" => "..."}

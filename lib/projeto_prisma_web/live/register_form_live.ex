@@ -172,14 +172,18 @@ defmodule ProjetoPrismaWeb.RegisterFormLive do
   defp send_code_and_advance(socket, params) do
     email = params["email"]
 
-    case send_code_and_start_countdown(socket, email) do
-      {:noreply, updated_socket} ->
-        {:noreply,
-         updated_socket
-         |> assign(:step, :verification)
-         |> assign(:form_params, params)
-         |> assign(:code_attempts, 0)
-         |> assign(:code_error, nil)}
+    if Accounts.get_user_by_email(email) do
+      {:noreply, assign(socket, :form_errors, [{:email, "Este e-mail já está em uso, escolha outro."}])}
+    else
+      case send_code_and_start_countdown(socket, email) do
+        {:noreply, updated_socket} ->
+          {:noreply,
+           updated_socket
+           |> assign(:step, :verification)
+           |> assign(:form_params, params)
+           |> assign(:code_attempts, 0)
+           |> assign(:code_error, nil)}
+      end
     end
   end
 
