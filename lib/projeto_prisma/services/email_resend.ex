@@ -28,4 +28,28 @@ defmodule ProjetoPrisma.Services.EmailResend do
     |> html_body(html_body)
     |> Mailer.deliver()
   end
+
+  def send_verification_code_email(to_email, code) do
+    html_body = """
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <h2>Confirme seu email</h2>
+      <p>Use o código abaixo para confirmar seu cadastro no Prisma:</p>
+      <div style="text-align: center; margin: 32px 0;">
+        <span style="font-size: 36px; font-weight: bold; letter-spacing: 12px; color: #007bff;">#{code}</span>
+      </div>
+      <p style="color: #666; font-size: 12px;">Este código expira em 10 minutos.</p>
+      <hr />
+      <p style="color: #999; font-size: 12px;">Se você não solicitou este cadastro, ignore este email.</p>
+    </div>
+    """
+
+    from_email = System.get_env("GMAIL_USER")
+
+    new()
+    |> from(from_email)
+    |> to(to_email)
+    |> subject("Código de confirmação - Prisma")
+    |> html_body(html_body)
+    |> Mailer.deliver()
+  end
 end
