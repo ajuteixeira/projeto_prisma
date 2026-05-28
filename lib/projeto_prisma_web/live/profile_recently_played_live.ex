@@ -70,7 +70,7 @@ defmodule ProjetoPrismaWeb.ProfileRecentlyPlayedLive do
               :if={is_binary(achievement.icon) and achievement.icon != ""}
               src={achievement.icon}
               alt={achievement.name || "Conquista"}
-              class="w-full h-full object-cover"
+              class={"w-full h-full object-cover " <> if(achievement[:achieved], do: "", else: "grayscale opacity-60")}
             />
             <span :if={not is_binary(achievement.icon) or achievement.icon == ""}>🏆</span>
           </div>

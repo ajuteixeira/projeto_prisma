@@ -13,7 +13,7 @@ defmodule ProjetoPrismaWeb.UserSettingsController do
   def delete(conn, _params) do
     user = conn.assigns.current_scope.user
 
-    case Accounts.soft_delete_user(user) do
+    case Accounts.delete_user(user) do
       {:ok, _} ->
         conn
         |> put_flash(:info, "Sua conta foi excluída.")

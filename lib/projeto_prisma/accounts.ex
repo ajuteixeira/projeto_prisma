@@ -1268,7 +1268,7 @@ defmodule ProjetoPrisma.Accounts do
       when is_binary(email) and is_binary(password) do
     email = String.downcase(String.trim(email))
     user = Repo.get_by(User, email: email)
-    if User.valid_password?(user, password) and not User.deleted?(user), do: user
+    if User.valid_password?(user, password), do: user
   end
 
   @doc """
@@ -1427,12 +1427,11 @@ defmodule ProjetoPrisma.Accounts do
   end
 
   @doc """
-  Soft-deletes a user by setting `deleted_at` and expiring all of their tokens.
+  Hard-deletes a user. Cascades remove the profile, platform accounts, games,
+  achievements, and tokens via database `on_delete: :delete_all` constraints.
   """
-  def soft_delete_user(%User{} = user) do
-    user
-    |> User.soft_delete_changeset()
-    |> update_user_and_delete_all_tokens()
+  def delete_user(%User{} = user) do
+    Repo.delete(user)
   end
 
   @doc """
@@ -1533,9 +1532,6 @@ defmodule ProjetoPrisma.Accounts do
         might have adapted the code to a different use case. Please make sure to read the
         "Mixing magic link and password registration" section of `mix help phx.gen.auth`.
         """
-
-      {%User{deleted_at: %DateTime{}}, _token} ->
-        {:error, :not_found}
 
       {%User{confirmed_at: nil} = user, _token} ->
         user

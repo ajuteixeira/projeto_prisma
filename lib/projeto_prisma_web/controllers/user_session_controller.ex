@@ -52,7 +52,7 @@ defmodule ProjetoPrismaWeb.UserSessionController do
   def create(conn, %{"user" => %{"email" => email}}) do
     user = Accounts.get_user_by_email(email)
 
-    if user && !ProjetoPrisma.Accounts.User.deleted?(user) do
+    if user do
       Accounts.deliver_login_instructions(
         user,
         &url(~p"/users/log-in/#{&1}")
