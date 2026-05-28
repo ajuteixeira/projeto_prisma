@@ -197,10 +197,10 @@ defmodule ProjetoPrisma.Accounts.ProfileDashboard do
     achievements =
       ProfileAchievement
       |> join(:inner, [pa], a in Achievement, on: a.id == pa.achievement_id)
-      |> where([pa, _a], pa.profile_game_id == ^game.profile_game_id and pa.achieved == true)
-      |> order_by([pa, _a], desc: pa.unlock_time)
+      |> where([pa, _a], pa.profile_game_id == ^game.profile_game_id)
+      |> order_by([pa, _a], desc: pa.achieved, desc_nulls_last: pa.unlock_time, asc: pa.id)
       |> limit(5)
-      |> select([_pa, a], %{name: a.name, icon: a.icon_image})
+      |> select([pa, a], %{name: a.name, icon: a.icon_image, achieved: pa.achieved})
       |> Repo.all()
 
     Map.put(game, :recent_achievements, achievements)
