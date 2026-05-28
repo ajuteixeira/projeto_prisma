@@ -9,25 +9,36 @@ defmodule ProjetoPrismaWeb.SteamOAuthController do
   @identifier_select "http://specs.openid.net/auth/2.0/identifier_select"
   @claimed_id_regex ~r|^https?://steamcommunity\.com/openid/id/(\d{17})$|
 
-  def start(conn, _params) do
-    return_to = url(~p"/auth/steam/callback")
-    realm = ProjetoPrismaWeb.Endpoint.url()
+  def start(conn, params) do
+    api_key = params |> Map.get("api_key", "") |> to_string() |> String.trim()
 
-    query =
-      URI.encode_query(%{
-        "openid.ns" => @openid_ns,
-        "openid.mode" => "checkid_setup",
-        "openid.return_to" => return_to,
-        "openid.realm" => realm,
-        "openid.identity" => @identifier_select,
-        "openid.claimed_id" => @identifier_select
-      })
+    if api_key == "" do
+      conn
+      |> put_flash(:error, "Informe sua Steam Web API Key para continuar")
+      |> redirect(to: ~p"/connect-platforms")
+    else
+      return_to = url(~p"/auth/steam/callback")
+      realm = ProjetoPrismaWeb.Endpoint.url()
 
-    redirect(conn, external: @openid_endpoint <> "?" <> query)
+      query =
+        URI.encode_query(%{
+          "openid.ns" => @openid_ns,
+          "openid.mode" => "checkid_setup",
+          "openid.return_to" => return_to,
+          "openid.realm" => realm,
+          "openid.identity" => @identifier_select,
+          "openid.claimed_id" => @identifier_select
+        })
+
+      conn
+      |> put_session(:steam_pending_api_key, api_key)
+      |> redirect(external: @openid_endpoint <> "?" <> query)
+    end
   end
 
   def callback(conn, %{"openid.mode" => "cancel"}) do
     conn
+    |> delete_session(:steam_pending_api_key)
     |> put_flash(:error, "Autenticação com a Steam cancelada")
     |> redirect(to: ~p"/connect-platforms")
   end
@@ -36,25 +47,26 @@ defmodule ProjetoPrismaWeb.SteamOAuthController do
     Logger.error("[steam] OpenID error: #{inspect(params)}")
 
     conn
+    |> delete_session(:steam_pending_api_key)
     |> put_flash(:error, "Steam retornou um erro durante a autenticação")
     |> redirect(to: ~p"/connect-platforms")
   end
 
   def callback(conn, %{"openid.mode" => "id_res"} = params) do
     profile_id = current_profile_id(conn)
-    api_key = System.get_env("STEAM_API_KEY")
+    api_key = get_session(conn, :steam_pending_api_key)
 
     cond do
       is_nil(profile_id) ->
         conn
+        |> delete_session(:steam_pending_api_key)
         |> put_flash(:error, "Não foi possível identificar o perfil atual")
         |> redirect(to: ~p"/connect-platforms")
 
       is_nil(api_key) or api_key == "" ->
-        Logger.error("[steam] STEAM_API_KEY env var is not configured")
-
         conn
-        |> put_flash(:error, "Steam API key não configurada no servidor")
+        |> delete_session(:steam_pending_api_key)
+        |> put_flash(:error, "Chave da API Steam ausente. Tente novamente.")
         |> redirect(to: ~p"/connect-platforms")
 
       true ->
@@ -64,6 +76,7 @@ defmodule ProjetoPrismaWeb.SteamOAuthController do
 
   def callback(conn, _params) do
     conn
+    |> delete_session(:steam_pending_api_key)
     |> put_flash(:error, "Resposta inválida da Steam")
     |> redirect(to: ~p"/connect-platforms")
   end
@@ -78,6 +91,7 @@ defmodule ProjetoPrismaWeb.SteamOAuthController do
              "api_key" => api_key
            }) do
       conn
+      |> delete_session(:steam_pending_api_key)
       |> put_flash(:info, "Conta Steam vinculada com sucesso")
       |> redirect(to: ~p"/connect-platforms")
     else
@@ -132,6 +146,7 @@ defmodule ProjetoPrismaWeb.SteamOAuthController do
 
   defp finish_error(conn, message) do
     conn
+    |> delete_session(:steam_pending_api_key)
     |> put_flash(:error, message)
     |> redirect(to: ~p"/connect-platforms")
   end

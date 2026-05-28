@@ -62,6 +62,7 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
      |> assign(:confirm_disconnect_platform, nil)
      |> assign(:form, retro_form())
      |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))
+     |> assign(:steam_form, steam_form())
      |> assign(:psn_verification_code, generate_verification_code())
      |> assign(:retro_verification_code, generate_verification_code())
      |> refresh_platforms()}
@@ -69,6 +70,10 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
 
   defp retro_form do
     to_form(%{"username" => "", "api_key" => ""}, as: :retro)
+  end
+
+  defp steam_form do
+    to_form(%{"api_key" => ""}, as: :steam)
   end
 
   defp generate_verification_code do
@@ -89,7 +94,12 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
         show_confirm_disconnect(socket, platform)
 
       true ->
-        {:noreply, redirect(socket, to: ~p"/auth/steam/start")}
+        {:noreply,
+         socket
+         |> assign(:modal_open, true)
+         |> assign(:modal_platform, platform)
+         |> assign(:modal_error, nil)
+         |> assign(:steam_form, steam_form())}
     end
   end
 
@@ -188,7 +198,8 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
      |> assign(:modal_platform, nil)
      |> assign(:modal_error, nil)
      |> assign(:form, retro_form())
-     |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))}
+     |> assign(:psn_form, to_form(%{"psn_id" => "", "api_key" => ""}, as: :psn))
+     |> assign(:steam_form, steam_form())}
   end
 
   def handle_event("save_retro_connection", %{"retro" => retro_params}, socket) do
@@ -735,146 +746,199 @@ defmodule ProjetoPrismaWeb.ConnectPlatformsCardsLive do
           </div>
         </div>
 
-        <.form
-          for={
-            cond do
-              @modal_platform.slug == "playstation" -> @psn_form
-              true -> @form
-            end
-          }
-          id={"#{@modal_platform.slug}-connect-form"}
-          phx-submit={
-            cond do
-              @modal_platform.slug == "retroachievements" -> "save_retro_connection"
-              @modal_platform.slug == "playstation" -> "save_psn_connection"
-              true -> "save_retro_connection"
-            end
-          }
-        >
-          <div class="connect-modal-body">
-            <%= if @modal_platform.slug == "playstation" do %>
+        <%= if @modal_platform.slug == "steam" do %>
+          <form
+            action={~p"/auth/steam/start"}
+            method="post"
+            id="steam-connect-form"
+          >
+            <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+            <div class="connect-modal-body">
               <p class="connect-modal-instruction">
-                <strong>1) Confirme que esta conta é sua:</strong>
-                <br />
-                Adicione o código abaixo em qualquer ponto do seu campo "Sobre Mim" no perfil PlayStation antes de clicar em Vincular. Você não precisa apagar o texto existente — basta colar o código no início, no fim ou entre o que já está lá. O PlayStation pode levar alguns segundos para refletir a alteração.
-              </p>
-
-              <div style="margin:0.75rem 0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center;">
-                <div style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">
-                  Código de verificação
-                </div>
-                <div
-                  id="psn-verification-code"
-                  style="font-family:monospace;font-size:1.25rem;letter-spacing:0.1em;font-weight:bold;"
-                >
-                  {@psn_verification_code}
-                </div>
-              </div>
-
-              <p class="connect-modal-instruction">
-                <strong>2) Insira suas credenciais:</strong>
-                <br /> PSN ID e Token de Acesso (NPSSO). Obtenha o NPSSO em
+                <strong>1) Gere sua Steam Web API Key:</strong>
+                <br /> Acesse
                 <a
-                  href="https://ca.account.sony.com/api/v1/ssocookie"
+                  href="https://steamcommunity.com/dev/apikey"
                   target="_blank"
                   rel="noopener noreferrer"
                   style="color: #3b82f6; text-decoration: underline;"
                 >
-                  https://ca.account.sony.com/api/v1/ssocookie
+                  https://steamcommunity.com/dev/apikey
                 </a>
-                enquanto conectado na sua conta PlayStation.
+                , faça login com sua conta Steam, informe um domínio (pode usar <code>localhost</code>
+                ), aceite os termos e copie a chave gerada.
+              </p>
+
+              <p class="connect-modal-instruction">
+                <strong>2) Cole a chave abaixo.</strong>
+                <br />
+                Em seguida, vamos redirecionar você ao Steam para confirmar que a conta é sua (login via OpenID). Sua chave é armazenada apenas no seu perfil e usada para sincronizar seus jogos e conquistas.
               </p>
 
               <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
 
               <div class="connect-input-group">
-                <label class="connect-input-label" for="psn-user-id">PSN ID</label>
-                <.input
-                  field={@psn_form[:psn_id]}
-                  id="psn-user-id"
-                  type="text"
-                  class="connect-modal-input"
-                  placeholder="seu_username_psn"
-                />
-              </div>
-
-              <div class="connect-input-group">
-                <label class="connect-input-label" for="psn-api-key">Token de Acesso</label>
-                <.input
-                  field={@psn_form[:api_key]}
-                  id="psn-api-key"
+                <label class="connect-input-label" for="steam-api-key">Steam Web API Key</label>
+                <input
+                  id="steam-api-key"
+                  name="api_key"
                   type="password"
                   class="connect-modal-input"
-                  placeholder="Seu token de acesso da PSN"
+                  placeholder="Sua chave de API da Steam"
+                  required
                 />
               </div>
-            <% else %>
-              <p class="connect-modal-instruction">
-                <strong>1) Confirme que esta conta é sua:</strong>
-                <br />
-                Adicione o código abaixo em qualquer ponto do campo "Motto" do seu perfil RetroAchievements antes de clicar em Vincular. Você pode mantê-lo junto com seu texto atual.
-                <br />
-                <a
-                  href="https://retroachievements.org/controlpanel.php"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style="color: #3b82f6; text-decoration: underline;"
-                >
-                  Abrir configurações do RetroAchievements
-                </a>
-              </p>
+            </div>
 
-              <div style="margin:0.75rem 0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center;">
-                <div style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">
-                  Código de verificação
+            <div class="connect-modal-actions">
+              <button type="button" class="btn-cancel" phx-click="close_modal">Sair</button>
+              <button type="submit" class="btn-save">
+                Vincular Conta
+              </button>
+            </div>
+          </form>
+        <% else %>
+          <.form
+            for={
+              cond do
+                @modal_platform.slug == "playstation" -> @psn_form
+                true -> @form
+              end
+            }
+            id={"#{@modal_platform.slug}-connect-form"}
+            phx-submit={
+              cond do
+                @modal_platform.slug == "retroachievements" -> "save_retro_connection"
+                @modal_platform.slug == "playstation" -> "save_psn_connection"
+                true -> "save_retro_connection"
+              end
+            }
+          >
+            <div class="connect-modal-body">
+              <%= if @modal_platform.slug == "playstation" do %>
+                <p class="connect-modal-instruction">
+                  <strong>1) Confirme que esta conta é sua:</strong>
+                  <br />
+                  Adicione o código abaixo em qualquer ponto do seu campo "Sobre Mim" no perfil PlayStation antes de clicar em Vincular. Você não precisa apagar o texto existente — basta colar o código no início, no fim ou entre o que já está lá. O PlayStation pode levar alguns segundos para refletir a alteração.
+                </p>
+
+                <div style="margin:0.75rem 0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center;">
+                  <div style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">
+                    Código de verificação
+                  </div>
+                  <div
+                    id="psn-verification-code"
+                    style="font-family:monospace;font-size:1.25rem;letter-spacing:0.1em;font-weight:bold;"
+                  >
+                    {@psn_verification_code}
+                  </div>
                 </div>
-                <div
-                  id="retro-verification-code"
-                  style="font-family:monospace;font-size:1.25rem;letter-spacing:0.1em;font-weight:bold;"
-                >
-                  {@retro_verification_code}
+
+                <p class="connect-modal-instruction">
+                  <strong>2) Insira suas credenciais:</strong>
+                  <br /> PSN ID e Token de Acesso (NPSSO). Obtenha o NPSSO em
+                  <a
+                    href="https://ca.account.sony.com/api/v1/ssocookie"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style="color: #3b82f6; text-decoration: underline;"
+                  >
+                    https://ca.account.sony.com/api/v1/ssocookie
+                  </a>
+                  enquanto conectado na sua conta PlayStation.
+                </p>
+
+                <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
+
+                <div class="connect-input-group">
+                  <label class="connect-input-label" for="psn-user-id">PSN ID</label>
+                  <.input
+                    field={@psn_form[:psn_id]}
+                    id="psn-user-id"
+                    type="text"
+                    class="connect-modal-input"
+                    placeholder="seu_username_psn"
+                  />
                 </div>
-              </div>
 
-              <p class="connect-modal-instruction">
-                <strong>2) Insira suas credenciais:</strong>
-                <br />
-                Nome de usuário e Web API Key (disponível no menu de configurações do RetroAchievements).
-              </p>
+                <div class="connect-input-group">
+                  <label class="connect-input-label" for="psn-api-key">Token de Acesso</label>
+                  <.input
+                    field={@psn_form[:api_key]}
+                    id="psn-api-key"
+                    type="password"
+                    class="connect-modal-input"
+                    placeholder="Seu token de acesso da PSN"
+                  />
+                </div>
+              <% else %>
+                <p class="connect-modal-instruction">
+                  <strong>1) Confirme que esta conta é sua:</strong>
+                  <br />
+                  Adicione o código abaixo em qualquer ponto do campo "Motto" do seu perfil RetroAchievements antes de clicar em Vincular. Você pode mantê-lo junto com seu texto atual.
+                  <br />
+                  <a
+                    href="https://retroachievements.org/controlpanel.php"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style="color: #3b82f6; text-decoration: underline;"
+                  >
+                    Abrir configurações do RetroAchievements
+                  </a>
+                </p>
 
-              <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
+                <div style="margin:0.75rem 0;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center;">
+                  <div style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">
+                    Código de verificação
+                  </div>
+                  <div
+                    id="retro-verification-code"
+                    style="font-family:monospace;font-size:1.25rem;letter-spacing:0.1em;font-weight:bold;"
+                  >
+                    {@retro_verification_code}
+                  </div>
+                </div>
 
-              <div class="connect-input-group">
-                <label class="connect-input-label" for="retro-username">Username</label>
-                <.input
-                  field={@form[:username]}
-                  id="retro-username"
-                  type="text"
-                  class="connect-modal-input"
-                  placeholder="Seu usuário do RetroAchievements"
-                />
-              </div>
+                <p class="connect-modal-instruction">
+                  <strong>2) Insira suas credenciais:</strong>
+                  <br />
+                  Nome de usuário e Web API Key (disponível no menu de configurações do RetroAchievements).
+                </p>
 
-              <div class="connect-input-group">
-                <label class="connect-input-label" for="retro-api-key">API Key</label>
-                <.input
-                  field={@form[:api_key]}
-                  id="retro-api-key"
-                  type="password"
-                  class="connect-modal-input"
-                  placeholder="Sua chave de API"
-                />
-              </div>
-            <% end %>
-          </div>
+                <p :if={@modal_error} class="connect-modal-error" role="alert">{@modal_error}</p>
 
-          <div class="connect-modal-actions">
-            <button type="button" class="btn-cancel" phx-click="close_modal">Sair</button>
-            <button type="submit" class="btn-save" phx-disable-with="Validando...">
-              Vincular Conta
-            </button>
-          </div>
-        </.form>
+                <div class="connect-input-group">
+                  <label class="connect-input-label" for="retro-username">Username</label>
+                  <.input
+                    field={@form[:username]}
+                    id="retro-username"
+                    type="text"
+                    class="connect-modal-input"
+                    placeholder="Seu usuário do RetroAchievements"
+                  />
+                </div>
+
+                <div class="connect-input-group">
+                  <label class="connect-input-label" for="retro-api-key">API Key</label>
+                  <.input
+                    field={@form[:api_key]}
+                    id="retro-api-key"
+                    type="password"
+                    class="connect-modal-input"
+                    placeholder="Sua chave de API"
+                  />
+                </div>
+              <% end %>
+            </div>
+
+            <div class="connect-modal-actions">
+              <button type="button" class="btn-cancel" phx-click="close_modal">Sair</button>
+              <button type="submit" class="btn-save" phx-disable-with="Validando...">
+                Vincular Conta
+              </button>
+            </div>
+          </.form>
+        <% end %>
       </div>
     </div>
 
