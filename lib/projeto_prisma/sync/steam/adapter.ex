@@ -65,7 +65,8 @@ defmodule ProjetoPrisma.Sync.Steam.Adapter do
       cover_image: steam_cover_url(raw["appid"]),
       icon_image: nil,
       logo_image: nil,
-      playtime_minutes: raw["playtime_forever"]
+      playtime_minutes: raw["playtime_forever"],
+      last_played: parse_unix(raw["rtime_last_played"])
     }
   end
 
