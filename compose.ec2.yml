@@ -21,6 +21,7 @@ services:
     env_file: .env.ec2
     environment:
       DB_HOST: db
+      DISABLE_DEV_ROUTES: "true"
     volumes:
       - .:/app
       - /app/deps
