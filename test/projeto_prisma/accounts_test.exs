@@ -370,6 +370,17 @@ defmodule ProjetoPrisma.AccountsTest do
     end
   end
 
+  describe "delete_user/1" do
+    test "removes the user and cascades to tokens" do
+      user = user_fixture()
+      _token = Accounts.generate_user_session_token(user)
+
+      assert {:ok, %User{}} = Accounts.delete_user(user)
+      refute Repo.get(User, user.id)
+      assert Repo.all(UserToken) |> Enum.filter(&(&1.user_id == user.id)) == []
+    end
+  end
+
   describe "deliver_login_instructions/2" do
     setup do
       %{user: unconfirmed_user_fixture()}
