@@ -106,7 +106,7 @@ defmodule ProjetoPrisma.Sync.Igdb.Adapter do
   def get_game_by_id(igdb_id) when is_integer(igdb_id) do
     query =
       [
-        "fields id,name,cover.url,first_release_date;",
+        "fields id,name,cover.url,artworks.url,first_release_date;",
         "where id = #{igdb_id};",
         "limit 1;"
       ]
@@ -164,7 +164,7 @@ defmodule ProjetoPrisma.Sync.Igdb.Adapter do
     %{
       igdb_id: raw["id"],
       name: raw["name"],
-      cover_image: cover_url(raw["cover"]),
+      cover_image: artwork_url(raw["artworks"]) || cover_url(raw["cover"]),
       icon_image: nil,
       logo_image: nil
     }
@@ -190,10 +190,12 @@ defmodule ProjetoPrisma.Sync.Igdb.Adapter do
   end
 
   defp merge_platform_images(igdb_game, game_data) do
+    platform_cover = get_value(game_data, :cover_image)
+
     %{
       igdb_game
-      | cover_image: igdb_game.cover_image || get_value(game_data, :cover_image),
-        icon_image: igdb_game.icon_image || get_value(game_data, :icon_image),
+      | cover_image: igdb_game.cover_image || platform_cover,
+        icon_image: igdb_game.icon_image || get_value(game_data, :icon_image) || platform_cover || igdb_game.cover_image,
         logo_image: igdb_game.logo_image || get_value(game_data, :logo_image)
     }
   end
@@ -210,15 +212,31 @@ defmodule ProjetoPrisma.Sync.Igdb.Adapter do
   end
 
   defp cover_url(%{"url" => url}), do: cover_url(url)
-  defp cover_url(url) when is_binary(url), do: "https:" <> url
+
+  defp cover_url(url) when is_binary(url) do
+    url
+    |> String.replace("t_thumb", "t_original")
+    |> then(&("https:" <> &1))
+  end
+
   defp cover_url(_), do: nil
+
+  defp artwork_url([%{"url" => url} | _]), do: artwork_url(url)
+
+  defp artwork_url(url) when is_binary(url) do
+    url
+    |> String.replace("t_thumb", "t_original")
+    |> then(&("https:" <> &1))
+  end
+
+  defp artwork_url(_), do: nil
 
   defp extract_igdb_game_id(%{"game" => game_id}) when is_integer(game_id), do: game_id
   defp extract_igdb_game_id(%{game: game_id}) when is_integer(game_id), do: game_id
   defp extract_igdb_game_id(_), do: nil
 
   defp default_game_fields do
-    ["id", "name", "first_release_date", "cover.url", "platforms"]
+    ["id", "name", "first_release_date", "cover.url", "artworks.url", "platforms"]
   end
 
   defp escape_query(value) do

@@ -42,7 +42,7 @@ defmodule ProjetoPrismaWeb.ProfileGameModal do
           <div class="absolute bottom-0 left-0 right-0 z-10 p-6 sm:p-8">
             <div class="flex flex-col gap-5 sm:flex-row sm:items-end">
               <img
-                src={cover_image(@game)}
+                src={icon_image(@game)}
                 alt={@game.game_name}
                 class="h-28 w-28 rounded-2xl border border-white/10 object-cover shadow-xl"
               />
@@ -190,6 +190,10 @@ defmodule ProjetoPrismaWeb.ProfileGameModal do
   defp cover_image(%{game_cover_image: img}) when is_binary(img) and img != "", do: img
   defp cover_image(%{game_icon_image: img}) when is_binary(img) and img != "", do: img
   defp cover_image(_), do: "https://placehold.co/96x96/1e293b/e2e8f0?text=Game"
+
+  defp icon_image(%{game_icon_image: img}) when is_binary(img) and img != "", do: img
+  defp icon_image(%{game_cover_image: img}) when is_binary(img) and img != "", do: img
+  defp icon_image(_), do: "https://placehold.co/96x96/1e293b/e2e8f0?text=Game"
 
   defp format_playtime(minutes) when is_integer(minutes) and minutes >= 0 do
     hours = div(minutes, 60)
