@@ -16,7 +16,7 @@ defmodule ProjetoPrisma.Accounts.ProfileGame do
   def changeset(profile_game, attrs) do
     profile_game
     |> cast(attrs, [:playtime_minutes, :last_played, :profile_id, :platform_game_id])
-    |> validate_required([:profile_id, :platform_game_id, :last_played])
+    |> validate_required([:profile_id, :platform_game_id])
     |> unique_constraint([:profile_id, :platform_game_id])
   end
 end
