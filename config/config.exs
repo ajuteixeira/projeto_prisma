@@ -24,6 +24,12 @@ config :projeto_prisma,
   ecto_repos: [ProjetoPrisma.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# API JSON (app mobile): validade dos Bearer tokens e deep link de retorno
+# do fluxo de vinculação de plataformas (Steam/Xbox).
+config :projeto_prisma,
+  api_token_validity_days: 30,
+  mobile_deep_link: System.get_env("MOBILE_DEEP_LINK") || "prisma://connect"
+
 # Configure the endpoint
 config :projeto_prisma, ProjetoPrismaWeb.Endpoint,
   url: [host: "localhost"],

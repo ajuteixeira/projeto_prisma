@@ -179,6 +179,43 @@ defmodule ProjetoPrisma.Accounts.UserToken do
     end
   end
 
+  @doc """
+  Builds an API token for a mobile/external client.
+
+  The returned token is URL-safe base64 (suitable for the `Authorization: Bearer`
+  header) while the raw value is stored in the database with context "api",
+  so tokens can be revoked individually (e.g. on logout).
+  """
+  def build_api_token(user) do
+    token = :crypto.strong_rand_bytes(@rand_size)
+    dt = user.authenticated_at || DateTime.utc_now(:second)
+    encoded_token = Base.url_encode64(token, padding: false)
+
+    {encoded_token,
+     %UserToken{token: token, context: "api", user_id: user.id, authenticated_at: dt}}
+  end
+
+  @doc """
+  Checks if the API token is valid and returns its underlying lookup query.
+
+  The query returns the user found by the token, if any.
+  The validity window is configurable via
+  `config :projeto_prisma, :api_token_validity_days` (default: 30 days).
+  """
+  def verify_api_token_query(token) do
+    days = Application.get_env(:projeto_prisma, :api_token_validity_days, 30)
+
+    with {:ok, decoded_token} <- Base.url_decode64(token, padding: false) do
+      query =
+        from token in by_token_and_context_query(decoded_token, "api"),
+          join: user in assoc(token, :user),
+          where: token.inserted_at > ago(^days, "day"),
+          select: %{user | authenticated_at: token.authenticated_at}
+
+      {:ok, query}
+    end
+  end
+
   defp by_token_and_context_query(token, context) do
     from UserToken, where: [token: ^token, context: ^context]
   end
