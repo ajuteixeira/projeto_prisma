@@ -2,6 +2,7 @@ defmodule ProjetoPrismaWeb.Router do
   use ProjetoPrismaWeb, :router
 
   import ProjetoPrismaWeb.UserAuth
+  import ProjetoPrismaWeb.Plugs.ApiAuth
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -21,6 +22,12 @@ defmodule ProjetoPrismaWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+  end
+
+  pipeline :api_auth do
+    plug :accepts, ["json"]
+    plug :fetch_api_user
+    plug :require_api_user
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
@@ -60,9 +67,7 @@ defmodule ProjetoPrismaWeb.Router do
     get "/followers", PageController, :followers
     get "/ranking", PageController, :ranking
     get "/auth/xbox/start", XboxOAuthController, :start
-    get "/auth/xbox/callback", XboxOAuthController, :callback
     post "/auth/steam/start", SteamOAuthController, :start
-    get "/auth/steam/callback", SteamOAuthController, :callback
     get "/connect-platforms", PageController, :connect_platforms
     get "/users/settings", UserSettingsController, :edit
     put "/users/settings", UserSettingsController, :update
@@ -70,6 +75,37 @@ defmodule ProjetoPrismaWeb.Router do
     get "/users/settings/confirm-email/:token", UserSettingsController, :confirm_email
     get "/users/log-out", UserSessionController, :delete
     delete "/users/log-out", UserSessionController, :delete
+  end
+
+  # Callbacks OAuth ficam fora do escopo autenticado: chegam por redirect externo
+  # e a identificação do perfil vem da sessão (web) ou do state assinado (API mobile).
+  scope "/", ProjetoPrismaWeb do
+    pipe_through [:browser]
+
+    get "/auth/xbox/callback", XboxOAuthController, :callback
+    get "/auth/steam/callback", SteamOAuthController, :callback
+  end
+
+  ## API JSON (app mobile)
+
+  scope "/api", ProjetoPrismaWeb.Api, as: :api do
+    pipe_through :api
+
+    post "/auth/register", AuthController, :register
+    post "/auth/login", AuthController, :login
+    post "/auth/password/forgot", AuthController, :forgot_password
+    post "/auth/password/reset", AuthController, :reset_password
+  end
+
+  scope "/api", ProjetoPrismaWeb.Api, as: :api do
+    pipe_through :api_auth
+
+    get "/auth/me", AuthController, :me
+    post "/auth/logout", AuthController, :logout
+
+    get "/platforms", PlatformController, :index
+    post "/platforms/:slug/connect-url", PlatformController, :connect_url
+    delete "/platforms/:slug", PlatformController, :delete
   end
 
   scope "/", ProjetoPrismaWeb do

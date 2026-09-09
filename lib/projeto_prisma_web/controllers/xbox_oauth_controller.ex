@@ -4,6 +4,7 @@ defmodule ProjetoPrismaWeb.XboxOAuthController do
 
   alias ProjetoPrisma.Accounts
   alias ProjetoPrisma.Sync.Xbox.Auth
+  alias ProjetoPrismaWeb.PlatformConnect
 
   @state_session_key :xbox_oauth_state
 
@@ -18,13 +19,57 @@ defmodule ProjetoPrismaWeb.XboxOAuthController do
   def callback(conn, %{"error" => error} = params) do
     description = params["error_description"] || error
 
-    conn
-    |> delete_session(@state_session_key)
-    |> put_flash(:error, "Falha ao autenticar com a Microsoft: #{description}")
-    |> redirect(to: ~p"/connect-platforms")
+    case api_state(params) do
+      {:ok, _state} ->
+        redirect(conn,
+          external:
+            PlatformConnect.deep_link_url(
+              "error",
+              "xbox",
+              "Falha ao autenticar com a Microsoft: #{description}"
+            )
+        )
+
+      :error ->
+        conn
+        |> delete_session(@state_session_key)
+        |> put_flash(:error, "Falha ao autenticar com a Microsoft: #{description}")
+        |> redirect(to: ~p"/connect-platforms")
+    end
   end
 
   def callback(conn, %{"code" => code, "state" => state}) do
+    case api_state(state) do
+      {:ok, %{profile_id: profile_id}} ->
+        run_oauth_chain(conn, code, profile_id, :api)
+
+      :error ->
+        callback_web(conn, code, state)
+    end
+  end
+
+  def callback(conn, params) do
+    case api_state(params) do
+      {:ok, _state} ->
+        redirect(conn,
+          external:
+            PlatformConnect.deep_link_url(
+              "error",
+              "xbox",
+              "Resposta inválida do provedor Microsoft"
+            )
+        )
+
+      :error ->
+        conn
+        |> delete_session(@state_session_key)
+        |> put_flash(:error, "Resposta inválida do provedor Microsoft")
+        |> redirect(to: ~p"/connect-platforms")
+    end
+  end
+
+  # Fluxo web (sessão): state aleatório guardado na sessão, profile do current_scope
+  defp callback_web(conn, code, state) do
     expected_state = get_session(conn, @state_session_key)
     profile_id = current_profile_id(conn)
 
@@ -42,18 +87,22 @@ defmodule ProjetoPrismaWeb.XboxOAuthController do
         |> redirect(to: ~p"/connect-platforms")
 
       true ->
-        run_oauth_chain(conn, code, profile_id)
+        run_oauth_chain(conn, code, profile_id, :web)
     end
   end
 
-  def callback(conn, _params) do
-    conn
-    |> delete_session(@state_session_key)
-    |> put_flash(:error, "Resposta inválida do provedor Microsoft")
-    |> redirect(to: ~p"/connect-platforms")
+  defp api_state(%{"state" => state}), do: api_state(state)
+
+  defp api_state(state) when is_binary(state) do
+    case PlatformConnect.verify(state) do
+      {:ok, %{platform: "xbox"} = data} -> {:ok, data}
+      _ -> :error
+    end
   end
 
-  defp run_oauth_chain(conn, code, profile_id) do
+  defp api_state(_), do: :error
+
+  defp run_oauth_chain(conn, code, profile_id, flow) do
     with {:ok, %{access_token: access, refresh_token: refresh}} when is_binary(refresh) <-
            Auth.exchange_code(code),
          {:ok, %{token: ut}} <- Auth.user_token(access),
@@ -65,48 +114,59 @@ defmodule ProjetoPrismaWeb.XboxOAuthController do
              "profile_url" => profile_url(gamertag),
              "api_key" => refresh
            }) do
-      conn
-      |> delete_session(@state_session_key)
-      |> put_flash(:info, "Conta Xbox vinculada com sucesso" <> gamertag_suffix(gamertag))
-      |> redirect(to: ~p"/connect-platforms")
+      finish_success(conn, flow, "Conta Xbox vinculada com sucesso" <> gamertag_suffix(gamertag))
     else
       {:error, {:xsts_xerr, :no_xbox_account, _}} ->
         finish_error(
           conn,
+          flow,
           "Esta conta Microsoft não possui um perfil Xbox Live. Crie um em xbox.com e tente novamente."
         )
 
       {:error, {:xsts_xerr, :child_account, _}} ->
         finish_error(
           conn,
+          flow,
           "Contas infantis precisam ser adicionadas a um Grupo Familiar antes de conectar."
         )
 
       {:error, {:xsts_xerr, :country_banned, _}} ->
-        finish_error(conn, "Xbox Live não está disponível na região desta conta.")
+        finish_error(conn, flow, "Xbox Live não está disponível na região desta conta.")
 
       {:error, {:xsts_xerr, _other, _body}} ->
-        finish_error(conn, "Falha ao autorizar com Xbox Live (XSTS).")
+        finish_error(conn, flow, "Falha ao autorizar com Xbox Live (XSTS).")
 
       {:error, {:oauth_http_status, status, body}} ->
         Logger.error("[xbox] OAuth token exchange failed: #{status} #{inspect(body)}")
         desc = (is_map(body) && (body["error_description"] || body["error"])) || ""
-        finish_error(conn, "Microsoft #{status}: #{desc}")
+        finish_error(conn, flow, "Microsoft #{status}: #{desc}")
 
       {:error, {:user_token, status, body}} when is_integer(status) ->
         Logger.error("[xbox] User token failed: #{status} #{inspect(body)}")
-        finish_error(conn, "Falha ao obter User Token Xbox (status #{status}).")
+        finish_error(conn, flow, "Falha ao obter User Token Xbox (status #{status}).")
 
       {:error, reason} ->
         Logger.error("[xbox] OAuth chain failed: #{inspect(reason)}")
-        finish_error(conn, "Não foi possível concluir a vinculação com Xbox Live agora.")
+        finish_error(conn, flow, "Não foi possível concluir a vinculação com Xbox Live agora.")
 
       {:ok, %{refresh_token: nil}} ->
         finish_error(
           conn,
+          flow,
           "Microsoft não retornou refresh_token. Verifique a permissão offline_access."
         )
     end
+  end
+
+  defp finish_success(conn, :api, _message) do
+    redirect(conn, external: PlatformConnect.deep_link_url("success", "xbox"))
+  end
+
+  defp finish_success(conn, :web, message) do
+    conn
+    |> delete_session(@state_session_key)
+    |> put_flash(:info, message)
+    |> redirect(to: ~p"/connect-platforms")
   end
 
   defp maybe_fetch_gamertag(xid, uhs, xsts) do
@@ -122,7 +182,11 @@ defmodule ProjetoPrismaWeb.XboxOAuthController do
   defp gamertag_suffix(nil), do: ""
   defp gamertag_suffix(gt), do: " (#{gt})"
 
-  defp finish_error(conn, message) do
+  defp finish_error(conn, :api, message) do
+    redirect(conn, external: PlatformConnect.deep_link_url("error", "xbox", message))
+  end
+
+  defp finish_error(conn, :web, message) do
     conn
     |> delete_session(@state_session_key)
     |> put_flash(:error, message)

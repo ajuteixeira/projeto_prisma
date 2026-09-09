@@ -1327,6 +1327,17 @@ defmodule ProjetoPrisma.Accounts do
     |> Repo.insert()
   end
 
+  @doc """
+  Registers a user with email + password + username (used by the JSON API).
+
+  Accepts string or atom keys: `email`, `password`, `username` e `full_name` (opcional).
+  """
+  def register_user_with_password(attrs) do
+    %User{}
+    |> User.registration_changeset(attrs)
+    |> Repo.insert()
+  end
+
   defp ensure_username(attrs) when is_map(attrs) do
     username = Map.get(attrs, :username) || Map.get(attrs, "username")
 
@@ -1505,6 +1516,41 @@ defmodule ProjetoPrisma.Accounts do
   end
 
   def resolve_scope_from_session(_), do: nil
+
+  ## API tokens
+
+  @doc """
+  Generates an API token for mobile/external clients.
+
+  Returns the URL-safe encoded token to be sent as `Authorization: Bearer <token>`.
+  """
+  def generate_api_token(user) do
+    {encoded_token, user_token} = UserToken.build_api_token(user)
+    Repo.insert!(user_token)
+    encoded_token
+  end
+
+  @doc """
+  Gets the user with the given API token.
+
+  Returns the user if the token is valid, otherwise `nil`.
+  """
+  def get_user_by_api_token(token) when is_binary(token) do
+    with {:ok, query} <- UserToken.verify_api_token_query(token) do
+      Repo.one(query)
+    end
+  end
+
+  @doc """
+  Deletes the given API token (e.g. on logout).
+  """
+  def delete_api_token(token) when is_binary(token) do
+    with {:ok, decoded_token} <- Base.url_decode64(token, padding: false) do
+      Repo.delete_all(from(UserToken, where: [token: ^decoded_token, context: "api"]))
+    end
+
+    :ok
+  end
 
   @doc """
   Gets the user with the given magic link token.
