@@ -23,6 +23,9 @@ config :projeto_prisma, ProjetoPrismaWeb.Endpoint,
 # Disable Swoosh Local Memory Storage
 config :swoosh, local: false
 
+# Use Req as the Swoosh API client (hackney is not a dependency)
+config :swoosh, :api_client, Swoosh.ApiClient.Req
+
 # Do not print debug messages in production
 config :logger, level: :info
 

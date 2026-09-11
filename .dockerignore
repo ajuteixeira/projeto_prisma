@@ -1,0 +1,17 @@
+_build/
+deps/
+.git/
+.gitignore
+docs/
+test/
+scripts/
+*.md
+.env
+.env.*
+!.env.example
+.dockerignore
+Dockerfile
+Dockerfile.prod
+compose.yml
+compose.ec2.yml
+compose.prod.yml
