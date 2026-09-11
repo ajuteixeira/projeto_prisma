@@ -195,7 +195,9 @@ defmodule ProjetoPrisma.Sync.Igdb.Adapter do
     %{
       igdb_game
       | cover_image: igdb_game.cover_image || platform_cover,
-        icon_image: igdb_game.icon_image || get_value(game_data, :icon_image) || platform_cover || igdb_game.cover_image,
+        icon_image:
+          igdb_game.icon_image || get_value(game_data, :icon_image) || platform_cover ||
+            igdb_game.cover_image,
         logo_image: igdb_game.logo_image || get_value(game_data, :logo_image)
     }
   end

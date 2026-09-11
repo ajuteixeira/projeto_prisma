@@ -173,7 +173,8 @@ defmodule ProjetoPrismaWeb.RegisterFormLive do
     email = params["email"]
 
     if Accounts.get_user_by_email(email) do
-      {:noreply, assign(socket, :form_errors, [{:email, "Este e-mail já está em uso, escolha outro."}])}
+      {:noreply,
+       assign(socket, :form_errors, [{:email, "Este e-mail já está em uso, escolha outro."}])}
     else
       case send_code_and_start_countdown(socket, email) do
         {:noreply, updated_socket} ->
@@ -271,7 +272,11 @@ defmodule ProjetoPrismaWeb.RegisterFormLive do
     <% else %>
       <%= if @step == :verification do %>
         <div style="text-align: center;">
-          <i class="fas fa-envelope-open-text" style="font-size: 48px; color: #007bff; margin-bottom: 16px;"></i>
+          <i
+            class="fas fa-envelope-open-text"
+            style="font-size: 48px; color: #007bff; margin-bottom: 16px;"
+          >
+          </i>
           <h3 style="margin-bottom: 8px;">Verifique seu email</h3>
           <p style="color: #a0a0a0; margin-bottom: 24px;">
             Enviamos um código de 6 dígitos para <strong>{@form_params["email"]}</strong>

@@ -70,17 +70,17 @@ config :projeto_prisma, ProjetoPrismaWeb.Endpoint,
     ]
   ]
 
-  config :projeto_prisma, ProjetoPrisma.Mailer,
-    adapter: Swoosh.Adapters.SMTP,
-    relay: "smtp.gmail.com",
-    port: 587,
-    username: System.get_env("GMAIL_USER"),
-    password: System.get_env("GMAIL_APP_PASSWORD"),
-    tls: :always,
-    auth: :always,
-    tls_options: [verify: :verify_none]
+config :projeto_prisma, ProjetoPrisma.Mailer,
+  adapter: Swoosh.Adapters.SMTP,
+  relay: "smtp.gmail.com",
+  port: 587,
+  username: System.get_env("GMAIL_USER"),
+  password: System.get_env("GMAIL_APP_PASSWORD"),
+  tls: :always,
+  auth: :always,
+  tls_options: [verify: :verify_none]
 
-  config :swoosh, local: false
+config :swoosh, local: false
 
 # Enable dev routes for dashboard and mailbox
 config :projeto_prisma, dev_routes: System.get_env("DISABLE_DEV_ROUTES") != "true"
