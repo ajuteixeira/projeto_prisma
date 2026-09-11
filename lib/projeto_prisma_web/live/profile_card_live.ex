@@ -311,6 +311,7 @@ defmodule ProjetoPrismaWeb.ProfileCardLive do
 
           load_achievements_page(socket, target, socket.assigns.achievement_search)
       end
+
     {:noreply, socket}
   end
 
