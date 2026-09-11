@@ -1,0 +1,41 @@
+# Build stage: compiles deps, assets and an OTP release
+FROM elixir:1.18.3-alpine AS build
+
+RUN apk add --no-cache build-base git
+
+WORKDIR /app
+
+RUN mix local.hex --force && \
+    mix local.rebar --force
+
+ENV MIX_ENV=prod
+
+COPY mix.exs mix.lock ./
+RUN mix deps.get --only prod
+
+COPY config config
+RUN mix deps.compile
+
+COPY assets assets
+COPY priv priv
+COPY lib lib
+
+RUN mix compile && \
+    mix assets.deploy && \
+    mix release
+
+# Runtime stage: minimal image with only the release
+FROM alpine:3.21
+
+RUN apk add --no-cache libstdc++ ncurses-libs openssl ca-certificates
+
+WORKDIR /app
+
+ENV PHX_SERVER=true \
+    MIX_ENV=prod
+
+COPY --from=build /app/_build/prod/rel/projeto_prisma ./
+
+EXPOSE 4000
+
+CMD ["bin/projeto_prisma", "start"]

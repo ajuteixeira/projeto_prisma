@@ -112,5 +112,13 @@ if config_env() == :prod do
     password: System.get_env("GMAIL_APP_PASSWORD"),
     tls: :always,
     auth: :always,
-    tls_options: [verify: :verify_peer, cacerts: :public_key.cacerts_get()]
+    tls_options: [
+      verify: :verify_peer,
+      cacertfile: System.get_env("SSL_CA_CERT_FILE") || "/etc/ssl/certs/ca-certificates.crt",
+      server_name_indication: ~c"smtp.gmail.com",
+      customize_hostname_check: [
+        match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+      ],
+      depth: 10
+    ]
 end

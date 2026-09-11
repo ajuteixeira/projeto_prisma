@@ -1,0 +1,44 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts
+
+      - name: Sync code to server
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          rsync -az --delete \
+            --exclude '.git' \
+            --exclude '.env*' \
+            --exclude '_build' \
+            --exclude 'deps' \
+            --exclude 'node_modules' \
+            --exclude 'docs' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./ "$SERVER_USER@$SERVER_HOST:projeto_prisma/"
+
+      - name: Rebuild and restart production stack
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "$SERVER_USER@$SERVER_HOST" \
+            "cd ~/projeto_prisma && sudo docker compose -f compose.prod.yml --env-file .env.prod up -d --build"
