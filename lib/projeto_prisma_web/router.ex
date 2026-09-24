@@ -92,6 +92,7 @@ defmodule ProjetoPrismaWeb.Router do
     pipe_through :api
 
     post "/auth/register", AuthController, :register
+    post "/auth/availability", AuthController, :availability
     post "/auth/login", AuthController, :login
     post "/auth/password/forgot", AuthController, :forgot_password
     post "/auth/password/reset", AuthController, :reset_password

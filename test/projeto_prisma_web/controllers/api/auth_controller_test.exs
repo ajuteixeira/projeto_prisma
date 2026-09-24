@@ -55,6 +55,30 @@ defmodule ProjetoPrismaWeb.Api.AuthControllerTest do
     end
   end
 
+  describe "POST /api/auth/availability" do
+    test "indica username e e-mail em uso", %{conn: conn} do
+      user = user_fixture()
+
+      conn =
+        post(conn, ~p"/api/auth/availability", %{
+          "username" => String.upcase(user.username),
+          "email" => user.email
+        })
+
+      assert json_response(conn, 200) == %{"username" => false, "email" => false}
+    end
+
+    test "responde só os campos enviados", %{conn: conn} do
+      conn = post(conn, ~p"/api/auth/availability", %{"username" => "ninguem_usa_esse"})
+      assert json_response(conn, 200) == %{"username" => true}
+    end
+
+    test "retorna 400 sem campos", %{conn: conn} do
+      conn = post(conn, ~p"/api/auth/availability", %{})
+      assert %{"error" => _} = json_response(conn, 400)
+    end
+  end
+
   describe "POST /api/auth/login" do
     setup do
       user = user_fixture() |> set_password()

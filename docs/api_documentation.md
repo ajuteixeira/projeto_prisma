@@ -37,6 +37,7 @@ A API usa **Bearer tokens opacos** persistidos na tabela `users_tokens` (context
 | Método | Rota | Body | Resposta |
 |--------|------|------|----------|
 | POST | `/api/auth/register` | `{email, password, username, full_name?}` | `201 {token, user}` / `422` erros de validação |
+| POST | `/api/auth/availability` | `{username?, email?}` | `200 {username?: bool, email?: bool}` (`true` = disponível) / `400` sem campos / `429` (30/5 min por IP) |
 | POST | `/api/auth/login` | `{email, password}` | `200 {token, user}` / `401` / `429` (rate limit: 10 tentativas/5 min por IP+e-mail) |
 | POST | `/api/auth/password/forgot` | `{email}` | `202 {message}` (resposta idêntica exista ou não a conta; rate limit 5/5 min) |
 | POST | `/api/auth/password/reset` | `{token, password, password_confirmation}` | `200 {message}` / `400` token inválido / `422` |
