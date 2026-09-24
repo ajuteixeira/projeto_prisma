@@ -530,6 +530,23 @@ defmodule ProjetoPrisma.Accounts do
   def username_taken?(_scope, _username), do: false
 
   @doc """
+  Indica se o username ainda está livre para um novo cadastro (sem diferenciar
+  maiúsculas de minúsculas).
+  """
+  def username_available?(username) when is_binary(username) do
+    normalized = String.downcase(String.trim(username))
+
+    not (User
+         |> where([u], fragment("lower(?)", u.username) == ^normalized)
+         |> Repo.exists?())
+  end
+
+  @doc """
+  Indica se o e-mail ainda está livre para um novo cadastro.
+  """
+  def email_available?(email) when is_binary(email), do: is_nil(get_user_by_email(email))
+
+  @doc """
   Busca ou cria uma conta de usuário em uma plataforma.
 
   ## Parâmetros

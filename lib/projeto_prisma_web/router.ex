@@ -92,6 +92,7 @@ defmodule ProjetoPrismaWeb.Router do
     pipe_through :api
 
     post "/auth/register", AuthController, :register
+    post "/auth/availability", AuthController, :availability
     post "/auth/login", AuthController, :login
     post "/auth/password/forgot", AuthController, :forgot_password
     post "/auth/password/reset", AuthController, :reset_password
@@ -105,6 +106,8 @@ defmodule ProjetoPrismaWeb.Router do
 
     get "/platforms", PlatformController, :index
     post "/platforms/:slug/connect-url", PlatformController, :connect_url
+    post "/platforms/:slug/verification-code", PlatformController, :verification_code
+    post "/platforms/:slug/connect", PlatformController, :connect
     delete "/platforms/:slug", PlatformController, :delete
   end
 

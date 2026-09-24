@@ -7,6 +7,7 @@ defmodule ProjetoPrismaWeb.Api.AuthController do
 
   @login_rate_limit {10, 300}
   @forgot_password_rate_limit {5, 300}
+  @availability_rate_limit {30, 300}
 
   @doc """
   POST /api/auth/register
@@ -30,6 +31,41 @@ defmodule ProjetoPrismaWeb.Api.AuthController do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         unprocessable(conn, changeset)
+    end
+  end
+
+  @doc """
+  POST /api/auth/availability — confere se username e/ou e-mail estão livres.
+
+  Body: %{"username" => optional, "email" => optional}. Responde só as chaves
+  enviadas, ex.: `%{"username" => true, "email" => false}` (`true` = disponível).
+  Como o cadastro já revela e-mails em uso (`422`), limitamos por IP para
+  dificultar enumeração em massa.
+  """
+  def availability(conn, params) do
+    checks =
+      [
+        {"username", &Accounts.username_available?/1},
+        {"email", &Accounts.email_available?/1}
+      ]
+      |> Enum.flat_map(fn {field, available?} ->
+        case params[field] do
+          value when is_binary(value) and value != "" -> [{field, available?.(value)}]
+          _ -> []
+        end
+      end)
+
+    {limit, window} = @availability_rate_limit
+
+    cond do
+      checks == [] ->
+        bad_request(conn, "Informe username ou email")
+
+      RateLimiter.check({:api_availability, client_ip(conn)}, limit, window) != :ok ->
+        rate_limited(conn)
+
+      true ->
+        json(conn, Map.new(checks))
     end
   end
 

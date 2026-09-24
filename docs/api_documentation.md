@@ -37,6 +37,7 @@ A API usa **Bearer tokens opacos** persistidos na tabela `users_tokens` (context
 | Método | Rota | Body | Resposta |
 |--------|------|------|----------|
 | POST | `/api/auth/register` | `{email, password, username, full_name?}` | `201 {token, user}` / `422` erros de validação |
+| POST | `/api/auth/availability` | `{username?, email?}` | `200 {username?: bool, email?: bool}` (`true` = disponível) / `400` sem campos / `429` (30/5 min por IP) |
 | POST | `/api/auth/login` | `{email, password}` | `200 {token, user}` / `401` / `429` (rate limit: 10 tentativas/5 min por IP+e-mail) |
 | POST | `/api/auth/password/forgot` | `{email}` | `202 {message}` (resposta idêntica exista ou não a conta; rate limit 5/5 min) |
 | POST | `/api/auth/password/reset` | `{token, password, password_confirmation}` | `200 {message}` / `400` token inválido / `422` |
@@ -50,6 +51,8 @@ A API usa **Bearer tokens opacos** persistidos na tabela `users_tokens` (context
 | GET | `/api/platforms` | Lista contas vinculadas: `[{platform, external_user_id, profile_url, sync_status}]` |
 | POST | `/api/platforms/steam/connect-url` | Body `{api_key}` → `{url}` (OpenID da Steam) |
 | POST | `/api/platforms/xbox/connect-url` | → `{url}` (authorize da Microsoft) |
+| POST | `/api/platforms/:slug/verification-code` | PSN/RetroAchievements → `{code, verification_token, expires_in}` |
+| POST | `/api/platforms/:slug/connect` | PSN/RetroAchievements. Body `{username, api_key, verification_token}` → `{platform}` / `410` código expirado / `422 {error, reason}` |
 | DELETE | `/api/platforms/:slug` | Desvincula a conta (`204` / `404` / `409` sync em andamento) |
 
 ### Fluxo de vinculação de plataformas (Steam/Xbox) no mobile
@@ -62,6 +65,15 @@ Como Steam (OpenID) e Xbox (OAuth2) exigem navegador, o fluxo é:
 4. O callback (`/auth/:platform/callback`) identifica o perfil pelo `state` assinado (não pela sessão), vincula a conta e redireciona para o **deep link** configurado em `:mobile_deep_link` (padrão `prisma://connect`) com `?status=success|error&platform=...&message=...`.
 
 As mesmas rotas de callback atendem o fluxo web (sessão + flash redirect para `/connect-platforms`) — o `state` define qual fluxo está em curso.
+
+### Fluxo de vinculação de PSN e RetroAchievements no mobile
+
+Essas plataformas não têm OAuth, e credenciais válidas não provam que a conta informada é do usuário (qualquer NPSSO/API Key consulta qualquer perfil). A posse é provada por um código no perfil:
+
+1. O app chama `POST /api/platforms/:slug/verification-code` e exibe o `code` (`PRISMA-XXXX`).
+2. O usuário cola o código no "Sobre Mim" (PSN) ou no "Motto" (RetroAchievements).
+3. O app envia `POST /api/platforms/:slug/connect` com `username` (PSN ID / usuário RA), `api_key` (NPSSO / Web API Key) e o `verification_token` recebido. O token é um `Phoenix.Token` assinado com `profile_id`, plataforma e código (válido por 30 min), então o servidor não guarda estado.
+4. A API valida as credenciais, busca o perfil, confere o código e vincula a conta. `reason` no `422`: `verification_code_missing`, `invalid_credentials`, `account_not_found`, `request_failed`, `http_status`, `platform_not_found`, `missing_fields`.
 
 ### Observações
 

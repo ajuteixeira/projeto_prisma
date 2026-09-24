@@ -10,6 +10,10 @@ defmodule ProjetoPrismaWeb.PlatformConnect do
   @salt "platform-connect"
   @max_age_in_seconds 600
 
+  # O código de posse precisa durar o suficiente para o usuário editar o perfil.
+  @verification_salt "platform-verification"
+  @verification_max_age_in_seconds 1800
+
   def sign(payload) when is_map(payload) do
     Phoenix.Token.sign(ProjetoPrismaWeb.Endpoint, @salt, payload)
   end
@@ -19,6 +23,26 @@ defmodule ProjetoPrismaWeb.PlatformConnect do
   end
 
   def verify(_token), do: :error
+
+  @doc """
+  Token que amarra o código de verificação (PSN/RetroAchievements) ao perfil.
+
+  O app recebe o token junto do código e o devolve ao vincular, então o
+  servidor não precisa guardar o código emitido.
+  """
+  def sign_verification(payload) when is_map(payload) do
+    Phoenix.Token.sign(ProjetoPrismaWeb.Endpoint, @verification_salt, payload)
+  end
+
+  def verify_verification(token) when is_binary(token) do
+    Phoenix.Token.verify(ProjetoPrismaWeb.Endpoint, @verification_salt, token,
+      max_age: @verification_max_age_in_seconds
+    )
+  end
+
+  def verify_verification(_token), do: :error
+
+  def verification_max_age, do: @verification_max_age_in_seconds
 
   @doc """
   URL de retorno para o app mobile após a vinculação (sucesso ou erro).
