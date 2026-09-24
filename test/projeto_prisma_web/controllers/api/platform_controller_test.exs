@@ -6,6 +6,7 @@ defmodule ProjetoPrismaWeb.Api.PlatformControllerTest do
   alias ProjetoPrisma.Accounts
   alias ProjetoPrisma.Catalog.Platform
   alias ProjetoPrisma.Repo
+  alias ProjetoPrismaWeb.PlatformConnect
 
   defp api_conn(conn, token) do
     put_req_header(conn, "authorization", "Bearer #{token}")
@@ -92,6 +93,105 @@ defmodule ProjetoPrismaWeb.Api.PlatformControllerTest do
       token = Accounts.generate_api_token(user)
 
       conn = conn |> api_conn(token) |> post(~p"/api/platforms/psn/connect-url", %{})
+      assert %{"error" => _} = json_response(conn, 404)
+    end
+  end
+
+  describe "POST /api/platforms/:slug/verification-code" do
+    test "emite código PRISMA-XXXX com token assinado", %{conn: conn} do
+      {user, profile} = user_with_profile()
+      token = Accounts.generate_api_token(user)
+
+      conn =
+        conn |> api_conn(token) |> post(~p"/api/platforms/playstation/verification-code")
+
+      assert %{"code" => code, "verification_token" => signed, "expires_in" => 1800} =
+               json_response(conn, 200)
+
+      assert code =~ ~r/^PRISMA-[A-Z2-9]{4}$/
+
+      assert {:ok, %{profile_id: profile_id, platform: "playstation", code: ^code}} =
+               PlatformConnect.verify_verification(signed)
+
+      assert profile_id == profile.id
+    end
+
+    test "retorna 404 para plataformas OAuth", %{conn: conn} do
+      {user, _profile} = user_with_profile()
+      token = Accounts.generate_api_token(user)
+
+      conn = conn |> api_conn(token) |> post(~p"/api/platforms/steam/verification-code")
+      assert %{"error" => _} = json_response(conn, 404)
+    end
+  end
+
+  describe "POST /api/platforms/:slug/connect" do
+    test "retorna 410 com token de verificação inválido", %{conn: conn} do
+      {user, _profile} = user_with_profile()
+      token = Accounts.generate_api_token(user)
+
+      conn =
+        conn
+        |> api_conn(token)
+        |> post(~p"/api/platforms/retroachievements/connect", %{
+          "username" => "alguem",
+          "api_key" => "chave",
+          "verification_token" => "invalido"
+        })
+
+      assert %{"reason" => "verification_expired"} = json_response(conn, 410)
+    end
+
+    test "recusa token emitido para outra plataforma", %{conn: conn} do
+      {user, profile} = user_with_profile()
+      token = Accounts.generate_api_token(user)
+
+      signed =
+        PlatformConnect.sign_verification(%{
+          profile_id: profile.id,
+          platform: "playstation",
+          code: "PRISMA-AAAA"
+        })
+
+      conn =
+        conn
+        |> api_conn(token)
+        |> post(~p"/api/platforms/retroachievements/connect", %{
+          "username" => "alguem",
+          "api_key" => "chave",
+          "verification_token" => signed
+        })
+
+      assert %{"reason" => "verification_expired"} = json_response(conn, 410)
+    end
+
+    test "retorna 422 sem credenciais", %{conn: conn} do
+      {user, profile} = user_with_profile()
+      token = Accounts.generate_api_token(user)
+
+      signed =
+        PlatformConnect.sign_verification(%{
+          profile_id: profile.id,
+          platform: "retroachievements",
+          code: "PRISMA-AAAA"
+        })
+
+      conn =
+        conn
+        |> api_conn(token)
+        |> post(~p"/api/platforms/retroachievements/connect", %{
+          "username" => " ",
+          "verification_token" => signed
+        })
+
+      assert %{"reason" => "missing_fields"} = json_response(conn, 422)
+    end
+
+    test "retorna 404 para plataformas OAuth", %{conn: conn} do
+      {user, _profile} = user_with_profile()
+      token = Accounts.generate_api_token(user)
+
+      conn = conn |> api_conn(token) |> post(~p"/api/platforms/xbox/connect", %{})
       assert %{"error" => _} = json_response(conn, 404)
     end
   end
