@@ -3,7 +3,7 @@ defmodule ProjetoPrismaWeb.ApiJSON do
   Serializers JSON compartilhados pelos controllers da API.
   """
 
-  alias ProjetoPrisma.Accounts.{Profile, ProfilePlatformAccount, User}
+  alias ProjetoPrisma.Accounts.{Profile, ProfileAvatar, ProfilePlatformAccount, User}
 
   def user(%User{} = user) do
     %{
@@ -22,6 +22,43 @@ defmodule ProjetoPrismaWeb.ApiJSON do
       username: profile.username
     }
   end
+
+  @doc """
+  Cartão de perfil (`GET /api/profile`). O avatar só sai quando é um data URL
+  de imagem, como a web exige; do contrário o cliente usa o avatar gerado.
+  """
+  def profile_card(%Profile{} = profile, %{
+        followers_count: followers_count,
+        following_count: following_count,
+        pinned_achievements: pinned_achievements
+      }) do
+    %{
+      id: profile.id,
+      username: profile.username,
+      bio: profile.bio,
+      avatar_url: avatar_url(profile.avatar),
+      followers_count: followers_count,
+      following_count: following_count,
+      pinned_achievements: Enum.map(pinned_achievements, &pinned_achievement/1)
+    }
+  end
+
+  defp pinned_achievement(achievement) do
+    %{
+      id: achievement.profile_achievement_id,
+      name: achievement.name,
+      game_name: achievement.game_name,
+      icon_url: achievement.icon_image,
+      position: achievement.pinned_position
+    }
+  end
+
+  defp avatar_url(%ProfileAvatar{data: data}) when is_binary(data) do
+    data = String.trim(data)
+    if String.starts_with?(data, "data:image"), do: data
+  end
+
+  defp avatar_url(_avatar), do: nil
 
   def platform_account(%ProfilePlatformAccount{} = account) do
     %{
