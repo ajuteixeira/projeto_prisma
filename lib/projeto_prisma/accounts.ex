@@ -509,6 +509,132 @@ defmodule ProjetoPrisma.Accounts do
 
   def upsert_profile_avatar(_scope, _data, _content_type), do: {:error, :profile_not_found}
 
+  @profile_bio_max 90
+  @profile_full_name_min 3
+  @avatar_content_types ~w(image/jpeg image/png image/gif image/webp)
+  @avatar_max_bytes 2_000_000
+
+  @doc """
+  Atualiza nome, username, bio e avatar do usuario logado de uma vez (API mobile).
+
+  Só altera as chaves presentes em `attrs` (`"full_name"`, `"username"`, `"bio"`,
+  `"avatar"` como data URL). Valida tudo antes de gravar: com qualquer erro nada
+  é salvo e volta `{:error, %{"campo" => [mensagens]}}`.
+  """
+  def update_profile_details(%Scope{user: %User{id: user_id}} = scope, attrs)
+      when is_map(attrs) do
+    with %User{} = user <- Repo.get(User, user_id),
+         %Profile{} = profile <- Repo.get_by(Profile, user_id: user_id) do
+      user_changeset = profile_details_user_changeset(scope, user, attrs)
+      profile_changeset = profile_details_profile_changeset(profile, attrs)
+      avatar = parse_avatar(attrs)
+
+      errors =
+        user_changeset
+        |> changeset_error_map()
+        |> Map.merge(changeset_error_map(profile_changeset))
+        |> Map.merge(avatar_error_map(avatar))
+
+      if errors == %{} do
+        save_profile_details(scope, user_changeset, profile_changeset, avatar)
+      else
+        {:error, errors}
+      end
+    else
+      nil -> {:error, :profile_not_found}
+    end
+  end
+
+  def update_profile_details(_scope, _attrs), do: {:error, :profile_not_found}
+
+  defp save_profile_details(scope, user_changeset, profile_changeset, avatar) do
+    Repo.transact(fn ->
+      with {:ok, user} <- Repo.update(user_changeset),
+           {:ok, profile} <-
+             profile_changeset
+             |> Ecto.Changeset.change(username: user.username)
+             |> Repo.update(),
+           {:ok, _avatar} <- save_avatar(scope, avatar) do
+        {:ok, {user, Repo.preload(profile, [:user, :avatar], force: true)}}
+      end
+    end)
+    |> case do
+      {:error, %Ecto.Changeset{} = changeset} -> {:error, changeset_error_map(changeset)}
+      result -> result
+    end
+  end
+
+  defp profile_details_user_changeset(scope, user, attrs) do
+    full_name =
+      user
+      |> User.full_name_changeset(Map.take(attrs, ["full_name"]))
+      |> Ecto.Changeset.validate_length(:full_name,
+        min: @profile_full_name_min,
+        message: "deve ter no minimo #{@profile_full_name_min} caracteres"
+      )
+
+    case attrs do
+      %{"username" => username} when is_binary(username) ->
+        username = String.trim(username)
+
+        changeset =
+          Ecto.Changeset.merge(full_name, User.username_changeset(user, %{username: username}))
+
+        # A web compara sem diferenciar maiúsculas; o índice único não.
+        if changeset.errors[:username] == nil and username_taken?(scope, username) do
+          Ecto.Changeset.add_error(changeset, :username, "ja esta em uso")
+        else
+          changeset
+        end
+
+      _ ->
+        full_name
+    end
+  end
+
+  defp profile_details_profile_changeset(profile, attrs) do
+    profile
+    |> Ecto.Changeset.cast(Map.take(attrs, ["bio"]), [:bio])
+    |> Ecto.Changeset.validate_length(:bio,
+      max: @profile_bio_max,
+      message: "deve ter no maximo #{@profile_bio_max} caracteres"
+    )
+  end
+
+  defp parse_avatar(%{"avatar" => data}) when is_binary(data) do
+    with [_, type, encoded] <-
+           Regex.run(~r/\Adata:([\w\/.+-]+);base64,(.+)\z/s, String.trim(data)),
+         true <- type in @avatar_content_types || {:error, "deve ser JPG, PNG, GIF ou WebP"},
+         {:ok, binary} <- Base.decode64(encoded),
+         true <- byte_size(binary) <= @avatar_max_bytes || {:error, "deve ter no maximo 2 MB"} do
+      {:ok, "data:#{type};base64,#{encoded}", type}
+    else
+      {:error, message} -> {:error, message}
+      _ -> {:error, "imagem invalida"}
+    end
+  end
+
+  defp parse_avatar(%{"avatar" => _}), do: {:error, "imagem invalida"}
+  defp parse_avatar(_attrs), do: :none
+
+  defp avatar_error_map({:error, message}), do: %{"avatar" => [message]}
+  defp avatar_error_map(_avatar), do: %{}
+
+  defp save_avatar(scope, {:ok, data, content_type}),
+    do: upsert_profile_avatar(scope, data, content_type)
+
+  defp save_avatar(_scope, :none), do: {:ok, nil}
+
+  defp changeset_error_map(%Ecto.Changeset{} = changeset) do
+    changeset
+    |> Ecto.Changeset.traverse_errors(fn {message, opts} ->
+      Regex.replace(~r"%{(\w+)}", message, fn _, key ->
+        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+      end)
+    end)
+    |> Map.new(fn {field, messages} -> {to_string(field), messages} end)
+  end
+
   @doc """
   Verifica se um username já está em uso por outro usuario.
 
