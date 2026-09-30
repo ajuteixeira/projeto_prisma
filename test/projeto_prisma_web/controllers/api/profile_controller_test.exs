@@ -137,6 +137,128 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
     end
   end
 
+  describe "PATCH /api/profile" do
+    setup do
+      user = user_fixture()
+      {:ok, user} = Accounts.update_user_full_name(user_scope_fixture(user), "Carly")
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      %{user: user, profile: profile, token: Accounts.generate_api_token(user)}
+    end
+
+    test "retorna 401 sem token", %{conn: conn} do
+      conn = patch(conn, ~p"/api/profile", %{"bio" => "oi"})
+      assert %{"error" => _} = json_response(conn, 401)
+    end
+
+    test "atualiza nome, nickname e bio e devolve o cartão e o usuário", %{
+      conn: conn,
+      user: user,
+      profile: profile,
+      token: token
+    } do
+      conn =
+        conn
+        |> api_conn(token)
+        |> patch(~p"/api/profile", %{
+          "full_name" => "Carly Mendes",
+          "username" => "carly_nova",
+          "bio" => "Platina é vida."
+        })
+
+      assert %{"profile" => profile_json, "user" => user_json} = json_response(conn, 200)
+      assert profile_json["username"] == "carly_nova"
+      assert profile_json["bio"] == "Platina é vida."
+      assert profile_json["followers_count"] == 0
+
+      assert user_json == %{
+               "id" => user.id,
+               "email" => user.email,
+               "username" => "carly_nova",
+               "full_name" => "Carly Mendes"
+             }
+
+      assert Repo.get!(ProjetoPrisma.Accounts.User, user.id).username == "carly_nova"
+      assert Repo.get!(ProjetoPrisma.Accounts.Profile, profile.id).username == "carly_nova"
+    end
+
+    test "campos ausentes ficam como estão; bio vazia é apagada", %{
+      conn: conn,
+      user: user,
+      profile: profile,
+      token: token
+    } do
+      profile |> Ecto.Changeset.change(bio: "Antiga") |> Repo.update!()
+
+      conn = conn |> api_conn(token) |> patch(~p"/api/profile", %{"bio" => ""})
+
+      assert %{
+               "profile" => %{"bio" => nil, "username" => username},
+               "user" => %{"full_name" => "Carly"}
+             } =
+               json_response(conn, 200)
+
+      assert username == user.username
+    end
+
+    test "salva o avatar enviado como data URL", %{conn: conn, token: token} do
+      avatar = "data:image/png;base64," <> Base.encode64("png-bytes")
+
+      conn = conn |> api_conn(token) |> patch(~p"/api/profile", %{"avatar" => avatar})
+
+      assert %{"profile" => %{"avatar_url" => ^avatar}} = json_response(conn, 200)
+    end
+
+    test "recusa avatar fora dos formatos aceitos", %{conn: conn, token: token} do
+      avatar = "data:image/bmp;base64," <> Base.encode64("bmp")
+
+      conn = conn |> api_conn(token) |> patch(~p"/api/profile", %{"avatar" => avatar})
+
+      assert %{"errors" => %{"avatar" => [_]}} = json_response(conn, 422)
+    end
+
+    test "recusa avatar maior que 2 MB", %{conn: conn, token: token} do
+      avatar = "data:image/jpeg;base64," <> Base.encode64(:binary.copy("a", 2_000_001))
+
+      conn = conn |> api_conn(token) |> patch(~p"/api/profile", %{"avatar" => avatar})
+
+      assert %{"errors" => %{"avatar" => [_]}} = json_response(conn, 422)
+    end
+
+    test "recusa nickname em uso sem alterar nada", %{
+      conn: conn,
+      user: user,
+      token: token
+    } do
+      other = user_fixture()
+
+      conn =
+        conn
+        |> api_conn(token)
+        |> patch(~p"/api/profile", %{
+          "username" => String.upcase(other.username),
+          "bio" => "Não deve salvar"
+        })
+
+      assert %{"errors" => %{"username" => [_]}} = json_response(conn, 422)
+      assert Repo.get!(ProjetoPrisma.Accounts.User, user.id).username == user.username
+      assert Repo.get_by!(ProjetoPrisma.Accounts.Profile, user_id: user.id).bio == nil
+    end
+
+    test "valida formato do nickname, tamanho do nome e da bio", %{conn: conn, token: token} do
+      conn =
+        conn
+        |> api_conn(token)
+        |> patch(~p"/api/profile", %{
+          "username" => "com espaço",
+          "full_name" => "ab",
+          "bio" => String.duplicate("a", 91)
+        })
+
+      assert %{"errors" => errors} = json_response(conn, 422)
+      assert Map.keys(errors) |> Enum.sort() == ["bio", "full_name", "username"]
+    end
+  end
+
   defp other_profile do
     user = user_fixture()
     {:ok, profile} = Accounts.create_profile_for_user(user)

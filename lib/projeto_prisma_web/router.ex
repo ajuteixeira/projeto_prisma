@@ -105,6 +105,7 @@ defmodule ProjetoPrismaWeb.Router do
     post "/auth/logout", AuthController, :logout
 
     get "/profile", ProfileController, :show
+    patch "/profile", ProfileController, :update
 
     get "/platforms", PlatformController, :index
     post "/platforms/:slug/connect-url", PlatformController, :connect_url
