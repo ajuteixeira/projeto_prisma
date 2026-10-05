@@ -137,6 +137,103 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
     end
   end
 
+  describe "GET /api/profile/stats" do
+    test "retorna 401 sem token", %{conn: conn} do
+      conn = get(conn, ~p"/api/profile/stats")
+      assert %{"error" => _} = json_response(conn, 401)
+    end
+
+    test "retorna 404 quando o usuário não tem perfil", %{conn: conn} do
+      user = user_fixture()
+      token = Accounts.generate_api_token(user)
+
+      conn = conn |> api_conn(token) |> get(~p"/api/profile/stats")
+      assert %{"error" => _} = json_response(conn, 404)
+    end
+
+    test "perfil sem jogos zera as estatísticas e lista as plataformas em 0%", %{conn: conn} do
+      user = user_fixture()
+      {:ok, _profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+      steam = platform("Steam", "steam")
+      psn = platform("PlayStation Network", "playstation")
+
+      conn = conn |> api_conn(token) |> get(~p"/api/profile/stats")
+
+      assert json_response(conn, 200) == %{
+               "stats" => %{
+                 "total_achievements" => 0,
+                 "avg_completion" => 0,
+                 "perfect_games" => 0
+               },
+               "platform_distribution" => [
+                 %{
+                   "platform_id" => steam.id,
+                   "name" => "Steam",
+                   "slug" => "steam",
+                   "unlocked" => 0,
+                   "percentage" => 0
+                 },
+                 %{
+                   "platform_id" => psn.id,
+                   "name" => "PlayStation Network",
+                   "slug" => "playstation",
+                   "unlocked" => 0,
+                   "percentage" => 0
+                 }
+               ]
+             }
+    end
+
+    test "calcula conquistas, média de conclusão, jogos perfeitos e troféus por plataforma",
+         %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+
+      steam = platform("Steam", "steam")
+      psn = platform("PlayStation Network", "playstation")
+      xbox = platform("Xbox Live", "xbox")
+
+      # Steam: um jogo 100% (3/3) e outro em 25% (1/4).
+      perfect = library(profile, "Hades", steam)
+      for _ <- 1..3, do: achievement(perfect.profile_game, perfect.platform_game, [])
+
+      partial = library(profile, "Celeste", steam)
+      achievement(partial.profile_game, partial.platform_game, [])
+
+      for _ <- 1..3,
+          do: achievement(partial.profile_game, partial.platform_game, achieved: false)
+
+      # PlayStation: 50% (1/2).
+      half = library(profile, "Bloodborne", psn)
+      achievement(half.profile_game, half.platform_game, [])
+      achievement(half.profile_game, half.platform_game, achieved: false)
+
+      # Jogo sem conquistas não entra na média nem conta como perfeito.
+      library(profile, "Minecraft", xbox)
+
+      # Conquistas de outro perfil não contam.
+      stranger = library(other_profile(), "Hades", steam)
+      achievement(stranger.profile_game, stranger.platform_game, [])
+
+      conn = conn |> api_conn(token) |> get(~p"/api/profile/stats")
+      json = json_response(conn, 200)
+
+      assert json["stats"] == %{
+               "total_achievements" => 5,
+               "avg_completion" => 58.3,
+               "perfect_games" => 1
+             }
+
+      assert Enum.map(
+               json["platform_distribution"],
+               &{&1["slug"], &1["unlocked"], &1["percentage"]}
+             ) ==
+               [{"steam", 4, 80.0}, {"playstation", 1, 20.0}, {"xbox", 0, 0}]
+    end
+  end
+
   describe "PATCH /api/profile" do
     setup do
       user = user_fixture()
@@ -274,13 +371,13 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
     |> Repo.insert!()
   end
 
-  defp library(profile, game_name) do
-    id = unique_integer()
+  defp platform(name, slug) do
+    %Platform{} |> Platform.changeset(%{name: name, slug: slug}) |> Repo.insert!()
+  end
 
-    platform =
-      %Platform{}
-      |> Platform.changeset(%{name: "Platform #{id}", slug: "platform-#{id}"})
-      |> Repo.insert!()
+  defp library(profile, game_name, on_platform \\ nil) do
+    id = unique_integer()
+    platform = on_platform || platform("Platform #{id}", "platform-#{id}")
 
     game = %Game{} |> Game.changeset(%{name: game_name}) |> Repo.insert!()
 
@@ -318,7 +415,7 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
     |> ProfileAchievement.changeset(%{
       profile_game_id: profile_game.id,
       achievement_id: achievement.id,
-      achieved: true,
+      achieved: Keyword.get(attrs, :achieved, true),
       pinned_position: Keyword.get(attrs, :pinned_position)
     })
     |> Repo.insert!()
