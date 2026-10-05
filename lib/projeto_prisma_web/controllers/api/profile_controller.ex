@@ -2,6 +2,7 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
   use ProjetoPrismaWeb, :controller
 
   alias ProjetoPrisma.Accounts
+  alias ProjetoPrisma.Accounts.ProfileDashboard
   alias ProjetoPrismaWeb.ApiJSON
 
   @doc """
@@ -39,6 +40,24 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
         conn
         |> put_status(:unprocessable_entity)
         |> json(%{errors: errors})
+    end
+  end
+
+  @doc """
+  GET /api/profile/stats — os mesmos números dos cards do perfil web: total de
+  conquistas, média de conclusão, jogos perfeitos e a distribuição de troféus
+  por plataforma (todas as plataformas, em % das conquistas desbloqueadas).
+  """
+  def stats(conn, _params) do
+    case Accounts.get_profile_with_user(conn.assigns.current_scope) do
+      nil ->
+        not_found(conn)
+
+      profile ->
+        json(conn, %{
+          stats: ProfileDashboard.stats(profile.id),
+          platform_distribution: ProfileDashboard.platform_distribution(profile.id)
+        })
     end
   end
 

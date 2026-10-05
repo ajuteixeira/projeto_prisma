@@ -106,6 +106,7 @@ defmodule ProjetoPrismaWeb.Router do
 
     get "/profile", ProfileController, :show
     patch "/profile", ProfileController, :update
+    get "/profile/stats", ProfileController, :stats
 
     get "/platforms", PlatformController, :index
     post "/platforms/:slug/connect-url", PlatformController, :connect_url
