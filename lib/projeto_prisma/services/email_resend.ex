@@ -19,10 +19,8 @@ defmodule ProjetoPrisma.Services.EmailResend do
     </div>
     """
 
-    from_email = System.get_env("GMAIL_USER")
-
     new()
-    |> from(from_email)
+    |> from(sender())
     |> to(to_email)
     |> subject("Recuperação de Senha - Prisma")
     |> html_body(html_body)
@@ -43,13 +41,14 @@ defmodule ProjetoPrisma.Services.EmailResend do
     </div>
     """
 
-    from_email = System.get_env("GMAIL_USER")
-
     new()
-    |> from(from_email)
+    |> from(sender())
     |> to(to_email)
     |> subject("Código de confirmação - Prisma")
     |> html_body(html_body)
     |> Mailer.deliver()
   end
+
+  # Sem `GMAIL_USER` o remetente seria `nil`, que o Swoosh rejeita com exceção.
+  defp sender, do: System.get_env("GMAIL_USER") || {"Prisma", "no-reply@prisma.local"}
 end

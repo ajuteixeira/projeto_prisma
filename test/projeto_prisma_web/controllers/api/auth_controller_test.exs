@@ -5,6 +5,7 @@ defmodule ProjetoPrismaWeb.Api.AuthControllerTest do
 
   alias ProjetoPrisma.Accounts
   alias ProjetoPrisma.Repo
+  alias ProjetoPrismaWeb.RegistrationVerification
 
   defp api_conn(conn, token) do
     put_req_header(conn, "authorization", "Bearer #{token}")
@@ -21,15 +22,72 @@ defmodule ProjetoPrismaWeb.Api.AuthControllerTest do
     )
   end
 
-  describe "POST /api/auth/register" do
-    test "cria usuário, perfil e retorna token", %{conn: conn} do
+  # Dados de cadastro com um código válido já emitido para o e-mail.
+  defp verified_params(attrs \\ %{}, opts \\ []) do
+    {code, opts} = Keyword.pop(opts, :code, "123456")
+    params = register_params(attrs)
+    token = RegistrationVerification.encrypt(params["email"], code, opts)
+
+    Map.merge(params, %{"code" => code, "verification_token" => token})
+  end
+
+  # O adaptador de teste do Swoosh entrega o e-mail enviado ao próprio processo.
+  defp sent_code do
+    assert_received {:email, %{html_body: body}}
+    [code] = Regex.run(~r/>(\d{6})</, body, capture: :all_but_first)
+    code
+  end
+
+  describe "POST /api/auth/register/code" do
+    test "envia o código por e-mail e devolve o token", %{conn: conn} do
       params = register_params()
+
+      conn = post(conn, ~p"/api/auth/register/code", params)
+
+      assert %{"verification_token" => token, "expires_in" => 600, "resend_in" => 60} =
+               json_response(conn, 202)
+
+      code = sent_code()
+      assert RegistrationVerification.check(token, params["email"], code) == :ok
+    end
+
+    test "retorna 422 sem enviar e-mail quando o e-mail já está em uso", %{conn: conn} do
+      user = user_fixture()
+
+      conn = post(conn, ~p"/api/auth/register/code", register_params(%{"email" => user.email}))
+
+      assert %{"errors" => %{"email" => _}} = json_response(conn, 422)
+      # O `user_fixture` já envia a própria confirmação; aqui só importa o código.
+      refute_received {:email, %{subject: "Código de confirmação - Prisma"}}
+    end
+
+    test "retorna 422 para senha curta", %{conn: conn} do
+      conn = post(conn, ~p"/api/auth/register/code", register_params(%{"password" => "123"}))
+      assert %{"errors" => %{"password" => _}} = json_response(conn, 422)
+    end
+
+    test "limita os envios por e-mail", %{conn: conn} do
+      params = register_params()
+
+      for _ <- 1..5 do
+        assert build_conn() |> post(~p"/api/auth/register/code", params) |> json_response(202)
+      end
+
+      conn = post(conn, ~p"/api/auth/register/code", params)
+      assert %{"error" => _} = json_response(conn, 429)
+    end
+  end
+
+  describe "POST /api/auth/register" do
+    test "cria usuário confirmado, perfil e retorna token", %{conn: conn} do
+      params = verified_params()
 
       conn = post(conn, ~p"/api/auth/register", params)
 
       assert %{"token" => token, "user" => user_json} = json_response(conn, 201)
       assert user_json["email"] == params["email"]
       assert user_json["username"] == params["username"]
+      assert Accounts.get_user_by_email(params["email"]).confirmed_at
 
       # token é válido para autenticação
       conn = build_conn() |> api_conn(token) |> get(~p"/api/auth/me")
@@ -41,17 +99,68 @@ defmodule ProjetoPrismaWeb.Api.AuthControllerTest do
       assert username == params["username"]
     end
 
-    test "retorna 422 para e-mail duplicado", %{conn: conn} do
+    test "cria a conta com o código recebido por e-mail", %{conn: conn} do
       params = register_params()
+
+      %{"verification_token" => token} =
+        conn |> post(~p"/api/auth/register/code", params) |> json_response(202)
+
+      conn =
+        post(
+          build_conn(),
+          ~p"/api/auth/register",
+          Map.merge(params, %{"code" => sent_code(), "verification_token" => token})
+        )
+
+      assert %{"token" => _} = json_response(conn, 201)
+    end
+
+    test "retorna 422 com código incorreto sem criar a conta", %{conn: conn} do
+      params = verified_params(%{}, code: "123456") |> Map.put("code", "654321")
+
+      conn = post(conn, ~p"/api/auth/register", params)
+
+      assert %{"error" => _} = json_response(conn, 422)
+      refute Accounts.get_user_by_email(params["email"])
+    end
+
+    test "retorna 410 com código expirado", %{conn: conn} do
+      params = verified_params(%{}, signed_at: System.system_time(:second) - 601)
+
+      conn = post(conn, ~p"/api/auth/register", params)
+      assert %{"error" => _} = json_response(conn, 410)
+    end
+
+    test "retorna 400 com token emitido para outro e-mail", %{conn: conn} do
+      params = verified_params() |> Map.put("email", unique_user_email())
+
+      conn = post(conn, ~p"/api/auth/register", params)
+      assert %{"error" => _} = json_response(conn, 400)
+    end
+
+    test "retorna 400 sem código de verificação", %{conn: conn} do
+      conn = post(conn, ~p"/api/auth/register", register_params())
+      assert %{"error" => _} = json_response(conn, 400)
+    end
+
+    test "bloqueia o código depois de 5 tentativas", %{conn: conn} do
+      params = verified_params(%{}, code: "123456")
+
+      for _ <- 1..5 do
+        wrong = Map.put(params, "code", "000000")
+        assert build_conn() |> post(~p"/api/auth/register", wrong) |> json_response(422)
+      end
+
+      conn = post(conn, ~p"/api/auth/register", params)
+      assert %{"error" => _} = json_response(conn, 429)
+    end
+
+    test "retorna 422 para e-mail duplicado", %{conn: conn} do
+      params = verified_params()
       post(conn, ~p"/api/auth/register", params)
 
       conn = post(build_conn(), ~p"/api/auth/register", params)
       assert %{"errors" => %{"email" => _}} = json_response(conn, 422)
-    end
-
-    test "retorna 422 para senha curta", %{conn: conn} do
-      conn = post(conn, ~p"/api/auth/register", register_params(%{"password" => "123"}))
-      assert %{"errors" => %{"password" => _}} = json_response(conn, 422)
     end
   end
 

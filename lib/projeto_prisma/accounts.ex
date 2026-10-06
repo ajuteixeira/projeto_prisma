@@ -1474,11 +1474,25 @@ defmodule ProjetoPrisma.Accounts do
   Registers a user with email + password + username (used by the JSON API).
 
   Accepts string or atom keys: `email`, `password`, `username` e `full_name` (opcional).
+  Grava o usuário com `confirmed_at` preenchido: o e-mail precisa ter sido
+  confirmado antes da chamada.
   """
   def register_user_with_password(attrs) do
     %User{}
     |> User.registration_changeset(attrs)
+    |> User.confirm_changeset()
     |> Repo.insert()
+  end
+
+  @doc """
+  Valida os dados de cadastro sem gravar, inclusive e-mail e username em uso.
+
+  Retorna `{:ok, %User{}}` com o e-mail já normalizado, ou `{:error, changeset}`.
+  """
+  def validate_user_registration(attrs) do
+    %User{}
+    |> User.registration_changeset(attrs)
+    |> Ecto.Changeset.apply_action(:validate)
   end
 
   defp ensure_username(attrs) when is_map(attrs) do

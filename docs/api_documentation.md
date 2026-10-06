@@ -36,7 +36,8 @@ A API usa **Bearer tokens opacos** persistidos na tabela `users_tokens` (context
 
 | Método | Rota | Body | Resposta |
 |--------|------|------|----------|
-| POST | `/api/auth/register` | `{email, password, username, full_name?}` | `201 {token, user}` / `422` erros de validação |
+| POST | `/api/auth/register/code` | `{email, password, username, full_name?}` | `202 {verification_token, expires_in, resend_in}` / `422` erros de validação / `429` (5 envios/10 min por e-mail) / `503` falha no envio |
+| POST | `/api/auth/register` | `{email, password, username, full_name?, code, verification_token}` | `201 {token, user}` / `400` sem código ou token inválido / `410` código expirado / `422` código incorreto ou erros de validação / `429` (5 tentativas por código) |
 | POST | `/api/auth/availability` | `{username?, email?}` | `200 {username?: bool, email?: bool}` (`true` = disponível) / `400` sem campos / `429` (30/5 min por IP) |
 | POST | `/api/auth/login` | `{email, password}` | `200 {token, user}` / `401` / `429` (rate limit: 10 tentativas/5 min por IP+e-mail) |
 | POST | `/api/auth/password/forgot` | `{email}` | `202 {message}` (resposta idêntica exista ou não a conta; rate limit 5/5 min) |
@@ -54,6 +55,15 @@ A API usa **Bearer tokens opacos** persistidos na tabela `users_tokens` (context
 | POST | `/api/platforms/:slug/verification-code` | PSN/RetroAchievements → `{code, verification_token, expires_in}` |
 | POST | `/api/platforms/:slug/connect` | PSN/RetroAchievements. Body `{username, api_key, verification_token}` → `{platform}` / `410` código expirado / `422 {error, reason}` |
 | DELETE | `/api/platforms/:slug` | Desvincula a conta (`204` / `404` / `409` sync em andamento) |
+
+### Fluxo de cadastro com confirmação de e-mail no mobile
+
+A conta só é criada depois que o usuário confirma o e-mail com um código de 6 dígitos, com as mesmas regras do cadastro web (validade de 10 min, 5 tentativas, reenvio após 60 s):
+
+1. O app envia os dados do cadastro para `POST /api/auth/register/code`. A API valida tudo (inclusive e-mail e username em uso) e só então envia o código por e-mail.
+2. A resposta traz um `verification_token`: o código criptografado junto do e-mail (`Phoenix.Token.encrypt`, válido por 10 min). O servidor não guarda estado, e o app não consegue ler o código de dentro do token.
+3. O app reenvia os mesmos dados para `POST /api/auth/register`, acrescentando `code` e `verification_token`. A conta é criada já confirmada (`confirmed_at`) e a resposta é a mesma do login.
+4. Para reenviar o código, o app repete o passo 1 e passa a usar o novo token.
 
 ### Fluxo de vinculação de plataformas (Steam/Xbox) no mobile
 

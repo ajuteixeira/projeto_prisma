@@ -2,21 +2,102 @@ defmodule ProjetoPrismaWeb.Api.AuthController do
   use ProjetoPrismaWeb, :controller
 
   alias ProjetoPrisma.{Accounts, RateLimiter, Repo}
-  alias ProjetoPrismaWeb.ApiJSON
+  alias ProjetoPrisma.Services.EmailResend
+  alias ProjetoPrismaWeb.{ApiJSON, RegistrationVerification}
   alias ProjetoPrismaWeb.Plugs.ApiAuth
 
   @login_rate_limit {10, 300}
   @forgot_password_rate_limit {5, 300}
   @availability_rate_limit {30, 300}
+  @register_code_rate_limit {5, 600}
+  # Tentativas por código, como no cadastro web.
+  @register_attempt_rate_limit {5, 600}
+
+  @registration_fields ["email", "password", "username", "full_name"]
+
+  @doc """
+  POST /api/auth/register/code
+
+  Body: o mesmo de `register`, sem `code` e `verification_token`. Valida os dados,
+  inclusive e-mail e username em uso, e só então envia o código por e-mail.
+
+  Responde `202 {verification_token, expires_in, resend_in}`, prazos em segundos;
+  `422` erros de campo; `429` mais de 5 envios para o e-mail em 10 min; `503`
+  falha no envio.
+  """
+  def register_code(conn, params) do
+    attrs = Map.take(params, @registration_fields)
+    {limit, window} = @register_code_rate_limit
+
+    with {:ok, user} <- Accounts.validate_user_registration(attrs),
+         :ok <- RateLimiter.check({:api_register_code, user.email}, limit, window),
+         code = RegistrationVerification.generate_code(),
+         {:ok, _metadata} <- EmailResend.send_verification_code_email(user.email, code) do
+      conn
+      |> put_status(:accepted)
+      |> json(%{
+        verification_token: RegistrationVerification.encrypt(user.email, code),
+        expires_in: RegistrationVerification.max_age(),
+        resend_in: RegistrationVerification.resend_after()
+      })
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        unprocessable(conn, changeset)
+
+      {:error, :rate_limited} ->
+        rate_limited(conn)
+
+      {:error, _delivery_error} ->
+        conn
+        |> put_status(:service_unavailable)
+        |> json(%{error: "Não foi possível enviar o código. Tente novamente."})
+    end
+  end
 
   @doc """
   POST /api/auth/register
 
-  Body: %{"email" => ..., "password" => ..., "username" => ..., "full_name" => optional}
+  Body: %{"email" => ..., "password" => ..., "username" => ..., "full_name" => optional,
+  "code" => código recebido por e-mail, "verification_token" => token de `register/code`}.
+  Cria a conta só se o código conferir. Responde `201 {token, user}`; `400` sem
+  código ou token inválido; `410` código expirado; `422` código incorreto ou erros
+  de campo; `429` 5 tentativas no mesmo código.
   """
-  def register(conn, params) do
-    attrs = Map.take(params, ["email", "password", "username", "full_name"])
+  def register(conn, %{"code" => code, "verification_token" => token} = params)
+      when is_binary(code) and is_binary(token) do
+    attrs = Map.take(params, @registration_fields)
+    email = attrs |> Map.get("email", "") |> to_string() |> String.trim() |> String.downcase()
+    {limit, window} = @register_attempt_rate_limit
 
+    with :ok <- RateLimiter.check({:api_register_attempt, token_key(token)}, limit, window),
+         :ok <- RegistrationVerification.check(token, email, String.trim(code)) do
+      create_account(conn, attrs)
+    else
+      {:error, :rate_limited} ->
+        conn
+        |> put_status(:too_many_requests)
+        |> json(%{error: "Muitas tentativas incorretas. Solicite um novo código."})
+
+      {:error, :invalid_code} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: "Código incorreto. Confira e tente de novo."})
+
+      {:error, :expired} ->
+        conn
+        |> put_status(:gone)
+        |> json(%{error: "O código expirou. Solicite um novo."})
+
+      {:error, :invalid_token} ->
+        bad_request(conn, "Código de verificação inválido. Solicite um novo.")
+    end
+  end
+
+  def register(conn, _params) do
+    bad_request(conn, "Informe o código de verificação enviado por e-mail")
+  end
+
+  defp create_account(conn, attrs) do
     Repo.transact(fn ->
       with {:ok, user} <- Accounts.register_user_with_password(attrs),
            {:ok, _profile} <- Accounts.create_profile_for_user(user) do
@@ -218,4 +299,7 @@ defmodule ProjetoPrismaWeb.Api.AuthController do
   defp client_ip(conn) do
     conn.remote_ip |> :inet.ntoa() |> to_string()
   end
+
+  # O token tem centenas de bytes; a chave do limitador só precisa identificá-lo.
+  defp token_key(token), do: :crypto.hash(:sha256, token)
 end
