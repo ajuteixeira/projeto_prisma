@@ -91,6 +91,7 @@ defmodule ProjetoPrismaWeb.Router do
   scope "/api", ProjetoPrismaWeb.Api, as: :api do
     pipe_through :api
 
+    post "/auth/register/code", AuthController, :register_code
     post "/auth/register", AuthController, :register
     post "/auth/availability", AuthController, :availability
     post "/auth/login", AuthController, :login
