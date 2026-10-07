@@ -27,6 +27,15 @@ if db_host = System.get_env("DB_HOST") do
   config :projeto_prisma, ProjetoPrisma.Repo, hostname: db_host
 end
 
+# Origens do navegador liberadas na API, separadas por vírgula. Vazio mantém as
+# do config do ambiente.
+case System.get_env("CORS_ORIGINS", "")
+     |> String.split(",", trim: true)
+     |> Enum.map(&String.trim/1) do
+  [] -> :ok
+  cors_origins -> config :projeto_prisma, :cors_origins, cors_origins
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

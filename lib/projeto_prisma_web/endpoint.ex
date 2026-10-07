@@ -43,6 +43,9 @@ defmodule ProjetoPrismaWeb.Endpoint do
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
 
+  # Antes do router: o preflight `OPTIONS` não tem rota e cairia em 404.
+  plug ProjetoPrismaWeb.Plugs.Cors
+
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],

@@ -105,3 +105,6 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# App web do Expo (`expo start --web`).
+config :projeto_prisma, :cors_origins, ["http://localhost:8081", "http://127.0.0.1:8081"]
