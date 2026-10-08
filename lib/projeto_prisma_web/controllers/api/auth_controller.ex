@@ -194,6 +194,18 @@ defmodule ProjetoPrismaWeb.Api.AuthController do
   end
 
   @doc """
+  DELETE /api/auth/account — deleta a conta do usuário autenticado.
+
+  Remove a conta, profile, contas de plataforma, games e achievements associados.
+  Retorna 204 (no content) em sucesso.
+  """
+  def delete_account(conn, _params) do
+    scope = conn.assigns.current_scope
+    Accounts.delete_user(scope.user)
+    send_resp(conn, :no_content, "")
+  end
+
+  @doc """
   GET /api/auth/me — dados do usuário autenticado, perfil e plataformas.
   """
   def me(conn, _params) do
