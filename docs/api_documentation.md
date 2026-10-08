@@ -49,6 +49,7 @@ A API usa **Bearer tokens opacos** persistidos na tabela `users_tokens` (context
 |--------|------|-----------|
 | GET | `/api/auth/me` | `{user, profile, platforms}` do usuário autenticado |
 | POST | `/api/auth/logout` | Revoga o token atual (`204`) |
+| DELETE | `/api/auth/account` | Deleta a conta, profile e todas as plataformas vinculadas (`204`) |
 | GET | `/api/platforms` | Lista contas vinculadas: `[{platform, external_user_id, profile_url, sync_status}]` |
 | POST | `/api/platforms/steam/connect-url` | Body `{api_key}` → `{url}` (OpenID da Steam) |
 | POST | `/api/platforms/xbox/connect-url` | → `{url}` (authorize da Microsoft) |

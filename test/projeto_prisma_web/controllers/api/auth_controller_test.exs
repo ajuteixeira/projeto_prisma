@@ -269,6 +269,31 @@ defmodule ProjetoPrismaWeb.Api.AuthControllerTest do
     end
   end
 
+  describe "DELETE /api/auth/account" do
+    test "deleta a conta e retorna 204", %{conn: conn} do
+      user = user_fixture()
+      {:ok, _profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+      user_id = user.id
+
+      conn = conn |> api_conn(token) |> delete(~p"/api/auth/account")
+      assert response(conn, 204)
+
+      # Usuário foi deletado
+      assert Repo.get(Accounts.User, user_id) == nil
+    end
+
+    test "retorna 401 sem token", %{conn: conn} do
+      conn = delete(conn, ~p"/api/auth/account")
+      assert %{"error" => _} = json_response(conn, 401)
+    end
+
+    test "retorna 401 com token inválido", %{conn: conn} do
+      conn = conn |> api_conn("token-invalido") |> delete(~p"/api/auth/account")
+      assert %{"error" => _} = json_response(conn, 401)
+    end
+  end
+
   describe "POST /api/auth/password/forgot" do
     test "retorna 202 para e-mail cadastrado", %{conn: conn} do
       user = user_fixture()
