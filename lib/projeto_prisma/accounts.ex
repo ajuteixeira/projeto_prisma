@@ -1198,6 +1198,45 @@ defmodule ProjetoPrisma.Accounts do
 
   def ranking_for_profile(_profile_id), do: []
 
+  @doc """
+  Lista os games jogados recentemente por um perfil, ordenados por última vez jogado.
+
+  ## Exemplos
+      iex> list_recently_played_games(profile_id, limit: 10, offset: 0)
+      [%ProfileGame{}, ...]
+  """
+  def list_recently_played_games(profile_id, opts \\ [])
+
+  def list_recently_played_games(profile_id, opts) when is_integer(profile_id) do
+    limit = option_value(opts, :limit, 10)
+    offset = option_value(opts, :offset, 0)
+
+    ProfileGame
+    |> where([pg], pg.profile_id == ^profile_id and not is_nil(pg.last_played))
+    |> preload([pg], [platform_game: [:game, :platform]])
+    |> order_by([pg], desc: pg.last_played)
+    |> limit(^limit)
+    |> offset(^offset)
+    |> Repo.all()
+  end
+
+  def list_recently_played_games(_profile_id, _opts), do: []
+
+  @doc """
+  Conta quantos games foram jogados por um perfil.
+
+  ## Exemplos
+      iex> count_recently_played_games(profile_id)
+      42
+  """
+  def count_recently_played_games(profile_id) when is_integer(profile_id) do
+    ProfileGame
+    |> where([pg], pg.profile_id == ^profile_id and not is_nil(pg.last_played))
+    |> Repo.aggregate(:count, :id)
+  end
+
+  def count_recently_played_games(_profile_id), do: 0
+
   defp profile_achievement_display_query(user_id) do
     ProfileAchievement
     |> join(:inner, [pa], pg in assoc(pa, :profile_game))

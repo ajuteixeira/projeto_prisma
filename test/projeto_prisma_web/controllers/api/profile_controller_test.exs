@@ -356,6 +356,119 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
     end
   end
 
+  describe "GET /api/profile/recently-played" do
+    test "retorna 401 sem token", %{conn: conn} do
+      conn = get(conn, ~p"/api/profile/recently-played")
+      assert %{"error" => _} = json_response(conn, 401)
+    end
+
+    test "retorna lista vazia quando nenhum jogo foi jogado", %{conn: conn} do
+      user = user_fixture()
+      {:ok, _profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+
+      conn = conn |> api_conn(token) |> get(~p"/api/profile/recently-played")
+
+      assert %{"recently_played" => [], "total" => 0, "limit" => 10, "offset" => 0} =
+               json_response(conn, 200)
+    end
+
+    test "retorna games jogados recentemente em ordem decrescente", %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+
+      # Criar 3 games
+      lib1 = library(profile, "Game 1")
+      lib2 = library(profile, "Game 2")
+      lib3 = library(profile, "Game 3")
+
+      now = NaiveDateTime.utc_now()
+      one_day_ago = NaiveDateTime.add(now, -86400)
+      two_days_ago = NaiveDateTime.add(now, -172800)
+
+      # Atualizar last_played para diferentes datas
+      lib1.profile_game
+      |> ProjetoPrisma.Accounts.ProfileGame.changeset(%{last_played: two_days_ago})
+      |> Repo.update!()
+
+      lib2.profile_game
+      |> ProjetoPrisma.Accounts.ProfileGame.changeset(%{last_played: one_day_ago})
+      |> Repo.update!()
+
+      lib3.profile_game
+      |> ProjetoPrisma.Accounts.ProfileGame.changeset(%{last_played: now})
+      |> Repo.update!()
+
+      conn = conn |> api_conn(token) |> get(~p"/api/profile/recently-played")
+
+      assert %{"recently_played" => games, "total" => 3} = json_response(conn, 200)
+      assert length(games) == 3
+
+      # Verificar que estão em ordem decrescente (Game 3, Game 2, Game 1)
+      [game1, game2, game3] = games
+      assert game1["game_name"] == "Game 3"
+      assert game2["game_name"] == "Game 2"
+      assert game3["game_name"] == "Game 1"
+    end
+
+    test "respeita limit e offset", %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+
+      for i <- 1..15 do
+        lib = library(profile, "Game #{i}")
+        lib.profile_game
+        |> ProjetoPrisma.Accounts.ProfileGame.changeset(%{
+          last_played: NaiveDateTime.add(NaiveDateTime.utc_now(), -i * 3600)
+        })
+        |> Repo.update!()
+      end
+
+      # Primeira página
+      conn = conn |> api_conn(token) |> get(~p"/api/profile/recently-played?limit=5&offset=0")
+      assert %{"recently_played" => games, "total" => 15, "limit" => 5, "offset" => 0} =
+               json_response(conn, 200)
+      assert length(games) == 5
+
+      # Segunda página
+      conn = build_conn() |> api_conn(token) |> get(~p"/api/profile/recently-played?limit=5&offset=5")
+      assert %{"recently_played" => games, "total" => 15, "limit" => 5, "offset" => 5} =
+               json_response(conn, 200)
+      assert length(games) == 5
+    end
+
+    test "formata resposta corretamente com todos os campos", %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+
+      lib = library(profile, "Test Game")
+
+      now = NaiveDateTime.utc_now()
+      lib.profile_game
+      |> ProjetoPrisma.Accounts.ProfileGame.changeset(%{
+        last_played: now,
+        playtime_minutes: 240
+      })
+      |> Repo.update!()
+
+      conn = conn |> api_conn(token) |> get(~p"/api/profile/recently-played")
+
+      assert %{"recently_played" => [game]} = json_response(conn, 200)
+
+      # Precarregar para verificação
+      platform_game = Repo.preload(lib.platform_game, [:platform, :game])
+
+      assert game["id"] == lib.profile_game.id
+      assert game["game_name"] == "Test Game"
+      assert game["platform"] == platform_game.platform.slug
+      assert game["playtime_minutes"] == 240
+      assert is_binary(game["last_played"])
+    end
+  end
+
   defp other_profile do
     user = user_fixture()
     {:ok, profile} = Accounts.create_profile_for_user(user)
