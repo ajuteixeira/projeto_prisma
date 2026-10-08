@@ -23,6 +23,8 @@ config :projeto_prisma, ProjetoPrismaWeb.Endpoint,
   secret_key_base: "1OhumHDJ0DPBObTrdc6+6AM9EwiPIU4NtCRD0Via07WrzqbnPIo0KaCqJVA0kodq",
   server: false
 
+config :projeto_prisma, :cors_origins, ["http://app.test"]
+
 # In test we don't send emails
 config :projeto_prisma, ProjetoPrisma.Mailer, adapter: Swoosh.Adapters.Test
 

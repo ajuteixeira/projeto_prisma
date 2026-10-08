@@ -88,5 +88,5 @@ Essas plataformas não têm OAuth, e credenciais válidas não provam que a cont
 
 ### Observações
 
-- **CORS** não é necessário para apps nativos; se um dia existir um SPA web consumindo a API, será preciso adicionar um plug de CORS.
+- **CORS** vale só para `/api` e só para as origens de `config :projeto_prisma, :cors_origins` (`ProjetoPrismaWeb.Plugs.Cors`). Em dev a lista libera o app web do Expo em `http://localhost:8081`; em outros ambientes, defina `CORS_ORIGINS` com as origens separadas por vírgula. Apps nativos não passam por CORS.
 - Documentação interativa (Swagger/OpenAPI) fica para quando a API crescer além de auth/vinculação.
