@@ -69,6 +69,30 @@ defmodule ProjetoPrismaWeb.ApiJSON do
     }
   end
 
+  @doc """
+  Pessoa nas listas de seguidores (`/api/follows`): nome de exibição como na
+  web (nome completo ou, na falta dele, o username) e se o usuário a segue.
+  """
+  def follow_profile(%Profile{} = profile, following_ids) do
+    %{
+      profile_id: profile.id,
+      username: profile.username,
+      display_name: display_name(profile),
+      avatar_url: avatar_url(profile.avatar),
+      is_following: MapSet.member?(following_ids, profile.id)
+    }
+  end
+
+  defp display_name(%Profile{user: %User{full_name: name}, username: username})
+       when is_binary(name) do
+    case String.trim(name) do
+      "" -> username
+      name -> name
+    end
+  end
+
+  defp display_name(%Profile{username: username}), do: username
+
   defp avatar_url(%ProfileAvatar{data: data}) when is_binary(data) do
     data = String.trim(data)
     if String.starts_with?(data, "data:image"), do: data
