@@ -4,30 +4,57 @@ defmodule ProjetoPrismaWeb.Api.FollowController do
   alias ProjetoPrisma.Accounts
   alias ProjetoPrismaWeb.ApiJSON
 
+  # Tamanho de página padrão e máximo das listas paginadas.
+  @page_size 20
+  @max_page_size 50
+
   @doc """
-  GET /api/follows — as listas da página Seguidores da web: quem segue o
-  usuário e quem ele segue, mais recentes primeiro.
+  GET /api/follows — as contagens das abas Seguidores e Seguindo. As listas
+  vêm paginadas de `/api/follows/followers` e `/api/follows/following`.
   """
   def index(conn, _params) do
     with_profile(conn, fn profile ->
-      following_ids = following_ids(profile.id)
-
       json(conn, %{
-        followers: serialize(Accounts.list_followers(profile.id), following_ids),
-        following: serialize(Accounts.list_following(profile.id), following_ids)
+        followers_count: Accounts.count_profile_followers(profile.id),
+        following_count: Accounts.count_profile_following(profile.id)
       })
     end)
   end
 
+  @doc "GET /api/follows/followers?offset=&limit= — quem segue o usuário, mais recentes primeiro."
+  def followers(conn, params),
+    do: page(conn, params, &Accounts.list_followers(&1.id, &2))
+
+  @doc "GET /api/follows/following?offset=&limit= — quem o usuário segue, mais recentes primeiro."
+  def following(conn, params),
+    do: page(conn, params, &Accounts.list_following(&1.id, &2))
+
   @doc """
-  GET /api/follows/search?q= — busca por username, sem o próprio usuário,
-  como a aba Pesquisar da web. Busca vazia não retorna ninguém.
+  GET /api/follows/search?q=&offset=&limit= — todos os perfis, sem o próprio
+  usuário, em ordem alfabética pelo nome; `q` filtra por username.
   """
-  def search(conn, params) do
+  def search(conn, params),
+    do: page(conn, params, &Accounts.list_profiles_by_name(&1.id, params["q"] || "", &2))
+
+  # Busca uma página a mais para saber se há próxima; `next_offset` é `nil` no fim.
+  defp page(conn, params, fetch) do
     with_profile(conn, fn profile ->
-      results = Accounts.search_profiles_by_username(profile.id, params["q"] || "")
-      json(conn, %{results: serialize(results, following_ids(profile.id))})
+      offset = parse_int(params["offset"], 0, 0, nil)
+      limit = parse_int(params["limit"], @page_size, 1, @max_page_size)
+      {results, rest} = profile |> fetch.(offset: offset, limit: limit + 1) |> Enum.split(limit)
+
+      json(conn, %{
+        results: serialize(results, following_ids(profile.id)),
+        next_offset: if(rest == [], do: nil, else: offset + limit)
+      })
     end)
+  end
+
+  defp parse_int(raw, default, min, max) do
+    case Integer.parse(to_string(raw || "")) do
+      {value, ""} when value >= min -> if max, do: min(value, max), else: value
+      _ -> default
+    end
   end
 
   @doc "PUT /api/follows/:profile_id — segue o perfil (idempotente)."

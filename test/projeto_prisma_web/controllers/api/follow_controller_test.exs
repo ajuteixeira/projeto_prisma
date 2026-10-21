@@ -36,29 +36,64 @@ defmodule ProjetoPrismaWeb.Api.FollowControllerTest do
   end
 
   describe "GET /api/follows" do
-    test "lista seguidores e seguidos com o estado de follow", %{conn: conn, me: me} do
+    test "retorna as contagens das abas", %{conn: conn, me: me} do
+      {_, fan} = profile_fixture()
+      {_, idol} = profile_fixture()
+      {_, other} = profile_fixture()
+      :ok = Accounts.follow_profile(fan.id, me.id)
+      :ok = Accounts.follow_profile(me.id, idol.id)
+      :ok = Accounts.follow_profile(me.id, other.id)
+
+      assert conn |> get(~p"/api/follows") |> json_response(200) ==
+               %{"followers_count" => 1, "following_count" => 2}
+    end
+  end
+
+  describe "GET /api/follows/followers e /following" do
+    test "lista com o estado de follow", %{conn: conn, me: me} do
       {_, fan} = profile_fixture(%{full_name: "Ana Souza"})
       {_, idol} = profile_fixture()
       :ok = Accounts.follow_profile(fan.id, me.id)
       :ok = Accounts.follow_profile(me.id, idol.id)
 
-      body = conn |> get(~p"/api/follows") |> json_response(200)
+      assert conn |> get(~p"/api/follows/followers") |> json_response(200) == %{
+               "results" => [
+                 %{
+                   "profile_id" => fan.id,
+                   "username" => fan.username,
+                   "display_name" => "Ana Souza",
+                   "avatar_url" => nil,
+                   "is_following" => false
+                 }
+               ],
+               "next_offset" => nil
+             }
 
-      assert body["followers"] == [
-               %{
-                 "profile_id" => fan.id,
-                 "username" => fan.username,
-                 "display_name" => "Ana Souza",
-                 "avatar_url" => nil,
-                 "is_following" => false
-               }
-             ]
-
-      assert [%{"profile_id" => id, "display_name" => name, "is_following" => true}] =
-               body["following"]
+      assert %{
+               "results" => [
+                 %{"profile_id" => id, "display_name" => name, "is_following" => true}
+               ]
+             } =
+               conn |> get(~p"/api/follows/following") |> json_response(200)
 
       assert id == idol.id
       assert name == idol.username
+    end
+
+    test "pagina com offset e limit", %{conn: conn, me: me} do
+      fans = for _ <- 1..3, do: elem(profile_fixture(), 1)
+      Enum.each(fans, &(:ok = Accounts.follow_profile(&1.id, me.id)))
+
+      first = conn |> get(~p"/api/follows/followers?limit=2") |> json_response(200)
+      assert length(first["results"]) == 2
+      assert first["next_offset"] == 2
+
+      last = conn |> get(~p"/api/follows/followers?limit=2&offset=2") |> json_response(200)
+      assert length(last["results"]) == 1
+      assert last["next_offset"] == nil
+
+      ids = Enum.map(first["results"] ++ last["results"], & &1["profile_id"])
+      assert Enum.sort(ids) == Enum.sort(Enum.map(fans, & &1.id))
     end
   end
 
@@ -67,16 +102,24 @@ defmodule ProjetoPrismaWeb.Api.FollowControllerTest do
       {_, other} = profile_fixture()
 
       %{"results" => results} =
-        conn |> get(~p"/api/follows/search?q=user_") |> json_response(200)
+        conn |> get(~p"/api/follows/search?q=user_&limit=50") |> json_response(200)
 
       ids = Enum.map(results, & &1["profile_id"])
       assert other.id in ids
       refute me.id in ids
     end
 
-    test "busca vazia não retorna ninguém", %{conn: conn} do
-      profile_fixture()
-      assert %{"results" => []} = conn |> get(~p"/api/follows/search?q=") |> json_response(200)
+    test "busca vazia lista todos em ordem alfabética pelo nome", %{conn: conn, me: me} do
+      {_, carla} = profile_fixture(%{full_name: "carla"})
+      {_, ana} = profile_fixture(%{full_name: "Ana"})
+      {_, bruno} = profile_fixture(%{full_name: "Bruno"})
+
+      %{"results" => results, "next_offset" => nil} =
+        conn |> get(~p"/api/follows/search?q=") |> json_response(200)
+
+      ids = Enum.map(results, & &1["profile_id"])
+      assert ids == [ana.id, bruno.id, carla.id]
+      refute me.id in ids
     end
   end
 

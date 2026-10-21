@@ -114,6 +114,8 @@ defmodule ProjetoPrismaWeb.Router do
     get "/ranking", RankingController, :index
 
     get "/follows", FollowController, :index
+    get "/follows/followers", FollowController, :followers
+    get "/follows/following", FollowController, :following
     get "/follows/search", FollowController, :search
     put "/follows/:profile_id", FollowController, :follow
     delete "/follows/:profile_id", FollowController, :unfollow
