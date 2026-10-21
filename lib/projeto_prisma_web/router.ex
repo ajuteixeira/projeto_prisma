@@ -110,6 +110,8 @@ defmodule ProjetoPrismaWeb.Router do
     patch "/profile", ProfileController, :update
     get "/profile/stats", ProfileController, :stats
     get "/profile/recently-played", ProfileController, :recently_played
+    get "/profile/achievements", ProfileController, :achievements
+    put "/profile/pinned-achievements", ProfileController, :update_pinned
 
     get "/ranking", RankingController, :index
 

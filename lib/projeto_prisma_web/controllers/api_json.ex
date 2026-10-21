@@ -43,7 +43,7 @@ defmodule ProjetoPrismaWeb.ApiJSON do
     }
   end
 
-  defp pinned_achievement(achievement) do
+  def pinned_achievement(achievement) do
     %{
       id: achievement.profile_achievement_id,
       name: achievement.name,

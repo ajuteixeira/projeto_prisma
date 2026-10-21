@@ -5,6 +5,10 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
   alias ProjetoPrisma.Accounts.ProfileDashboard
   alias ProjetoPrismaWeb.ApiJSON
 
+  # Tamanho de página padrão e máximo da lista de conquistas para fixar.
+  @page_size 20
+  @max_page_size 50
+
   @doc """
   GET /api/profile — cartão de perfil do usuário autenticado: bio, avatar,
   contagem de seguidores/seguindo e conquistas fixadas (até 4, pela posição).
@@ -86,6 +90,66 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
           offset: offset
         })
     end
+  end
+
+  @doc """
+  GET /api/profile/achievements?q=&offset=&limit= — conquistas desbloqueadas do
+  usuário para a pinagem, por jogo e nome; `q` filtra pelo nome da conquista ou
+  do jogo. `position` vem preenchido nas já fixadas; `next_offset` é `nil` no fim.
+  """
+  def achievements(conn, params) do
+    scope = conn.assigns.current_scope
+    offset = parse_int(params["offset"], 0, 0, nil)
+    limit = parse_int(params["limit"], @page_size, 1, @max_page_size)
+
+    {results, rest} =
+      scope
+      |> Accounts.list_achieved_achievements(
+        search: params["q"] || "",
+        offset: offset,
+        limit: limit + 1
+      )
+      |> Enum.split(limit)
+
+    json(conn, %{
+      results: Enum.map(results, &ApiJSON.pinned_achievement/1),
+      next_offset: if(rest == [], do: nil, else: offset + limit)
+    })
+  end
+
+  @doc """
+  PUT /api/profile/pinned-achievements — substitui as conquistas fixadas.
+
+  Body: %{"ids" => [profile_achievement_id, ...]} em ordem, até 4. Responde as
+  fixadas atualizadas, ou `422` quando passa de 4 ou há conquista inválida.
+  """
+  def update_pinned(conn, params) do
+    case Accounts.update_pinned_achievements(conn.assigns.current_scope, params["ids"] || []) do
+      {:ok, pinned} ->
+        json(conn, %{pinned_achievements: Enum.map(pinned, &ApiJSON.pinned_achievement/1)})
+
+      {:error, :too_many_pins} ->
+        error(conn, :unprocessable_entity, "Voce so pode fixar ate 4 conquistas.")
+
+      {:error, :profile_not_found} ->
+        not_found(conn)
+
+      {:error, _reason} ->
+        error(conn, :unprocessable_entity, "Escolha apenas conquistas concluidas.")
+    end
+  end
+
+  defp parse_int(raw, default, min, max) do
+    case Integer.parse(to_string(raw || "")) do
+      {value, ""} when value >= min -> if max, do: min(value, max), else: value
+      _ -> default
+    end
+  end
+
+  defp error(conn, status, message) do
+    conn
+    |> put_status(status)
+    |> json(%{error: message})
   end
 
   defp parse_positive_int(value, default) when is_binary(value) do
