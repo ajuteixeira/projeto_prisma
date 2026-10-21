@@ -116,6 +116,9 @@ defmodule ProjetoPrismaWeb.Router do
     post "/platforms/:slug/verification-code", PlatformController, :verification_code
     post "/platforms/:slug/connect", PlatformController, :connect
     delete "/platforms/:slug", PlatformController, :delete
+
+    get "/sync", SyncController, :show
+    post "/sync", SyncController, :create
   end
 
   scope "/", ProjetoPrismaWeb do

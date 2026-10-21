@@ -111,7 +111,7 @@ defmodule ProjetoPrismaWeb.PageController do
   defp maybe_start_dashboard_sync(conn, _profile_id, %{status: :failed}), do: conn
 
   defp maybe_start_dashboard_sync(conn, profile_id, %{status: :idle}) do
-    _ = Task.start(fn -> SyncService.sync_connected_platforms(profile_id) end)
+    _ = SyncService.start_background_sync(profile_id)
 
     assign(conn, :sync_popup, %{
       status: :running,

@@ -9,11 +9,64 @@ defmodule ProjetoPrisma.Sync.SyncService do
   """
 
   alias ProjetoPrisma.{Catalog, Accounts, Repo}
-  alias ProjetoPrisma.Sync.Adapters
+  alias ProjetoPrisma.Sync.{Adapters, SyncProgress}
   alias ProjetoPrisma.Sync.Igdb.Adapter, as: IgdbAdapter
 
   require Logger
   @stale_sync_after_seconds 300
+
+  @max_sync_rounds 3
+
+  @doc """
+  Executa `run_pending/1` em segundo plano para o perfil.
+
+  Retorna `{:ok, :started}`, `{:error, :already_running}` ou
+  `{:error, :nothing_to_sync}` quando não há conta pendente.
+  """
+  def start_background_sync(profile_id) do
+    if list_syncable_accounts(profile_id) == [] do
+      {:error, :nothing_to_sync}
+    else
+      SyncProgress.run(profile_id, fn -> runner().run_pending(profile_id) end)
+    end
+  end
+
+  @doc """
+  Executa `sync_connected_platforms/1` e repete enquanto houver contas pendentes,
+  até 3 rodadas. Retorna `:ok`.
+  """
+  def run_pending(profile_id, round \\ 1) do
+    sync_connected_platforms(profile_id)
+
+    if round < @max_sync_rounds and list_syncable_accounts(profile_id) != [] do
+      run_pending(profile_id, round + 1)
+    end
+
+    :ok
+  end
+
+  @doc """
+  Retorna `%{progress: progress, accounts: accounts}`: o estado de `SyncProgress`
+  (`nil` sem execução desde o boot) e as contas vinculadas com a plataforma precarregada.
+  """
+  def status(profile_id) do
+    %{
+      progress: SyncProgress.get(profile_id),
+      accounts: Accounts.list_connected_platform_accounts(profile_id)
+    }
+  end
+
+  @doc """
+  Contas vinculadas com `sync_status` `nil` ou `idle`, ou em `running` há mais de
+  300 segundos.
+  """
+  def list_syncable_accounts(profile_id) do
+    profile_id
+    |> Accounts.list_connected_platform_accounts()
+    |> Enum.filter(&syncable_platform_account?/1)
+  end
+
+  defp runner, do: Application.get_env(:projeto_prisma, :sync_runner, __MODULE__)
 
   @doc """
   Sincroniza games e achievements de um usuário em uma plataforma.
@@ -55,10 +108,7 @@ defmodule ProjetoPrisma.Sync.SyncService do
   """
   def sync_connected_platforms(profile_id) do
     with :ok <- validate_profile(profile_id) do
-      profile_platform_accounts =
-        profile_id
-        |> Accounts.list_connected_platform_accounts()
-        |> Enum.filter(&syncable_platform_account?/1)
+      profile_platform_accounts = list_syncable_accounts(profile_id)
 
       # Broadcast that the sync started for this profile
       broadcast(profile_id, %{type: "sync:start", total: length(profile_platform_accounts)})
@@ -168,8 +218,8 @@ defmodule ProjetoPrisma.Sync.SyncService do
     end
   end
 
-  # Helper para broadcast via Phoenix.PubSub
   defp broadcast(profile_id, payload) do
+    SyncProgress.record(profile_id, payload)
     topic = "sync:profile:" <> to_string(profile_id)
     Phoenix.PubSub.broadcast(ProjetoPrisma.PubSub, topic, {:sync_event, payload})
   end

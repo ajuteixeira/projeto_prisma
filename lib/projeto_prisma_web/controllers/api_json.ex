@@ -69,6 +69,32 @@ defmodule ProjetoPrismaWeb.ApiJSON do
     }
   end
 
+  @doc """
+  Serializa o retorno de `SyncService.status/1`.
+
+  Sem execução em memória, `running` é `false` e os contadores são `0`.
+  `current.games_total` é `nil` até a plataforma retornar a lista de jogos.
+  """
+  def sync_status(%{progress: progress, accounts: accounts}) do
+    progress = progress || %{}
+
+    %{
+      running: Map.get(progress, :running, false),
+      started_at: Map.get(progress, :started_at),
+      finished_at: Map.get(progress, :finished_at),
+      accounts_total: Map.get(progress, :accounts_total, 0),
+      accounts_done: Map.get(progress, :accounts_done, 0),
+      accounts_failed: Map.get(progress, :accounts_failed, 0),
+      games_synced: Map.get(progress, :games_synced, 0),
+      achievements_synced: Map.get(progress, :achievements_synced, 0),
+      current: Map.get(progress, :current),
+      platforms:
+        Enum.map(accounts, fn account ->
+          %{platform: account.platform.slug, sync_status: account.sync_status}
+        end)
+    }
+  end
+
   def changeset_errors(%Ecto.Changeset{} = changeset) do
     Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
       Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
