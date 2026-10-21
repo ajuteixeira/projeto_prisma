@@ -1055,6 +1055,19 @@ defmodule ProjetoPrisma.Accounts do
   def count_achieved_achievements(_scope, _opts), do: 0
 
   @doc """
+  Busca uma conquista do usuario logado pelo id de `profile_achievements`, com
+  descricao e data de desbloqueio para o modal de detalhes. `nil` se nao for dele.
+  """
+  def get_achievement_detail(%Scope{user: %User{id: user_id}}, id) when is_integer(id) do
+    user_id
+    |> profile_achievement_display_query()
+    |> where([pa, _pg, _profile, _achievement, _platform_game, _game], pa.id == ^id)
+    |> Repo.one()
+  end
+
+  def get_achievement_detail(_scope, _id), do: nil
+
+  @doc """
   Lista as conquistas fixadas do usuario logado ordenadas pela posicao.
   """
   def list_pinned_achievements(%Scope{user: %User{id: user_id}}) do

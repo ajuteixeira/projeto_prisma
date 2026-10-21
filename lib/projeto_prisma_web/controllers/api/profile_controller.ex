@@ -118,6 +118,19 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
   end
 
   @doc """
+  GET /api/profile/achievements/:id — detalhes de uma conquista do usuário, como
+  o modal da web: nome, jogo, ícone, descrição e data de desbloqueio.
+  """
+  def achievement(conn, %{"id" => raw_id}) do
+    id = parse_int(raw_id, nil, 1, nil)
+
+    case Accounts.get_achievement_detail(conn.assigns.current_scope, id) do
+      nil -> error(conn, :not_found, "Conquista nao encontrada")
+      achievement -> json(conn, %{achievement: ApiJSON.achievement_detail(achievement)})
+    end
+  end
+
+  @doc """
   PUT /api/profile/pinned-achievements — substitui as conquistas fixadas.
 
   Body: %{"ids" => [profile_achievement_id, ...]} em ordem, até 4. Responde as

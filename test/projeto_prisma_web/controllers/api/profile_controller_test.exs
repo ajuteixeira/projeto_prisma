@@ -537,6 +537,59 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
     end
   end
 
+  describe "GET /api/profile/achievements/:id" do
+    test "retorna 401 sem token", %{conn: conn} do
+      conn = get(conn, ~p"/api/profile/achievements/1")
+      assert %{"error" => _} = json_response(conn, 401)
+    end
+
+    test "retorna os detalhes da conquista do usuário", %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+      %{profile_game: pg, platform_game: plg} = library(profile, "Hades")
+
+      pa =
+        achievement(pg, plg,
+          name: "Fantasma",
+          description: "Escape sem ser visto.",
+          icon_image: "https://example.com/fantasma.png",
+          unlock_time: ~N[2026-03-04 10:20:00],
+          pinned_position: 2
+        )
+
+      conn = conn |> api_conn(token) |> get(~p"/api/profile/achievements/#{pa.id}")
+
+      assert json_response(conn, 200) == %{
+               "achievement" => %{
+                 "id" => pa.id,
+                 "name" => "Fantasma",
+                 "description" => "Escape sem ser visto.",
+                 "game_name" => "Hades",
+                 "icon_url" => "https://example.com/fantasma.png",
+                 "unlocked_at" => "2026-03-04T10:20:00",
+                 "position" => 2
+               }
+             }
+    end
+
+    test "retorna 404 para conquista de outro perfil ou id inválido", %{conn: conn} do
+      user = user_fixture()
+      {:ok, _profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+      other = other_profile()
+      %{profile_game: og, platform_game: oplg} = library(other, "Doom")
+      foreign = achievement(og, oplg, [])
+
+      for id <- [foreign.id, "abc"] do
+        conn = build_conn() |> api_conn(token) |> get(~p"/api/profile/achievements/#{id}")
+        assert %{"error" => _} = json_response(conn, 404)
+      end
+
+      _ = conn
+    end
+  end
+
   describe "PUT /api/profile/pinned-achievements" do
     test "retorna 401 sem token", %{conn: conn} do
       conn = put(conn, ~p"/api/profile/pinned-achievements", %{ids: []})
@@ -659,7 +712,8 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
         platform_game_id: platform_game.id,
         external_achievement_id: "achievement-#{id}",
         name: Keyword.get(attrs, :name, "Achievement #{id}"),
-        icon_image: Keyword.get(attrs, :icon_image)
+        icon_image: Keyword.get(attrs, :icon_image),
+        description: Keyword.get(attrs, :description)
       })
       |> Repo.insert!()
 
@@ -668,6 +722,7 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
       profile_game_id: profile_game.id,
       achievement_id: achievement.id,
       achieved: Keyword.get(attrs, :achieved, true),
+      unlock_time: Keyword.get(attrs, :unlock_time),
       pinned_position: Keyword.get(attrs, :pinned_position)
     })
     |> Repo.insert!()

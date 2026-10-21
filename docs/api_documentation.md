@@ -52,6 +52,7 @@ A API usa **Bearer tokens opacos** persistidos na tabela `users_tokens` (context
 | DELETE | `/api/auth/account` | Deleta a conta, profile e todas as plataformas vinculadas (`204`) |
 | GET | `/api/profile` | Cartão de perfil: bio, avatar, seguidores, conquistas fixadas |
 | GET | `/api/profile/achievements?q=&offset=&limit=` | Conquistas desbloqueadas para a pinagem, paginadas (`results`, `next_offset`) |
+| GET | `/api/profile/achievements/:id` | Detalhes de uma conquista do usuário (descrição, data de desbloqueio) |
 | PUT | `/api/profile/pinned-achievements` | Substitui as fixadas: `{"ids": [...]}` em ordem, até 4 |
 | PATCH | `/api/profile` | Edita perfil (full_name, username, bio, avatar) |
 | GET | `/api/profile/stats` | Estatísticas: total de conquistas, média de conclusão, distribuição por plataforma |
