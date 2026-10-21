@@ -385,7 +385,7 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
 
       now = NaiveDateTime.utc_now()
       one_day_ago = NaiveDateTime.add(now, -86400)
-      two_days_ago = NaiveDateTime.add(now, -172800)
+      two_days_ago = NaiveDateTime.add(now, -172_800)
 
       # Atualizar last_played para diferentes datas
       lib1.profile_game
@@ -419,6 +419,7 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
 
       for i <- 1..15 do
         lib = library(profile, "Game #{i}")
+
         lib.profile_game
         |> ProjetoPrisma.Accounts.ProfileGame.changeset(%{
           last_played: NaiveDateTime.add(NaiveDateTime.utc_now(), -i * 3600)
@@ -428,14 +429,19 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
 
       # Primeira página
       conn = conn |> api_conn(token) |> get(~p"/api/profile/recently-played?limit=5&offset=0")
+
       assert %{"recently_played" => games, "total" => 15, "limit" => 5, "offset" => 0} =
                json_response(conn, 200)
+
       assert length(games) == 5
 
       # Segunda página
-      conn = build_conn() |> api_conn(token) |> get(~p"/api/profile/recently-played?limit=5&offset=5")
+      conn =
+        build_conn() |> api_conn(token) |> get(~p"/api/profile/recently-played?limit=5&offset=5")
+
       assert %{"recently_played" => games, "total" => 15, "limit" => 5, "offset" => 5} =
                json_response(conn, 200)
+
       assert length(games) == 5
     end
 
@@ -447,6 +453,7 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
       lib = library(profile, "Test Game")
 
       now = NaiveDateTime.utc_now()
+
       lib.profile_game
       |> ProjetoPrisma.Accounts.ProfileGame.changeset(%{
         last_played: now,
