@@ -213,34 +213,42 @@ defmodule ProjetoPrisma.Accounts do
   defp maybe_preload_profile(profile), do: Repo.preload(profile, [:user, :avatar])
 
   @doc """
-  Lista os seguidores de um profile.
+  Lista os seguidores de um profile, mais recentes primeiro. Aceita
+  `:limit` e `:offset` para paginar; sem `:limit` lista todos.
   """
-  def list_followers(profile_id) when is_integer(profile_id) do
+  def list_followers(profile_id, opts \\ [])
+
+  def list_followers(profile_id, opts) when is_integer(profile_id) do
     ProfileFollow
     |> where([pf], pf.followed_profile_id == ^profile_id)
     |> join(:inner, [pf], p in Profile, on: p.id == pf.follower_profile_id)
     |> select([_pf, p], p)
-    |> order_by([pf], desc: pf.inserted_at)
+    |> order_by([pf], desc: pf.inserted_at, desc: pf.id)
+    |> paginate(opts)
     |> Repo.all()
     |> Repo.preload([:user, :avatar])
   end
 
-  def list_followers(_profile_id), do: []
+  def list_followers(_profile_id, _opts), do: []
 
   @doc """
-  Lista quem o profile esta seguindo.
+  Lista quem o profile esta seguindo, mais recentes primeiro. Aceita
+  `:limit` e `:offset` para paginar; sem `:limit` lista todos.
   """
-  def list_following(profile_id) when is_integer(profile_id) do
+  def list_following(profile_id, opts \\ [])
+
+  def list_following(profile_id, opts) when is_integer(profile_id) do
     ProfileFollow
     |> where([pf], pf.follower_profile_id == ^profile_id)
     |> join(:inner, [pf], p in Profile, on: p.id == pf.followed_profile_id)
     |> select([_pf, p], p)
-    |> order_by([pf], desc: pf.inserted_at)
+    |> order_by([pf], desc: pf.inserted_at, desc: pf.id)
+    |> paginate(opts)
     |> Repo.all()
     |> Repo.preload([:user, :avatar])
   end
 
-  def list_following(_profile_id), do: []
+  def list_following(_profile_id, _opts), do: []
 
   @doc """
   Lista apenas os IDs seguidos por um profile.
@@ -301,6 +309,42 @@ defmodule ProjetoPrisma.Accounts do
   end
 
   def search_profiles_by_username(_profile_id, _query, _opts), do: []
+
+  @doc """
+  Lista perfis em ordem alfabética pelo nome de exibição (nome completo ou,
+  na falta dele, o username), excluindo o profile atual. Com `query`, filtra
+  por username; vazia lista todo mundo. Pagina com `:limit` e `:offset`.
+  """
+  def list_profiles_by_name(profile_id, query, opts \\ [])
+
+  def list_profiles_by_name(profile_id, query, opts) when is_integer(profile_id) do
+    search = normalize_search(query)
+
+    Profile
+    |> join(:inner, [p], u in assoc(p, :user))
+    |> where([p], p.id != ^profile_id)
+    |> then(fn q ->
+      if search == "", do: q, else: where(q, [p], ilike(p.username, ^"%#{search}%"))
+    end)
+    |> order_by([p, u],
+      asc: fragment("lower(coalesce(nullif(trim(?), ''), ?))", u.full_name, p.username),
+      asc: p.id
+    )
+    |> paginate(opts)
+    |> preload([:user, :avatar])
+    |> Repo.all()
+  end
+
+  def list_profiles_by_name(_profile_id, _query, _opts), do: []
+
+  defp paginate(query, opts) do
+    query = offset(query, ^option_value(opts, :offset, 0))
+
+    case option_value(opts, :limit, nil) do
+      nil -> query
+      limit -> limit(query, ^limit)
+    end
+  end
 
   @doc """
   Verifica se um profile segue outro.
