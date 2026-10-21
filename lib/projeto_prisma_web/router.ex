@@ -111,6 +111,8 @@ defmodule ProjetoPrismaWeb.Router do
     get "/profile/stats", ProfileController, :stats
     get "/profile/recently-played", ProfileController, :recently_played
 
+    get "/ranking", RankingController, :index
+
     get "/platforms", PlatformController, :index
     post "/platforms/:slug/connect-url", PlatformController, :connect_url
     post "/platforms/:slug/verification-code", PlatformController, :verification_code

@@ -53,6 +53,22 @@ defmodule ProjetoPrismaWeb.ApiJSON do
     }
   end
 
+  @doc """
+  Linha do ranking (`GET /api/ranking`): o perfil, o total de conquistas, as
+  contagens por plataforma e as plataformas vinculadas.
+  """
+  def ranking_entry(%{profile: %Profile{} = profile} = entry) do
+    %{
+      profile_id: profile.id,
+      username: profile.username,
+      avatar_url: avatar_url(profile.avatar),
+      achievement_count: entry.achievement_count,
+      platform_counts: entry.platform_counts,
+      platforms: entry.platform_slugs,
+      is_current_user: entry.is_current_user
+    }
+  end
+
   defp avatar_url(%ProfileAvatar{data: data}) when is_binary(data) do
     data = String.trim(data)
     if String.starts_with?(data, "data:image"), do: data

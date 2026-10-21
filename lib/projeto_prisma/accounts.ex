@@ -1213,7 +1213,7 @@ defmodule ProjetoPrisma.Accounts do
 
     ProfileGame
     |> where([pg], pg.profile_id == ^profile_id and not is_nil(pg.last_played))
-    |> preload([pg], [platform_game: [:game, :platform]])
+    |> preload([pg], platform_game: [:game, :platform])
     |> order_by([pg], desc: pg.last_played)
     |> limit(^limit)
     |> offset(^offset)
