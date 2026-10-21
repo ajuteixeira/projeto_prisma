@@ -12,15 +12,12 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
   @doc """
   GET /api/profile — cartão de perfil do usuário autenticado: bio, avatar,
   contagem de seguidores/seguindo e conquistas fixadas (até 4, pela posição).
+
+  GET /api/profiles/:username: o mesmo cartão para o perfil do username, só
+  leitura, como a página `/:username` da web. `404` quando o username não existe.
   """
   def show(conn, _params) do
-    case Accounts.get_profile_with_user(conn.assigns.current_scope) do
-      nil ->
-        not_found(conn)
-
-      profile ->
-        json(conn, %{profile: card(profile)})
-    end
+    with_profile(conn, fn profile -> json(conn, %{profile: card(profile)}) end)
   end
 
   @doc """
@@ -51,45 +48,52 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
   GET /api/profile/stats — os mesmos números dos cards do perfil web: total de
   conquistas, média de conclusão, jogos perfeitos e a distribuição de troféus
   por plataforma (todas as plataformas, em % das conquistas desbloqueadas).
+  `GET /api/profiles/:username/stats` responde o mesmo para outro perfil.
   """
   def stats(conn, _params) do
-    case Accounts.get_profile_with_user(conn.assigns.current_scope) do
-      nil ->
-        not_found(conn)
-
-      profile ->
-        json(conn, %{
-          stats: ProfileDashboard.stats(profile.id),
-          platform_distribution: ProfileDashboard.platform_distribution(profile.id)
-        })
-    end
+    with_profile(conn, fn profile ->
+      json(conn, %{
+        stats: ProfileDashboard.stats(profile.id),
+        platform_distribution: ProfileDashboard.platform_distribution(profile.id)
+      })
+    end)
   end
 
   @doc """
   GET /api/profile/recently-played — jogos jogados recentemente ordenados por
   última vez jogado em ordem decrescente.
 
+  `GET /api/profiles/:username/recently-played` responde o mesmo para outro perfil.
+
   Query params: limit (padrão 10), offset (padrão 0)
   """
   def recently_played(conn, params) do
-    case Accounts.get_profile_with_user(conn.assigns.current_scope) do
-      nil ->
-        not_found(conn)
+    with_profile(conn, fn profile ->
+      limit = parse_positive_int(params["limit"], 10)
+      offset = parse_positive_int(params["offset"], 0)
 
-      profile ->
-        limit = parse_positive_int(params["limit"], 10)
-        offset = parse_positive_int(params["offset"], 0)
+      games = Accounts.list_recently_played_games(profile.id, limit: limit, offset: offset)
+      count = Accounts.count_recently_played_games(profile.id)
 
-        games = Accounts.list_recently_played_games(profile.id, limit: limit, offset: offset)
-        count = Accounts.count_recently_played_games(profile.id)
+      json(conn, %{
+        recently_played: Enum.map(games, &format_game/1),
+        total: count,
+        limit: limit,
+        offset: offset
+      })
+    end)
+  end
 
-        json(conn, %{
-          recently_played: Enum.map(games, &format_game/1),
-          total: count,
-          limit: limit,
-          offset: offset
-        })
-    end
+  # O username vem só do caminho (`/api/profiles/:username`), para `?username=`
+  # em `/api/profile` não trocar o perfil consultado.
+  defp with_profile(conn, fun) do
+    profile =
+      case conn.path_params do
+        %{"username" => username} -> Accounts.get_profile_with_user_by_username(username)
+        _ -> Accounts.get_profile_with_user(conn.assigns.current_scope)
+      end
+
+    if profile, do: fun.(profile), else: not_found(conn)
   end
 
   @doc """

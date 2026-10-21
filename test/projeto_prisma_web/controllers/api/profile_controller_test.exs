@@ -661,6 +661,101 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
     end
   end
 
+  describe "GET /api/profiles/:username" do
+    setup %{conn: conn} do
+      user = user_fixture()
+      {:ok, _profile} = Accounts.create_profile_for_user(user)
+      %{conn: api_conn(conn, Accounts.generate_api_token(user))}
+    end
+
+    test "retorna 401 sem token" do
+      conn = get(build_conn(), ~p"/api/profiles/alguem")
+      assert %{"error" => _} = json_response(conn, 401)
+    end
+
+    test "retorna 404 para username inexistente", %{conn: conn} do
+      conn = get(conn, ~p"/api/profiles/ninguem-aqui")
+      assert %{"error" => _} = json_response(conn, 404)
+    end
+
+    test "retorna o cartão de outro perfil, sem diferenciar maiúsculas", %{conn: conn} do
+      friend = other_profile()
+
+      {:ok, friend} =
+        friend |> Ecto.Changeset.change(bio: "Só platina") |> Repo.update()
+
+      follow(other_profile(), friend)
+
+      %{profile_game: profile_game, platform_game: platform_game} = library(friend, "Hades")
+      pinned = achievement(profile_game, platform_game, name: "Fantasma", pinned_position: 1)
+
+      conn = get(conn, ~p"/api/profiles/#{String.upcase(friend.username)}")
+
+      assert %{"profile" => json} = json_response(conn, 200)
+      assert json["id"] == friend.id
+      assert json["username"] == friend.username
+      assert json["bio"] == "Só platina"
+      assert json["followers_count"] == 1
+      assert json["following_count"] == 0
+      assert [%{"id" => id, "name" => "Fantasma"}] = json["pinned_achievements"]
+      assert id == pinned.id
+    end
+
+    test "ignora ?username= em /api/profile", %{conn: conn} do
+      friend = other_profile()
+
+      conn = get(conn, ~p"/api/profile?username=#{friend.username}")
+
+      assert %{"profile" => %{"id" => id}} = json_response(conn, 200)
+      refute id == friend.id
+    end
+
+    test "stats calcula os números do perfil do username", %{conn: conn} do
+      friend = other_profile()
+      steam = platform("Steam", "steam")
+      lib = library(friend, "Hades", steam)
+      achievement(lib.profile_game, lib.platform_game, [])
+      achievement(lib.profile_game, lib.platform_game, achieved: false)
+
+      conn = get(conn, ~p"/api/profiles/#{friend.username}/stats")
+      json = json_response(conn, 200)
+
+      assert json["stats"] == %{
+               "total_achievements" => 1,
+               "avg_completion" => 50.0,
+               "perfect_games" => 0
+             }
+
+      assert [%{"slug" => "steam", "unlocked" => 1}] = json["platform_distribution"]
+    end
+
+    test "stats retorna 404 para username inexistente", %{conn: conn} do
+      conn = get(conn, ~p"/api/profiles/ninguem-aqui/stats")
+      assert %{"error" => _} = json_response(conn, 404)
+    end
+
+    test "recently-played lista os jogos do perfil do username", %{conn: conn} do
+      friend = other_profile()
+      lib = library(friend, "Celeste")
+
+      lib.profile_game
+      |> ProfileGame.changeset(%{last_played: NaiveDateTime.utc_now()})
+      |> Repo.update!()
+
+      conn = get(conn, ~p"/api/profiles/#{friend.username}/recently-played?limit=4")
+
+      assert %{"recently_played" => [game], "total" => 1, "limit" => 4} =
+               json_response(conn, 200)
+
+      assert game["game_name"] == "Celeste"
+    end
+
+    test "recently-played retorna 404 para username inexistente", %{conn: conn} do
+      conn = get(conn, ~p"/api/profiles/ninguem-aqui/recently-played")
+      assert %{"error" => _} = json_response(conn, 404)
+    end
+  end
+
   defp other_profile do
     user = user_fixture()
     {:ok, profile} = Accounts.create_profile_for_user(user)

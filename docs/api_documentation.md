@@ -57,6 +57,9 @@ A API usa **Bearer tokens opacos** persistidos na tabela `users_tokens` (context
 | PATCH | `/api/profile` | Edita perfil (full_name, username, bio, avatar) |
 | GET | `/api/profile/stats` | Estatísticas: total de conquistas, média de conclusão, distribuição por plataforma |
 | GET | `/api/profile/recently-played` | Games jogados recentemente, ordenados por última vez jogado (suporta limit e offset) |
+| GET | `/api/profiles/:username` | Cartão de perfil de outro usuário, no mesmo formato de `/api/profile` (`404` se o username não existir) |
+| GET | `/api/profiles/:username/stats` | Estatísticas de outro usuário, no mesmo formato de `/api/profile/stats` |
+| GET | `/api/profiles/:username/recently-played` | Games recentes de outro usuário, no mesmo formato de `/api/profile/recently-played` |
 | GET | `/api/platforms` | Lista contas vinculadas: `[{platform, external_user_id, profile_url, sync_status}]` |
 | POST | `/api/platforms/steam/connect-url` | Body `{api_key}` → `{url}` (OpenID da Steam) |
 | POST | `/api/platforms/xbox/connect-url` | → `{url}` (authorize da Microsoft) |
