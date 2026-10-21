@@ -476,6 +476,191 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
     end
   end
 
+  describe "GET /api/profile/achievements" do
+    test "retorna 401 sem token", %{conn: conn} do
+      conn = get(conn, ~p"/api/profile/achievements")
+      assert %{"error" => _} = json_response(conn, 401)
+    end
+
+    test "lista só as conquistas desbloqueadas do usuário, paginadas", %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+
+      %{profile_game: profile_game, platform_game: platform_game} = library(profile, "Hades")
+
+      pinned =
+        achievement(profile_game, platform_game,
+          name: "Fantasma",
+          icon_image: "https://example.com/fantasma.png",
+          pinned_position: 1
+        )
+
+      for i <- 1..2, do: achievement(profile_game, platform_game, name: "Outra #{i}")
+      achievement(profile_game, platform_game, name: "Bloqueada", achieved: false)
+      other = other_profile()
+      %{profile_game: other_game, platform_game: other_platform_game} = library(other, "Doom")
+      achievement(other_game, other_platform_game, name: "Alheia")
+
+      conn1 = build_conn() |> api_conn(token) |> get(~p"/api/profile/achievements?limit=2")
+      assert %{"results" => page1, "next_offset" => 2} = json_response(conn1, 200)
+      assert length(page1) == 2
+
+      conn2 =
+        conn |> api_conn(token) |> get(~p"/api/profile/achievements?limit=2&offset=2")
+
+      assert %{"results" => page2, "next_offset" => nil} = json_response(conn2, 200)
+      all = page1 ++ page2
+      assert all |> Enum.map(& &1["name"]) |> Enum.sort() == ["Fantasma", "Outra 1", "Outra 2"]
+
+      assert Enum.find(all, &(&1["id"] == pinned.id)) == %{
+               "id" => pinned.id,
+               "name" => "Fantasma",
+               "game_name" => "Hades",
+               "icon_url" => "https://example.com/fantasma.png",
+               "position" => 1
+             }
+    end
+
+    test "filtra por nome da conquista ou do jogo com q", %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+
+      %{profile_game: pg, platform_game: plg} = library(profile, "Hades")
+      achievement(pg, plg, name: "Fantasma")
+      %{profile_game: pg2, platform_game: plg2} = library(profile, "Doom")
+      achievement(pg2, plg2, name: "Rasgar")
+
+      conn = conn |> api_conn(token) |> get(~p"/api/profile/achievements?q=doom")
+      assert %{"results" => [%{"name" => "Rasgar"}]} = json_response(conn, 200)
+    end
+  end
+
+  describe "GET /api/profile/achievements/:id" do
+    test "retorna 401 sem token", %{conn: conn} do
+      conn = get(conn, ~p"/api/profile/achievements/1")
+      assert %{"error" => _} = json_response(conn, 401)
+    end
+
+    test "retorna os detalhes da conquista do usuário", %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+      %{profile_game: pg, platform_game: plg} = library(profile, "Hades")
+
+      pa =
+        achievement(pg, plg,
+          name: "Fantasma",
+          description: "Escape sem ser visto.",
+          icon_image: "https://example.com/fantasma.png",
+          unlock_time: ~N[2026-03-04 10:20:00],
+          pinned_position: 2
+        )
+
+      conn = conn |> api_conn(token) |> get(~p"/api/profile/achievements/#{pa.id}")
+
+      assert json_response(conn, 200) == %{
+               "achievement" => %{
+                 "id" => pa.id,
+                 "name" => "Fantasma",
+                 "description" => "Escape sem ser visto.",
+                 "game_name" => "Hades",
+                 "icon_url" => "https://example.com/fantasma.png",
+                 "unlocked_at" => "2026-03-04T10:20:00",
+                 "position" => 2
+               }
+             }
+    end
+
+    test "retorna 404 para conquista de outro perfil ou id inválido", %{conn: conn} do
+      user = user_fixture()
+      {:ok, _profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+      other = other_profile()
+      %{profile_game: og, platform_game: oplg} = library(other, "Doom")
+      foreign = achievement(og, oplg, [])
+
+      for id <- [foreign.id, "abc"] do
+        conn = build_conn() |> api_conn(token) |> get(~p"/api/profile/achievements/#{id}")
+        assert %{"error" => _} = json_response(conn, 404)
+      end
+
+      _ = conn
+    end
+  end
+
+  describe "PUT /api/profile/pinned-achievements" do
+    test "retorna 401 sem token", %{conn: conn} do
+      conn = put(conn, ~p"/api/profile/pinned-achievements", %{ids: []})
+      assert %{"error" => _} = json_response(conn, 401)
+    end
+
+    test "substitui as fixadas na ordem enviada", %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+
+      %{profile_game: pg, platform_game: plg} = library(profile, "Hades")
+      old = achievement(pg, plg, name: "Antiga", pinned_position: 1)
+      a = achievement(pg, plg, name: "A")
+      b = achievement(pg, plg, name: "B")
+
+      conn =
+        conn |> api_conn(token) |> put(~p"/api/profile/pinned-achievements", %{ids: [b.id, a.id]})
+
+      assert %{"pinned_achievements" => pins} = json_response(conn, 200)
+      assert Enum.map(pins, &{&1["id"], &1["position"]}) == [{b.id, 1}, {a.id, 2}]
+      assert Repo.get!(ProfileAchievement, old.id).pinned_position == nil
+    end
+
+    test "aceita lista vazia para desafixar tudo", %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+      %{profile_game: pg, platform_game: plg} = library(profile, "Hades")
+      old = achievement(pg, plg, pinned_position: 1)
+
+      conn = conn |> api_conn(token) |> put(~p"/api/profile/pinned-achievements", %{ids: []})
+
+      assert %{"pinned_achievements" => []} = json_response(conn, 200)
+      assert Repo.get!(ProfileAchievement, old.id).pinned_position == nil
+    end
+
+    test "retorna 422 com mais de 4 conquistas", %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+      %{profile_game: pg, platform_game: plg} = library(profile, "Hades")
+      ids = for _ <- 1..5, do: achievement(pg, plg, []).id
+
+      conn = conn |> api_conn(token) |> put(~p"/api/profile/pinned-achievements", %{ids: ids})
+      assert %{"error" => _} = json_response(conn, 422)
+    end
+
+    test "retorna 422 para conquista bloqueada ou de outro perfil", %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+      %{profile_game: pg, platform_game: plg} = library(profile, "Hades")
+      locked = achievement(pg, plg, achieved: false)
+      other = other_profile()
+      %{profile_game: og, platform_game: oplg} = library(other, "Doom")
+      foreign = achievement(og, oplg, [])
+
+      for id <- [locked.id, foreign.id] do
+        conn =
+          build_conn()
+          |> api_conn(token)
+          |> put(~p"/api/profile/pinned-achievements", %{ids: [id]})
+
+        assert %{"error" => _} = json_response(conn, 422)
+      end
+
+      _ = conn
+    end
+  end
+
   defp other_profile do
     user = user_fixture()
     {:ok, profile} = Accounts.create_profile_for_user(user)
@@ -527,7 +712,8 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
         platform_game_id: platform_game.id,
         external_achievement_id: "achievement-#{id}",
         name: Keyword.get(attrs, :name, "Achievement #{id}"),
-        icon_image: Keyword.get(attrs, :icon_image)
+        icon_image: Keyword.get(attrs, :icon_image),
+        description: Keyword.get(attrs, :description)
       })
       |> Repo.insert!()
 
@@ -536,6 +722,7 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
       profile_game_id: profile_game.id,
       achievement_id: achievement.id,
       achieved: Keyword.get(attrs, :achieved, true),
+      unlock_time: Keyword.get(attrs, :unlock_time),
       pinned_position: Keyword.get(attrs, :pinned_position)
     })
     |> Repo.insert!()

@@ -43,7 +43,16 @@ defmodule ProjetoPrismaWeb.ApiJSON do
     }
   end
 
-  defp pinned_achievement(achievement) do
+  def achievement_detail(achievement) do
+    achievement
+    |> pinned_achievement()
+    |> Map.merge(%{
+      description: achievement.description,
+      unlocked_at: achievement.unlock_time
+    })
+  end
+
+  def pinned_achievement(achievement) do
     %{
       id: achievement.profile_achievement_id,
       name: achievement.name,
