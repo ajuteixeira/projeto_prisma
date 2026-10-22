@@ -5,7 +5,7 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
   alias ProjetoPrisma.Accounts.ProfileDashboard
   alias ProjetoPrismaWeb.ApiJSON
 
-  # Tamanho de página padrão e máximo da lista de conquistas para fixar.
+  # Tamanho de página padrão e máximo das listas paginadas (conquistas e jogos).
   @page_size 20
   @max_page_size 50
 
@@ -80,6 +80,35 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
         total: count,
         limit: limit,
         offset: offset
+      })
+    end)
+  end
+
+  @doc """
+  GET /api/profile/games?offset=&limit= — todos os jogos do perfil, como a lista
+  "Jogos" da web, sempre do jogado mais recente ao mais antigo (os sem data por
+  último). A ordem é fixa: não há parâmetro para mudá-la. `next_offset` é `nil`
+  no fim.
+
+  `GET /api/profiles/:username/games` responde o mesmo para outro perfil.
+  """
+  def games(conn, params) do
+    with_profile(conn, fn profile ->
+      offset = parse_int(params["offset"], 0, 0, nil)
+      limit = parse_int(params["limit"], @page_size, 1, @max_page_size)
+
+      {games, rest} =
+        profile.id
+        |> ProfileDashboard.list_games(limit + 1,
+          offset: offset,
+          sort_by: :last_played,
+          sort_order: :desc
+        )
+        |> Enum.split(limit)
+
+      json(conn, %{
+        games: Enum.map(games, &ApiJSON.profile_game/1),
+        next_offset: if(rest == [], do: nil, else: offset + limit)
       })
     end)
   end

@@ -109,6 +109,32 @@ defmodule ProjetoPrismaWeb.ApiJSON do
 
   defp avatar_url(_avatar), do: nil
 
+  @doc """
+  Jogo da lista do perfil (`GET /api/profile/games`), a partir de
+  `ProfileDashboard.list_games/3`. Como na web, a capa cai para o ícone e o
+  ícone para a capa; `last_played_at` vem sem fuso.
+  """
+  def profile_game(game) do
+    cover = present_image(game.game_cover_image)
+    icon = present_image(game.game_icon_image)
+
+    %{
+      id: game.profile_game_id,
+      name: game.game_name,
+      cover_url: cover || icon,
+      icon_url: icon || cover,
+      platform: %{slug: game.platform_slug, name: game.platform_name},
+      playtime_minutes: game.playtime_minutes,
+      last_played_at: game.last_played,
+      unlocked_achievements: game.unlocked_achievements,
+      total_achievements: game.total_achievements,
+      completion_percent: game.completion_percent
+    }
+  end
+
+  defp present_image(url) when is_binary(url) and url != "", do: url
+  defp present_image(_url), do: nil
+
   def platform_account(%ProfilePlatformAccount{} = account) do
     %{
       platform: account.platform.slug,
