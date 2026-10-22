@@ -476,6 +476,90 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
     end
   end
 
+  describe "GET /api/profile/games" do
+    setup %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+      %{conn: api_conn(conn, token), profile: profile, token: token}
+    end
+
+    test "retorna 401 sem token" do
+      conn = get(build_conn(), ~p"/api/profile/games")
+      assert %{"error" => _} = json_response(conn, 401)
+    end
+
+    test "retorna lista vazia sem jogos", %{conn: conn} do
+      conn = get(conn, ~p"/api/profile/games")
+      assert json_response(conn, 200) == %{"games" => [], "next_offset" => nil}
+    end
+
+    test "lista todos os jogos do mais recente ao mais antigo, os sem data por último",
+         %{conn: conn, profile: profile} do
+      now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+      played(library(profile, "Antigo"), NaiveDateTime.add(now, -86_400))
+      library(profile, "Nunca jogado")
+      played(library(profile, "Recente"), now)
+
+      conn = get(conn, ~p"/api/profile/games?sort_order=asc&sort_by=completion")
+
+      assert %{"games" => games, "next_offset" => nil} = json_response(conn, 200)
+      assert Enum.map(games, & &1["name"]) == ["Recente", "Antigo", "Nunca jogado"]
+    end
+
+    test "pagina por offset e limit", %{conn: conn, profile: profile, token: token} do
+      now = NaiveDateTime.utc_now()
+
+      for i <- 1..5 do
+        played(library(profile, "Game #{i}"), NaiveDateTime.add(now, -i * 3600))
+      end
+
+      conn = get(conn, ~p"/api/profile/games?limit=2")
+      assert %{"games" => first, "next_offset" => 2} = json_response(conn, 200)
+      assert Enum.map(first, & &1["name"]) == ["Game 1", "Game 2"]
+
+      conn = build_conn() |> api_conn(token) |> get(~p"/api/profile/games?limit=2&offset=4")
+
+      assert %{"games" => [%{"name" => "Game 5"}], "next_offset" => nil} =
+               json_response(conn, 200)
+    end
+
+    test "serializa nome, imagens, plataforma e conquistas", %{conn: conn, profile: profile} do
+      steam = platform("Steam", "steam")
+      lib = library(profile, "Hades", steam)
+
+      lib.platform_game
+      |> Repo.preload(:game)
+      |> Map.fetch!(:game)
+      |> Game.changeset(%{cover_image: "https://cdn/capa.jpg", icon_image: ""})
+      |> Repo.update!()
+
+      lib.profile_game
+      |> ProfileGame.changeset(%{playtime_minutes: 240, last_played: ~N[2026-10-01 12:00:00]})
+      |> Repo.update!()
+
+      achievement(lib.profile_game, lib.platform_game, [])
+      achievement(lib.profile_game, lib.platform_game, achieved: false)
+
+      conn = get(conn, ~p"/api/profile/games")
+
+      assert %{"games" => [game]} = json_response(conn, 200)
+
+      assert game == %{
+               "id" => lib.profile_game.id,
+               "name" => "Hades",
+               "cover_url" => "https://cdn/capa.jpg",
+               "icon_url" => "https://cdn/capa.jpg",
+               "platform" => %{"slug" => "steam", "name" => "Steam"},
+               "playtime_minutes" => 240,
+               "last_played_at" => "2026-10-01T12:00:00",
+               "unlocked_achievements" => 1,
+               "total_achievements" => 2,
+               "completion_percent" => 50.0
+             }
+    end
+  end
+
   describe "GET /api/profile/achievements" do
     test "retorna 401 sem token", %{conn: conn} do
       conn = get(conn, ~p"/api/profile/achievements")
@@ -754,6 +838,25 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
       conn = get(conn, ~p"/api/profiles/ninguem-aqui/recently-played")
       assert %{"error" => _} = json_response(conn, 404)
     end
+
+    test "games lista os jogos do perfil do username", %{conn: conn} do
+      friend = other_profile()
+      library(friend, "Celeste")
+
+      conn = get(conn, ~p"/api/profiles/#{friend.username}/games")
+
+      assert %{"games" => [%{"name" => "Celeste"}], "next_offset" => nil} =
+               json_response(conn, 200)
+    end
+
+    test "games retorna 404 para username inexistente", %{conn: conn} do
+      conn = get(conn, ~p"/api/profiles/ninguem-aqui/games")
+      assert %{"error" => _} = json_response(conn, 404)
+    end
+  end
+
+  defp played(%{profile_game: profile_game}, last_played) do
+    profile_game |> ProfileGame.changeset(%{last_played: last_played}) |> Repo.update!()
   end
 
   defp other_profile do
