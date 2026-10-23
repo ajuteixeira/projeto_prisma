@@ -560,6 +560,140 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
     end
   end
 
+  describe "GET /api/profile/games/:id" do
+    setup %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      %{conn: api_conn(conn, Accounts.generate_api_token(user)), profile: profile}
+    end
+
+    test "retorna o jogo com métricas e o último desbloqueio", %{conn: conn, profile: profile} do
+      steam = platform("Steam", "steam")
+      lib = library(profile, "Hades", steam)
+
+      lib.profile_game
+      |> ProfileGame.changeset(%{playtime_minutes: 90, last_played: ~N[2026-10-01 12:00:00]})
+      |> Repo.update!()
+
+      achievement(lib.profile_game, lib.platform_game, unlock_time: ~N[2026-09-30 20:15:00])
+      achievement(lib.profile_game, lib.platform_game, achieved: false)
+
+      conn = get(conn, ~p"/api/profile/games/#{lib.profile_game.id}")
+
+      assert %{"game" => game} = json_response(conn, 200)
+
+      assert game == %{
+               "id" => lib.profile_game.id,
+               "name" => "Hades",
+               "cover_url" => nil,
+               "icon_url" => nil,
+               "platform" => %{"slug" => "steam", "name" => "Steam"},
+               "playtime_minutes" => 90,
+               "last_played_at" => "2026-10-01T12:00:00",
+               "last_unlock_at" => "2026-09-30T20:15:00",
+               "unlocked_achievements" => 1,
+               "total_achievements" => 2,
+               "completion_percent" => 50.0
+             }
+    end
+
+    test "retorna 404 para jogo de outro perfil ou id inválido", %{conn: conn} do
+      other = library(other_profile(), "Celeste")
+
+      assert %{"error" => _} =
+               conn |> get(~p"/api/profile/games/#{other.profile_game.id}") |> json_response(404)
+
+      assert %{"error" => _} = conn |> get(~p"/api/profile/games/abc") |> json_response(404)
+    end
+  end
+
+  describe "GET /api/profile/games/:id/achievements" do
+    setup %{conn: conn} do
+      user = user_fixture()
+      {:ok, profile} = Accounts.create_profile_for_user(user)
+      token = Accounts.generate_api_token(user)
+      lib = library(profile, "Hades")
+
+      achievement(lib.profile_game, lib.platform_game,
+        name: "Antiga",
+        unlock_time: ~N[2026-01-01 10:00:00],
+        icon_image: "https://cdn/antiga.png"
+      )
+
+      achievement(lib.profile_game, lib.platform_game,
+        name: "Recente",
+        unlock_time: ~N[2026-05-01 10:00:00]
+      )
+
+      achievement(lib.profile_game, lib.platform_game, name: "Zagreus", achieved: false)
+      locked_achievement(lib.platform_game, "Bloqueada sem progresso")
+
+      %{conn: api_conn(conn, token), token: token, lib: lib}
+    end
+
+    test "lista desbloqueadas da mais recente e depois bloqueadas pelo nome", %{
+      conn: conn,
+      lib: lib
+    } do
+      conn = get(conn, ~p"/api/profile/games/#{lib.profile_game.id}/achievements")
+
+      assert %{"achievements" => achievements, "next_offset" => nil} = json_response(conn, 200)
+
+      assert Enum.map(achievements, &{&1["name"], &1["achieved"]}) == [
+               {"Recente", true},
+               {"Antiga", true},
+               {"Bloqueada sem progresso", false},
+               {"Zagreus", false}
+             ]
+
+      antiga = Enum.find(achievements, &(&1["name"] == "Antiga"))
+      assert antiga["unlocked_at"] == "2026-01-01T10:00:00"
+      assert antiga["icon_url"] == "https://cdn/antiga.png"
+      assert is_integer(antiga["id"])
+    end
+
+    test "filtra desbloqueadas e bloqueadas", %{conn: conn, token: token, lib: lib} do
+      path = ~p"/api/profile/games/#{lib.profile_game.id}/achievements"
+
+      assert %{"achievements" => unlocked} =
+               conn |> get(path, filter: "unlocked") |> json_response(200)
+
+      assert Enum.map(unlocked, & &1["name"]) == ["Recente", "Antiga"]
+
+      assert %{"achievements" => locked} =
+               build_conn()
+               |> api_conn(token)
+               |> get(path, filter: "locked")
+               |> json_response(200)
+
+      assert Enum.map(locked, & &1["name"]) == ["Bloqueada sem progresso", "Zagreus"]
+    end
+
+    test "pagina por offset e limit", %{conn: conn, token: token, lib: lib} do
+      path = ~p"/api/profile/games/#{lib.profile_game.id}/achievements"
+
+      assert %{"achievements" => first, "next_offset" => 3} =
+               conn |> get(path, limit: 3) |> json_response(200)
+
+      assert length(first) == 3
+
+      assert %{"achievements" => [%{"name" => "Zagreus"}], "next_offset" => nil} =
+               build_conn()
+               |> api_conn(token)
+               |> get(path, limit: 3, offset: 3)
+               |> json_response(200)
+    end
+
+    test "retorna 404 para jogo de outro perfil", %{conn: conn} do
+      other = library(other_profile(), "Celeste")
+
+      assert %{"error" => _} =
+               conn
+               |> get(~p"/api/profile/games/#{other.profile_game.id}/achievements")
+               |> json_response(404)
+    end
+  end
+
   describe "GET /api/profile/achievements" do
     test "retorna 401 sem token", %{conn: conn} do
       conn = get(conn, ~p"/api/profile/achievements")
@@ -853,6 +987,35 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
       conn = get(conn, ~p"/api/profiles/ninguem-aqui/games")
       assert %{"error" => _} = json_response(conn, 404)
     end
+
+    test "game e achievements do jogo do perfil do username", %{conn: conn} do
+      friend = other_profile()
+      lib = library(friend, "Celeste")
+      achievement(lib.profile_game, lib.platform_game, name: "Cume")
+
+      assert %{"game" => %{"name" => "Celeste"}} =
+               conn
+               |> get(~p"/api/profiles/#{friend.username}/games/#{lib.profile_game.id}")
+               |> json_response(200)
+
+      assert %{"achievements" => [%{"name" => "Cume"}]} =
+               build_conn()
+               |> api_conn(Accounts.generate_api_token(user_fixture()))
+               |> get(
+                 ~p"/api/profiles/#{friend.username}/games/#{lib.profile_game.id}/achievements"
+               )
+               |> json_response(200)
+    end
+
+    test "game retorna 404 quando o jogo não é do perfil do username", %{conn: conn} do
+      friend = other_profile()
+      lib = library(other_profile(), "Celeste")
+
+      assert %{"error" => _} =
+               conn
+               |> get(~p"/api/profiles/#{friend.username}/games/#{lib.profile_game.id}")
+               |> json_response(404)
+    end
   end
 
   defp played(%{profile_game: profile_game}, last_played) do
@@ -922,6 +1085,16 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
       achieved: Keyword.get(attrs, :achieved, true),
       unlock_time: Keyword.get(attrs, :unlock_time),
       pinned_position: Keyword.get(attrs, :pinned_position)
+    })
+    |> Repo.insert!()
+  end
+
+  defp locked_achievement(platform_game, name) do
+    %Achievement{}
+    |> Achievement.changeset(%{
+      platform_game_id: platform_game.id,
+      external_achievement_id: "achievement-#{unique_integer()}",
+      name: name
     })
     |> Repo.insert!()
   end

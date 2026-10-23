@@ -36,15 +36,41 @@ defmodule ProjetoPrisma.Accounts.ProfileDashboard do
   @doc """
   Retorna os detalhes de um jogo do profile com suas conquistas.
   """
-  def game_details(profile_id, profile_game_id)
+  def game_details(profile_id, profile_game_id) do
+    profile_id
+    |> game(profile_game_id)
+    |> maybe_put_game_achievements()
+  end
+
+  @doc """
+  Retorna um jogo do profile com as mesmas metricas da lista, sem as conquistas.
+  `nil` quando o jogo nao pertence ao profile.
+  """
+  def game(profile_id, profile_game_id)
       when is_integer(profile_id) and is_integer(profile_game_id) do
     profile_id
     |> games_with_metrics(profile_game_id: profile_game_id)
     |> List.first()
-    |> maybe_put_game_achievements()
   end
 
-  def game_details(_, _), do: nil
+  def game(_, _), do: nil
+
+  @doc """
+  Lista uma pagina das conquistas de um jogo retornado por `game/2`, na ordem do
+  modal da web: desbloqueadas primeiro, da mais recente, e depois as bloqueadas
+  pelo nome. `filter` aceita `:all` (padrao), `:unlocked` ou `:locked`.
+  """
+  def list_game_achievements(game, opts \\ []) do
+    offset = Keyword.get(opts, :offset, 0)
+    limit = Keyword.get(opts, :limit)
+
+    game
+    |> game_achievements_query()
+    |> maybe_filter_by_achieved(Keyword.get(opts, :filter, :all))
+    |> maybe_offset(offset)
+    |> maybe_limit(limit)
+    |> Repo.all()
+  end
 
   @doc """
   Lista jogos recentes com metricas para tabela.
@@ -209,30 +235,44 @@ defmodule ProjetoPrisma.Accounts.ProfileDashboard do
   defp maybe_put_game_achievements(nil), do: nil
 
   defp maybe_put_game_achievements(game) do
-    achievements =
-      Achievement
-      |> where([a], a.platform_game_id == ^game.platform_game_id)
-      |> join(:left, [a], pa in ProfileAchievement,
-        on: pa.achievement_id == a.id and pa.profile_game_id == ^game.profile_game_id
-      )
-      |> order_by(
-        [a, pa],
-        desc: fragment("COALESCE(?, false)", pa.achieved),
-        desc_nulls_last: pa.unlock_time,
-        asc: a.name
-      )
-      |> select([a, pa], %{
-        name: a.name,
-        description: a.description,
-        icon_image: a.icon_image,
-        icon_locked_image: a.icon_locked_image,
-        achieved: type(fragment("COALESCE(?, false)", pa.achieved), :boolean),
-        unlock_time: pa.unlock_time
-      })
-      |> Repo.all()
-
-    Map.put(game, :achievements, achievements)
+    Map.put(game, :achievements, game |> game_achievements_query() |> Repo.all())
   end
+
+  # `a.id` desempata a ordem, para a paginacao nao repetir nem pular conquistas.
+  defp game_achievements_query(game) do
+    Achievement
+    |> where([a], a.platform_game_id == ^game.platform_game_id)
+    |> join(:left, [a], pa in ProfileAchievement,
+      on: pa.achievement_id == a.id and pa.profile_game_id == ^game.profile_game_id
+    )
+    |> order_by(
+      [a, pa],
+      desc: fragment("COALESCE(?, false)", pa.achieved),
+      desc_nulls_last: pa.unlock_time,
+      asc: a.name,
+      asc: a.id
+    )
+    |> select([a, pa], %{
+      id: a.id,
+      name: a.name,
+      description: a.description,
+      icon_image: a.icon_image,
+      icon_locked_image: a.icon_locked_image,
+      achieved: type(fragment("COALESCE(?, false)", pa.achieved), :boolean),
+      unlock_time: pa.unlock_time
+    })
+  end
+
+  defp maybe_filter_by_achieved(query, :unlocked),
+    do: where(query, [_a, pa], pa.achieved == true)
+
+  defp maybe_filter_by_achieved(query, :locked),
+    do: where(query, [_a, pa], is_nil(pa.achieved) or pa.achieved == false)
+
+  defp maybe_filter_by_achieved(query, _filter), do: query
+
+  defp maybe_limit(query, limit) when is_integer(limit) and limit > 0, do: limit(query, ^limit)
+  defp maybe_limit(query, _limit), do: query
 
   defp games_with_metrics(profile_id, opts \\ []) do
     limit = Keyword.get(opts, :limit)
