@@ -113,6 +113,61 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
     end)
   end
 
+  @doc """
+  GET /api/profile/games/:id — um jogo do perfil para a tela de detalhes, com as
+  mesmas métricas da lista e o último desbloqueio. `404` quando o jogo não é do
+  perfil.
+
+  `GET /api/profiles/:username/games/:id` responde o mesmo para outro perfil.
+  """
+  def game(conn, %{"id" => raw_id}) do
+    with_game(conn, raw_id, fn game ->
+      json(conn, %{game: ApiJSON.profile_game_detail(game)})
+    end)
+  end
+
+  @doc """
+  GET /api/profile/games/:id/achievements?filter=&offset=&limit= — conquistas do
+  jogo, desbloqueadas primeiro (da mais recente) e depois as bloqueadas pelo nome.
+  `filter` é `all` (padrão), `unlocked` ou `locked`; `next_offset` é `nil` no fim.
+
+  `GET /api/profiles/:username/games/:id/achievements` responde o mesmo para
+  outro perfil.
+  """
+  def game_achievements(conn, %{"id" => raw_id} = params) do
+    with_game(conn, raw_id, fn game ->
+      offset = parse_int(params["offset"], 0, 0, nil)
+      limit = parse_int(params["limit"], @page_size, 1, @max_page_size)
+
+      {achievements, rest} =
+        game
+        |> ProfileDashboard.list_game_achievements(
+          filter: achievement_filter(params["filter"]),
+          offset: offset,
+          limit: limit + 1
+        )
+        |> Enum.split(limit)
+
+      json(conn, %{
+        achievements: Enum.map(achievements, &ApiJSON.game_achievement/1),
+        next_offset: if(rest == [], do: nil, else: offset + limit)
+      })
+    end)
+  end
+
+  defp with_game(conn, raw_id, fun) do
+    with_profile(conn, fn profile ->
+      case ProfileDashboard.game(profile.id, parse_int(raw_id, nil, 1, nil)) do
+        nil -> error(conn, :not_found, "Jogo nao encontrado")
+        game -> fun.(game)
+      end
+    end)
+  end
+
+  defp achievement_filter("unlocked"), do: :unlocked
+  defp achievement_filter("locked"), do: :locked
+  defp achievement_filter(_filter), do: :all
+
   # O username vem só do caminho (`/api/profiles/:username`), para `?username=`
   # em `/api/profile` não trocar o perfil consultado.
   defp with_profile(conn, fun) do

@@ -132,6 +132,35 @@ defmodule ProjetoPrismaWeb.ApiJSON do
     }
   end
 
+  @doc """
+  Jogo da tela de detalhes (`GET /api/profile/games/:id`): o mesmo jogo da lista
+  e a data do último desbloqueio, sem fuso.
+  """
+  def profile_game_detail(game) do
+    game
+    |> profile_game()
+    |> Map.put(:last_unlock_at, game.last_unlock_time)
+  end
+
+  @doc """
+  Conquista da tela do jogo (`GET /api/profile/games/:id/achievements`). Como no
+  modal da web, a desbloqueada usa o ícone aceso e a bloqueada o apagado, caindo
+  um para o outro quando falta.
+  """
+  def game_achievement(achievement) do
+    icon = present_image(achievement.icon_image)
+    locked_icon = present_image(achievement.icon_locked_image)
+
+    %{
+      id: achievement.id,
+      name: achievement.name,
+      description: achievement.description,
+      icon_url: if(achievement.achieved, do: icon || locked_icon, else: locked_icon || icon),
+      achieved: achievement.achieved,
+      unlocked_at: achievement.unlock_time
+    }
+  end
+
   defp present_image(url) when is_binary(url) and url != "", do: url
   defp present_image(_url), do: nil
 
