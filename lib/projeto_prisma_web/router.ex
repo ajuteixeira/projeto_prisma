@@ -111,6 +111,8 @@ defmodule ProjetoPrismaWeb.Router do
     get "/profile/stats", ProfileController, :stats
     get "/profile/recently-played", ProfileController, :recently_played
     get "/profile/games", ProfileController, :games
+    get "/profile/games/:id", ProfileController, :game
+    get "/profile/games/:id/achievements", ProfileController, :game_achievements
     get "/profile/achievements", ProfileController, :achievements
     get "/profile/achievements/:id", ProfileController, :achievement
     put "/profile/pinned-achievements", ProfileController, :update_pinned
@@ -118,6 +120,8 @@ defmodule ProjetoPrismaWeb.Router do
     get "/profiles/:username/stats", ProfileController, :stats
     get "/profiles/:username/recently-played", ProfileController, :recently_played
     get "/profiles/:username/games", ProfileController, :games
+    get "/profiles/:username/games/:id", ProfileController, :game
+    get "/profiles/:username/games/:id/achievements", ProfileController, :game_achievements
 
     get "/ranking", RankingController, :index
 
