@@ -122,6 +122,7 @@ defmodule ProjetoPrismaWeb.Router do
     get "/profiles/:username/games", ProfileController, :games
     get "/profiles/:username/games/:id", ProfileController, :game
     get "/profiles/:username/games/:id/achievements", ProfileController, :game_achievements
+    get "/profiles/:username/achievements/:id", ProfileController, :achievement
 
     get "/ranking", RankingController, :index
 
