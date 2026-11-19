@@ -2,6 +2,7 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
   use ProjetoPrismaWeb, :controller
 
   alias ProjetoPrisma.Accounts
+  alias ProjetoPrisma.Catalog
   alias ProjetoPrisma.Accounts.ProfileDashboard
   alias ProjetoPrismaWeb.ApiJSON
 
@@ -85,10 +86,11 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
   end
 
   @doc """
-  GET /api/profile/games?offset=&limit= — todos os jogos do perfil, como a lista
-  "Jogos" da web, sempre do jogado mais recente ao mais antigo (os sem data por
-  último). A ordem é fixa: não há parâmetro para mudá-la. `next_offset` é `nil`
-  no fim.
+  GET /api/profile/games?offset=&limit=&platform= — todos os jogos do perfil, como a
+  lista "Jogos" da web, sempre do jogado mais recente ao mais antigo (os sem data
+  por último). A ordem é fixa: não há parâmetro para mudá-la. `platform` (slug,
+  como `steam`) restringe a lista aos jogos dessa plataforma; um slug desconhecido
+  devolve a lista vazia. `next_offset` é `nil` no fim.
 
   `GET /api/profiles/:username/games` responde o mesmo para outro perfil.
   """
@@ -98,13 +100,20 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
       limit = parse_int(params["limit"], @page_size, 1, @max_page_size)
 
       {games, rest} =
-        profile.id
-        |> ProfileDashboard.list_games(limit + 1,
-          offset: offset,
-          sort_by: :last_played,
-          sort_order: :desc
-        )
-        |> Enum.split(limit)
+        case platform_filter(params["platform"]) do
+          :unknown ->
+            {[], []}
+
+          platform_id ->
+            profile.id
+            |> ProfileDashboard.list_games(limit + 1,
+              offset: offset,
+              sort_by: :last_played,
+              sort_order: :desc,
+              platform_id: platform_id
+            )
+            |> Enum.split(limit)
+        end
 
       json(conn, %{
         games: Enum.map(games, &ApiJSON.profile_game/1),
@@ -208,14 +217,16 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
   @doc """
   GET /api/profile/achievements/:id — detalhes de uma conquista do usuário, como
   o modal da web: nome, jogo, ícone, descrição e data de desbloqueio.
+
+  `GET /api/profiles/:username/achievements/:id` responde o mesmo para outro perfil.
   """
   def achievement(conn, %{"id" => raw_id}) do
-    id = parse_int(raw_id, nil, 1, nil)
-
-    case Accounts.get_achievement_detail(conn.assigns.current_scope, id) do
-      nil -> error(conn, :not_found, "Conquista nao encontrada")
-      achievement -> json(conn, %{achievement: ApiJSON.achievement_detail(achievement)})
-    end
+    with_profile(conn, fn profile ->
+      case Accounts.get_achievement_detail_for_profile(profile.id, parse_int(raw_id, nil, 1, nil)) do
+        nil -> error(conn, :not_found, "Conquista nao encontrada")
+        achievement -> json(conn, %{achievement: ApiJSON.achievement_detail(achievement)})
+      end
+    end)
   end
 
   @doc """
@@ -286,4 +297,14 @@ defmodule ProjetoPrismaWeb.Api.ProfileController do
     |> put_status(:not_found)
     |> json(%{error: "Perfil nao encontrado"})
   end
+
+  # `nil` sem filtro; `:unknown` quando o slug não é de nenhuma plataforma.
+  defp platform_filter(slug) when is_binary(slug) and slug != "" do
+    case Catalog.get_platform_by_slug(slug) do
+      nil -> :unknown
+      platform -> platform.id
+    end
+  end
+
+  defp platform_filter(_slug), do: nil
 end

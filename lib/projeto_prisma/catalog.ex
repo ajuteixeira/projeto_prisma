@@ -8,7 +8,7 @@ defmodule ProjetoPrisma.Catalog do
 
   import Ecto.Query
   alias ProjetoPrisma.Repo
-  alias ProjetoPrisma.Catalog.{Game, PlatformGame, Achievement}
+  alias ProjetoPrisma.Catalog.{Game, Platform, PlatformGame, Achievement}
 
   @doc """
   Busca ou cria um game.
@@ -90,6 +90,12 @@ defmodule ProjetoPrisma.Catalog do
       iex> get_platform_game_by_external_id(1, "203650")
       %PlatformGame{} | nil
   """
+  @doc """
+  Obtém a plataforma pelo slug (`"steam"`, `"xbox"`...). Retorna `nil` quando
+  nenhuma plataforma tem esse slug.
+  """
+  def get_platform_by_slug(slug) when is_binary(slug), do: Repo.get_by(Platform, slug: slug)
+
   def get_platform_game_by_external_id(platform_id, external_game_id) do
     Repo.get_by(PlatformGame,
       platform_id: platform_id,

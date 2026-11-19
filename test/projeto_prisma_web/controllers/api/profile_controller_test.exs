@@ -524,6 +524,25 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
                json_response(conn, 200)
     end
 
+    test "filtra pela plataforma do parâmetro platform", %{conn: conn, profile: profile} do
+      steam = platform("Steam", "steam")
+      xbox = platform("Xbox Live", "xbox")
+      library(profile, "Hades", steam)
+      library(profile, "Halo", xbox)
+
+      conn = get(conn, ~p"/api/profile/games?platform=xbox")
+
+      assert %{"games" => [%{"name" => "Halo"}], "next_offset" => nil} =
+               json_response(conn, 200)
+    end
+
+    test "plataforma desconhecida devolve a lista vazia", %{conn: conn, profile: profile} do
+      library(profile, "Hades", platform("Steam", "steam"))
+
+      conn = get(conn, ~p"/api/profile/games?platform=nintendo")
+      assert json_response(conn, 200) == %{"games" => [], "next_offset" => nil}
+    end
+
     test "serializa nome, imagens, plataforma e conquistas", %{conn: conn, profile: profile} do
       steam = platform("Steam", "steam")
       lib = library(profile, "Hades", steam)
@@ -893,6 +912,28 @@ defmodule ProjetoPrismaWeb.Api.ProfileControllerTest do
 
     test "retorna 404 para username inexistente", %{conn: conn} do
       conn = get(conn, ~p"/api/profiles/ninguem-aqui")
+      assert %{"error" => _} = json_response(conn, 404)
+    end
+
+    test "achievement retorna o detalhe da conquista do perfil do username", %{conn: conn} do
+      friend = other_profile()
+      %{profile_game: pg, platform_game: plg} = library(friend, "Hades")
+      pa = achievement(pg, plg, name: "Fantasma", pinned_position: 1)
+
+      conn = get(conn, ~p"/api/profiles/#{friend.username}/achievements/#{pa.id}")
+
+      assert %{"achievement" => %{"id" => id, "name" => "Fantasma", "game_name" => "Hades"}} =
+               json_response(conn, 200)
+
+      assert id == pa.id
+    end
+
+    test "achievement retorna 404 para conquista de outro perfil", %{conn: conn} do
+      friend = other_profile()
+      %{profile_game: pg, platform_game: plg} = library(other_profile(), "Doom")
+      foreign = achievement(pg, plg, [])
+
+      conn = get(conn, ~p"/api/profiles/#{friend.username}/achievements/#{foreign.id}")
       assert %{"error" => _} = json_response(conn, 404)
     end
 
