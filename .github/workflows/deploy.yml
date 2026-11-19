@@ -28,6 +28,7 @@ jobs:
           rsync -az --delete \
             --exclude '.git' \
             --exclude '.env*' \
+            --exclude 'Caddyfile' \
             --exclude '_build' \
             --exclude 'deps' \
             --exclude 'node_modules' \
@@ -35,10 +36,10 @@ jobs:
             -e "ssh -i ~/.ssh/deploy_key" \
             ./ "$SERVER_USER@$SERVER_HOST:projeto_prisma/"
 
-      - name: Rebuild and restart production stack
+      - name: Rebuild and restart stack
         env:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
           ssh -i ~/.ssh/deploy_key "$SERVER_USER@$SERVER_HOST" \
-            "cd ~/projeto_prisma && sudo docker compose -f compose.prod.yml --env-file .env.prod up -d --build"
+            "cd ~/projeto_prisma && docker compose -f compose.ec2.yml up -d --build && docker compose -f compose.ec2.yml restart app"
